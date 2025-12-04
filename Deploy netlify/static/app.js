@@ -14,20 +14,25 @@
 // podemos usar string vazia ("") para chamar a própria origem (ex.: http://127.0.0.1:8000/avaliacoes).
 // Quando o front estiver hospedado em outro domínio (ex.: Netlify),
 // precisamos apontar explicitamente para a URL pública do backend (Render, por exemplo).
-const API_BASE_URL = (function () {                               // IIFE (função imediatamente invocada) que calcula e retorna a URL base
-  const hostname = window.location.hostname;                      // obtém o hostname atual da página (ex.: "localhost", "meuapp.netlify.app")
+// URL base da API.
+// Em desenvolvimento local (frontend servido pelo próprio FastAPI em http://localhost:8000),
+// usamos string vazia ("") para chamar a própria origem.
+// Em produção (frontend hospedado em outro domínio, como Netlify),
+// apontamos explicitamente para a URL pública do backend hospedado no Render.
+const API_BASE_URL = (function () {                               // IIFE: função imediatamente executada que calcula a URL base
+  const hostname = window.location.hostname;                      // obtém o hostname atual (ex.: "localhost", "avaliacao-nortetel.netlify.app")
 
-  const isLocalhost =                                             // flag indicando se estamos em ambiente de desenvolvimento local
-    hostname === "localhost" || hostname === "127.0.0.1";         // considera tanto "localhost" quanto "127.0.0.1" como ambiente local
+  const isLocalhost =                                             // flag indicando se estamos em ambiente local
+    hostname === "localhost" || hostname === "127.0.0.1";         // considera tanto "localhost" quanto "127.0.0.1" como desenvolvimento
 
   if (isLocalhost) {                                              // se estivermos rodando localmente
-    return "";                                                    // usa string vazia: as chamadas vão para a mesma origem do backend (FastAPI local)
+    return "";                                                    // usa string vazia: a API é chamada na mesma origem (FastAPI local)
   }
 
-  // Para qualquer outro hostname (produção no Netlify, por exemplo),
-  // apontamos para a URL pública do backend hospedado no Render.
-  return "https://avaliacao-nortetel-backend.onrender.com/";                      // <-- SUBSTITUA depois pela URL real da sua API no Render
-})();                                                             // a função é executada imediatamente e o valor retornado é atribuído a API_BASE_URL
+  // Se NÃO for localhost (ou seja, produção no Netlify, por exemplo),
+  // usamos a URL pública do backend no Render.
+  return "https://avaliacao-nortetel-backend.onrender.com";       // <-- SUBSTITUA aqui se o seu domínio do Render for outro
+})();                                                             // executa a função imediatamente e guarda o resultado em API_BASE_URL
 
 // Variável global para manter o token JWT em memória enquanto a página está aberta.
 let authToken = null;
