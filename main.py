@@ -1,27 +1,27 @@
 # ========================= main.py =========================
 # Importações básicas da FastAPI
 from fastapi import FastAPI, Depends, HTTPException              # importa a classe FastAPI e utilidades de dependência/erros
-from fastapi.staticfiles import StaticFiles                       # permite servir arquivos estáticos (HTML, CSS, JS, imagens)
-from fastapi.responses import FileResponse                        # permite devolver um arquivo diretamente como resposta HTTP
-from fastapi.middleware.cors import CORSMiddleware               # importa o middleware responsável por habilitar CORS na aplicação
+from fastapi.staticfiles import StaticFiles                      # permite servir arquivos estáticos (HTML, CSS, JS, imagens)
+from fastapi.responses import FileResponse                       # permite devolver um arquivo diretamente como resposta HTTP
+from fastapi.middleware.cors import CORSMiddleware               # middleware que habilita CORS (acesso à API a partir de outros domínios)
 
 # Importações do Pydantic para definir schemas de entrada/saída
-from pydantic import BaseModel, Field                            # BaseModel é a base para os modelos Pydantic, Field permite meta-informações
+from pydantic import BaseModel, Field                            # BaseModel é a base dos modelos Pydantic; Field permite meta-informações por campo
 
 # Tipagem (para listas e opcionais)
-from typing import List, Optional                                # List e Optional são usados para declarar tipos opcionais e listas
+from typing import List, Optional                                # List e Optional são usados para declarar listas e campos opcionais
 
-import json                                                       # importa o módulo json para manipulação de dados JSON e audit trail
+# Módulos padrão de apoio
+import json                                                      # módulo para manipular dados em formato JSON (logs, payloads, etc.)
+import secrets                                                   # módulo para gerar valores aleatórios criptograficamente seguros (tokens, senhas)
+import string                                                    # módulo com constantes de letras/dígitos, útil para montar senhas
 
-import secrets                                                    # módulo para gerar valores aleatórios criptograficamente seguros
-import string                                                     # módulo que fornece constantes com letras e dígitos para montar senhas
+from datetime import date, datetime, timedelta                   # tipos de data, data/hora e diferença de tempo
 
-from datetime import date, datetime, timedelta                    # tipos de data, data/hora e diferença de tempo
-
-from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm  # ferramentas de login via OAuth2 (form padrão)
+from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm  # ferramentas de login via OAuth2 (form padrão de formulário)
 
 from jose import JWTError, jwt                                   # biblioteca para criar e validar tokens JWT
-from passlib.context import CryptContext                         # contexto para hashing de senha (bcrypt)
+from passlib.context import CryptContext                         # contexto do Passlib para hash/validação de senhas
 
 # Importações do SQLAlchemy para ORM
 from sqlalchemy import (                                         # importa vários elementos do SQLAlchemy
@@ -1453,33 +1453,35 @@ app = FastAPI(                                                   # instancia a a
     version="0.1.0"                                              # versão inicial da API
 )
 
-# ------------------------------
-# Configuração de CORS (Cross-Origin Resource Sharing)
-# ------------------------------
+# -----------------------------------------------------------
+# Configuração de CORS (para permitir o front do Netlify acessar a API)
+# -----------------------------------------------------------
 origins = [                                                      # lista de origens autorizadas a consumir a API
-    "http://localhost:8000",                                     # origem padrão quando o front é servido pelo próprio FastAPI em desenvolvimento
+    "http://localhost:8000",                                     # origem quando o front é servido pelo próprio FastAPI em desenvolvimento
     "http://127.0.0.1:8000",                                     # variação com IP local
-    "https://avaliacao-nortetel.netlify.app",                              # origem do front em produção (substituir pelo domínio real do Netlify)
-]                                                                # você pode adicionar mais origens aqui se precisar
+    "https://avaliacao-nortetel.netlify.app",                    # origem EXATA do front em produção no Netlify
+]
 
-app.add_middleware(                                              # registra um middleware na aplicação
-    CORSMiddleware,                                              # especifica que o middleware a ser usado é o de CORS
-    allow_origins=origins,                                       # define quais origens terão permissão para fazer requisições
-    allow_credentials=True,                                      # permite o envio de credenciais (cookies, headers de autorização, etc.)
+app.add_middleware(                                              # registra o middleware de CORS na aplicação
+    CORSMiddleware,                                              # classe de middleware usada para tratar CORS
+    allow_origins=origins,                                       # restringe quais origens podem acessar a API
+    allow_credentials=True,                                      # permite envio de cookies/credenciais (se um dia forem usados)
     allow_methods=["*"],                                         # libera todos os métodos HTTP (GET, POST, PUT, DELETE, etc.)
     allow_headers=["*"],                                         # libera todos os cabeçalhos nas requisições
 )
 
-# Monta a pasta de arquivos estáticos (HTML, CSS, JS) na rota /static
-app.mount(                                                       # chama o método mount para registrar uma rota de arquivos estáticos
+# -----------------------------------------------------------
+# Arquivos estáticos e rota raiz (para uso local / testes)
+# -----------------------------------------------------------
+app.mount(                                                       # registra uma rota de arquivos estáticos
     "/static",                                                   # prefixo de URL onde os arquivos ficarão acessíveis
-    StaticFiles(directory="static"),                             # informa que os arquivos estão na pasta local chamada "static"
-    name="static"                                                # nome interno desse mount, usado apenas pelo FastAPI
+    StaticFiles(directory="static"),                             # aponta para a pasta local "static" (CSS, JS, imagens)
+    name="static",                                               # nome interno desse mount, usado apenas pelo FastAPI
 )
 
 @app.get("/")                                                    # define a rota GET para a raiz do site ("/")
-def servir_frontend() -> FileResponse:                           # função que será chamada quando acessarmos a raiz
-    return FileResponse("index.html")                     # devolve o arquivo index.html da pasta static como resposta
+def servir_frontend() -> FileResponse:                           # função chamada quando acessamos a raiz
+    return FileResponse("index.html")                            # devolve o arquivo index.html na raiz do projeto (opção B que você escolheu)
 
 # -----------------------------------------------------------
 # Rota de saúde (opcional, só para testar se está no ar)
