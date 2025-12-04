@@ -1,0 +1,763 @@
+:root {
+  /* Cor principal Nortetel (azul de destaque) */
+  --nt-primary: #0b71f1;
+  /* Azul escuro Nortetel para cabeçalhos */
+  --nt-primary-dark: #0a2b4e;
+  /* Cor de fundo geral da página */
+  --nt-background: #f3f5fb;
+  /* Cor básica de texto */
+  --nt-text: #111827;
+  /* Cor de texto secundário */
+  --nt-text-muted: #6b7280;
+  /* Cor do cartão (fundos brancos) */
+  --nt-card: #ffffff;
+  /* Borda extremamente suave */
+  --nt-border-soft: #e5e7eb;
+  /* Cor de erro */
+  --nt-danger: #dc2626;
+  /* Cor de sucesso */
+  --nt-success: #16a34a;
+  /* Raio padrão dos cantos */
+  --nt-radius-lg: 18px;
+  /* Sombra suave dos cartões */
+  --nt-shadow-soft: 0 18px 45px rgba(15, 23, 42, 0.12);
+}
+
+/* Reset básico para remover margens/paddings padrão */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+/* Estilo base do body */
+body {
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    sans-serif;
+  background: radial-gradient(circle at top left, #e0ecff, var(--nt-background));
+  color: var(--nt-text);
+  min-height: 100vh;
+}
+
+/* Contêiner raiz que ocupa a tela toda */
+#app-root {
+  min-height: 100vh;
+}
+
+/* Classe genérica para cada "tela" (login ou app principal) */
+.screen {
+  min-height: 100vh;
+}
+
+/* Utilitário para esconder seções */
+.hidden {
+  display: none !important;
+}
+
+/* ========================== TELA DE LOGIN ========================== */
+
+.login-wrapper {
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 40px 16px;
+  display: flex;
+  align-items: center;
+  min-height: 100vh;
+}
+
+.login-card {
+  background: var(--nt-card);
+  border-radius: 24px;
+  padding: 32px 28px;
+  box-shadow: var(--nt-shadow-soft);
+  width: 100%;
+}
+
+.login-header {
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.login-logo {
+  width: 120px;
+  height: auto;
+  margin-bottom: 12px;
+}
+
+.login-title {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--nt-primary-dark);
+}
+
+.login-subtitle {
+  margin-top: 4px;
+  font-size: 0.9rem;
+  color: var(--nt-text-muted);
+}
+
+.login-form {
+  margin-top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.login-hint {
+  margin-top: 12px;
+  font-size: 0.8rem;
+  color: var(--nt-text-muted);
+  text-align: center;
+}
+
+/* ========================== LAYOUT PRINCIPAL ======================= */
+
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 24px;
+  background: var(--nt-primary-dark);
+  color: #f9fafb;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.3);
+}
+
+.topbar-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.topbar-logo {
+  width: 65px;
+  height: auto;
+  padding: 6px;
+}
+
+.topbar-text h1 {
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
+.topbar-text span {
+  font-size: 0.8rem;
+  color: #cbd5f5;
+}
+
+.topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.user-info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.user-name {
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.user-role {
+  font-size: 0.8rem;
+  color: #d1d5db;
+}
+
+/* ========================== LAYOUT DO CONTEÚDO ==================== */
+
+.main-layout {                                   /* contêiner principal que segura os cards da aplicação */
+  max-width: 1200px;                            /* limita a largura máxima do conteúdo no centro da tela */
+  margin: 24px auto 40px;                       /* dá margem superior e inferior e centraliza horizontalmente */
+  padding: 0 16px 24px;                         /* espaçamento interno nas laterais e embaixo */
+  display: flex;                                /* usa flexbox para organizar os cards */
+  flex-direction: column;                       /* força os cards a ficarem um embaixo do outro, em coluna */
+  gap: 22px;                                    /* espaço vertical entre o card de lista e o card de formulário */
+}
+
+/* Cartões principais */
+.card {
+  background: var(--nt-card);
+  border-radius: var(--nt-radius-lg);
+  box-shadow: var(--nt-shadow-soft);
+  padding: 20px 18px;
+  display: flex;
+  flex-direction: column;
+  min-height: 320px;
+}
+
+/* Ajuste das duas colunas */
+.card-list {
+  overflow: hidden;
+}
+
+/*
+.card-form {
+  
+}
+*/
+
+/* Cabeçalho de cada cartão */
+.card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.card-header h2 {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--nt-primary-dark);
+}
+
+.card-subtitle {
+  margin-top: 2px;
+  font-size: 0.8rem;
+  color: var(--nt-text-muted);
+}
+
+/* ========================== TABELA DE AVALIAÇÕES ================= */
+
+.table-wrapper {
+  flex: 1;
+  overflow: auto;
+  border-radius: 14px;
+  border: 1px solid var(--nt-border-soft);
+  background: #f9fafb;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+  table-layout: fixed; /* garante que as larguras definidas abaixo sejam respeitadas */
+  overflow-x: auto;
+}
+
+.table th,
+.table td {                                /* aplica às células (cabeçalho e corpo) da tabela de usuários */
+  white-space: normal;                          /* não deixa o texto quebrar em várias linhas dentro da mesma célula */
+  /* overflow: hidden;
+  text-overflow: auto; */
+  /* overflow-x: auto; */
+}
+
+/* Largura fixa das colunas da tabela de avaliações:
+   1: ID, 2: Objeto, 3: Cliente, 4: Data, 5: Local, 6: Status */
+.table th:nth-child(1),
+.table td:nth-child(1) {
+  /* width: 6%;             ID bem estreito */
+  width: auto;
+  text-align: center;
+}
+
+.table th:nth-child(2),
+.table td:nth-child(2) {
+  /* width: 39%;            Objeto ganha a maior parte do espaço */
+  width: auto;
+  text-align: center;
+}
+
+.table th:nth-child(3),
+.table td:nth-child(3) {
+  /* width: 16%;            Cliente */
+  width: auto;
+  text-align: center;
+}
+
+.table th:nth-child(4),
+.table td:nth-child(4) {
+  /* width: 16%;            Data */
+  width: auto;
+  text-align: center;
+  word-break: break-word; /*quebra de linha pelo @ do email*/
+}
+
+.table th:nth-child(5),
+.table td:nth-child(5) {
+  /* width: 13%;            Local */
+  width: auto;
+  text-align: center;
+}
+
+.table th:nth-child(6),
+.table td:nth-child(6) {
+  /* width: 10%;            Status */
+  width: auto;
+  text-align: center;
+}
+
+.table thead {
+  background: #eef2ff;
+}
+
+.table th,
+.table td {
+  padding: 10px 12px;
+  text-align: left;
+}
+
+.table th {
+  font-weight: 600;
+  color: #374151;
+  border-bottom: 1px solid var(--nt-border-soft);
+}
+
+.table tbody tr:nth-child(even) {
+  background: #f9fafb;
+}
+
+.table tbody tr:hover {
+  background: #e5f0ff;
+}
+
+.table-empty {
+  text-align: center;
+  color: var(--nt-text-muted);
+  font-style: italic;
+}
+
+/* ========================== FORMULÁRIOS =========================== */
+
+.form-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.form-row {
+  display: flex;
+  gap: 12px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  gap: 4px;
+}
+
+.form-group.full-width {
+  flex: 1 0 100%;
+}
+
+label {
+  font-size: 0.8rem;
+  color: var(--nt-text-muted);
+}
+
+input,
+select,
+textarea {
+  border-radius: 10px;
+  border: 1px solid var(--nt-border-soft);
+  padding: 8px 10px;
+  font-size: 0.9rem;
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s;
+  background-color: #ffffff;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: var(--nt-primary);
+  box-shadow: 0 0 0 1px rgba(11, 113, 241, 0.1);
+  background-color: #f0f6ff;
+}
+
+/* Área de feedback (erro/sucesso) abaixo do formulário */
+.form-feedback {
+  font-size: 0.8rem;
+  min-height: 18px;
+}
+
+.form-error {
+  font-size: 0.8rem;
+  color: var(--nt-danger);
+}
+
+.form-success {
+  font-size: 0.8rem;
+  color: var(--nt-success);
+}
+
+/* Rodapé de ações do formulário (botões) */
+.form-actions {                          /* contêiner dos botões na base do formulário */
+  margin-top: 4px;                       /* pequeno espaçamento acima da área de botões */
+  display: flex;                         /* usa flexbox para alinhar os botões em linha */
+  gap: 10px;                             /* espaço horizontal entre os botões */
+  /* justify-content: flex-end; */       /* linha original que alinharia à direita (mantida comentada) */
+  justify-content: center;               /* mantém os botões centralizados no formulário */
+}
+
+.form-actions .btn {                     /* estilo aplicado a qualquer botão dentro da área .form-actions */
+  min-width: 140px;                      /* largura mínima para ficar visível e confortável */
+}
+
+/* Abas de seleção de tipo de formulário (redes / infraestrutura) */
+.avaliacao-tabs {                        /* contêiner das abas logo abaixo dos botões do formulário */
+  margin-top: 8px;                       /* espaço entre botões principais e as abas */
+  margin-bottom: 12px;                   /* espaço entre as abas e o cabeçalho do formulário */
+  display: inline-flex;                  /* exibe as abas em linha, ocupando apenas o espaço necessário */
+  gap: 6px;                              /* espaço horizontal entre cada aba */
+  padding: 2px;                          /* pequeno padding interno para dar “respiro” */
+  border-radius: 999px;                  /* bordas bem arredondadas (estilo pílula) */
+  background-color: #e5e7eb;             /* fundo claro para destacar o conjunto de abas */
+  width: max-content;
+}
+
+.avaliacao-tab-btn {                     /* estilo base de cada aba de tipo de formulário */
+  border: none;                          /* remove borda nativa do botão */
+  background: transparent;               /* fundo transparente quando inativo */
+  padding: 6px 12px;                     /* preenchimento interno confortável */
+  font-size: 0.8rem;                     /* fonte levemente menor que a dos botões principais */
+  border-radius: 999px;                  /* deixa o botão também com formato de pílula */
+  cursor: pointer;                       /* cursor de mão para indicar interatividade */
+  color: var(--nt-text-muted);           /* texto com cor mais suave quando inativo */
+  transition: background-color 0.15s ease, color 0.15s ease; /* animação suave nas mudanças de estado */
+}
+
+.avaliacao-tab-btn.active {              /* estado ativo da aba selecionada */
+  background-color: var(--nt-primary);   /* usa a cor principal Nortetel de fundo */
+  color: #ffffff;                        /* texto branco para bom contraste */
+}
+
+
+/* ========================== BOTÕES ================================ */
+
+.btn {
+  border-radius: 999px;
+  border: none;
+  cursor: pointer;
+  font-size: 0.85rem;
+  padding: 8px 16px;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: transform 0.08s ease, box-shadow 0.12s ease, background 0.12s,
+    color 0.12s;
+}
+
+.btn-primary {
+  background: linear-gradient(90deg, var(--nt-primary), #2563eb);
+  color: #ffffff;
+  box-shadow: 0 10px 30px rgba(37, 99, 235, 0.35);
+}
+
+.btn-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 14px 35px rgba(37, 99, 235, 0.45);
+}
+
+.btn-secondary {
+  background: rgba(15, 23, 42, 0.15);
+  color: #f9fafb;
+}
+
+.btn-secondary:hover {
+  background: rgba(15, 23, 42, 0.3);
+}
+
+.btn-ghost {
+  background: transparent;
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.7);
+  color: #0f172a;
+  padding-inline: 14px;
+  width: 90px;
+  height: 30px;
+}
+
+.btn-ghost:hover {
+  background: #2563eb;
+  color: #ffffff;
+}
+
+.btn-small {
+  padding: 6px 12px;
+  font-size: 0.8rem;
+}
+
+.btn-full {
+  width: 100%;
+}
+
+/* ========================== MODAL DE SENHA ======================== */
+.modal-overlay {                               /* overlay escuro que cobre a tela toda */
+    position: fixed;                           /* fixa em relação à janela */
+    inset: 0;                                  /* ocupa toda a área da tela (top/right/bottom/left = 0) */
+    background: rgba(15, 23, 42, 0.55);        /* fundo escurecido semitransparente */
+    display: flex;                             /* usa flexbox para centralizar o modal */
+    align-items: center;                       /* centraliza verticalmente */
+    justify-content: center;                   /* centraliza horizontalmente */
+    z-index: 999;                              /* garante que fique acima do restante da interface */
+}
+
+.modal {                                       /* caixa branca do modal em si */
+    background: #ffffff;                       /* fundo branco */
+    border-radius: 16px;                       /* cantos arredondados */
+    padding: 24px 28px;                        /* espaçamento interno */
+    max-width: 400px;                          /* largura máxima do modal */
+    width: 100%;                               /* ocupa 100% até o máximo definido */
+    box-shadow: 0 20px 45px rgba(15, 23, 42, 0.25); /* sombra suave para destacar o modal */
+}
+
+.modal-title {                                 /* estilo do título do modal */
+    font-size: 20px;                           /* tamanho de fonte maior */
+    font-weight: 600;                          /* peso de fonte semi-negrito */
+    color: #0f172a;                            /* cor escura para boa leitura */
+    margin-bottom: 8px;                        /* espaço abaixo do título */
+}
+
+.modal-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.45);
+}
+
+.modal-content {
+  position: relative;
+  max-width: 420px;
+  margin: 100px auto;
+  background: var(--nt-card);
+  border-radius: 20px;
+  padding: 20px 18px;
+  box-shadow: var(--nt-shadow-soft);
+}
+
+.modal-content h2 {
+  font-size: 1.1rem;
+  margin-bottom: 4px;
+  color: var(--nt-primary-dark);
+}
+
+.modal-text {                                  /* parágrafo explicativo do modal */
+    font-size: 14px;                           /* tamanho de fonte padrão pequeno */
+    color: #6b7280;                            /* cor de texto secundária (cinza) */
+    margin-bottom: 16px;                       /* espaço abaixo do texto */
+}
+
+.modal-form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.modal-label {                                 /* rótulos dos campos do modal */
+    font-size: 13px;                           /* tamanho de fonte dos rótulos */
+    color: #374151;                            /* cor de texto levemente escura */
+}
+
+.modal-actions {
+  margin-top: 12px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.modal-input {                                 /* campos de entrada do modal */
+    border-radius: 10px;                       /* cantos arredondados */
+    border: 1px solid #d1d5db;                 /* borda cinza clara */
+    padding: 8px 10px;                         /* espaçamento interno do input */
+    font-size: 14px;                           /* tamanho da fonte do input */
+    outline: none;                             /* remove borda padrão azul do navegador */
+}
+
+.modal-input:focus {                           /* estilo quando o campo do modal está focado */
+    border-color: #0b71f1;                     /* borda azul com a cor da Nortetel */
+    box-shadow: 0 0 0 1px rgba(11, 113, 241, 0.15); /* leve glow azul ao redor */
+}
+
+.modal-error {                                 /* texto de erro dentro do modal */
+    font-size: 13px;                           /* tamanho de fonte pequeno */
+    color: #dc2626;                            /* cor vermelha para erros */
+    margin-top: 4px;                           /* espaço acima da mensagem */
+}
+
+.users-modal {                                /* modal específico usado para a gestão de usuários */
+  max-height: 80vh;                           /* limita a altura total do modal para caber na janela */
+  display: flex;                              /* usa flexbox para organizar o conteúdo interno */
+  flex-direction: column;                     /* empilha os elementos um embaixo do outro */
+  gap: 12px;                                  /* adiciona um pequeno espaçamento vertical entre os blocos */
+}
+
+.users-table-wrapper {                        /* wrapper da tabela dentro do modal de usuários */
+  max-height: 50vh;                           /* limita a altura da tabela para ativar rolagem se a lista for grande */
+}
+
+/* ========================== RESPONSIVIDADE ======================== */
+
+@media (max-width: 1120px) {                          /* aplica estas regras quando a largura da tela for até 1120px
+                                                         (inclui celulares, tablets e janelas de ~50% em monitores grandes) */
+  .main-layout {                                      /* ajusta o layout principal (lista + formulário) */
+    grid-template-columns: minmax(0, 1fr);            /* troca a grade para uma única coluna, empilhando as sections
+                                                         (primeiro "Avaliações registradas", depois "Nova Avaliação") */
+  }
+
+  .card {                                             /* estilo para os cartões em telas menores/médias */
+    min-height: auto;                                 /* remove a altura mínima fixa para o card se adaptar ao conteúdo
+                                                         e evitar espaços em branco desnecessários na pilha vertical */
+  }
+
+  .topbar {                                           /* ajustes da barra superior em telas menores/médias */
+    flex-direction: column;                           /* coloca logo/título e informações do usuário em coluna (um abaixo do outro) */
+    align-items: flex-start;                          /* alinha todos os itens da topbar à esquerda para melhor leitura */
+    gap: 10px;                                        /* adiciona um pequeno espaço vertical entre os blocos da topbar */
+  }
+
+  .user-info {                                        /* bloco que mostra nome e papel do usuário logado */
+    align-items: flex-start;                          /* alinha os textos de usuário/papel à esquerda em vez de à direita */
+  }
+}
+
+
+@media (max-width: 600px) {
+  .form-row {
+    flex-direction: column;
+  }
+
+  .topbar {
+    padding-inline: 16px;
+  }
+}
+
+/* =============== MODAL DE TROCA DE SENHA (LAYOUT FIXO) =============== */
+
+#password-modal-overlay {                       /* overlay que cobre a tela quando o modal está aberto */
+    position: fixed;                            /* fica fixo em relação à janela, não rola com a página */
+    inset: 0;                                   /* ocupa toda a área: top/right/bottom/left = 0 */
+    background: rgba(15, 23, 42, 0.55);         /* fundo escurecido semitransparente */
+    display: flex;                              /* usa flexbox para centralizar o conteúdo */
+    align-items: center;                        /* centraliza verticalmente o conteúdo */
+    justify-content: center;                    /* centraliza horizontalmente o conteúdo */
+    z-index: 999;                               /* garante que fique acima de todo o restante da interface */
+}
+
+#password-modal-overlay.hidden {                /* estado quando o modal está escondido */
+    display: none !important;                   /* some completamente da tela */
+}
+
+.password-modal {                               /* caixinha branca do modal de senha */
+    background: #ffffff;                        /* fundo branco para contraste com o overlay escuro */
+    border-radius: 16px;                        /* cantos arredondados */
+    padding: 24px 28px;                         /* espaçamento interno confortável */
+    max-width: 420px;                           /* largura máxima do modal */
+    width: 100%;                                /* ocupa 100% até atingir o max-width */
+    margin: 0 16px;                             /* respiro nas laterais em telas menores */
+    box-shadow: 0 20px 45px rgba(15, 23, 42, 0.25); /* sombra para destacar do fundo */
+}
+
+.password-modal__title {                        /* título “Trocar senha padrão” */
+    font-size: 20px;                            /* tamanho de fonte maior */
+    font-weight: 600;                           /* semi-negrito */
+    color: #0f172a;                             /* cor de texto escura */
+    margin-bottom: 8px;                         /* espaço abaixo do título */
+}
+
+.password-modal__text {                         /* texto explicativo abaixo do título */
+    font-size: 14px;                            /* fonte um pouco menor */
+    color: #6b7280;                             /* cinza suave (texto secundário) */
+    margin-bottom: 16px;                        /* espaço abaixo do parágrafo */
+}
+
+.password-modal__form {                         /* layout do formulário dentro do modal */
+    display: flex;                              /* usa flexbox */
+    flex-direction: column;                     /* empilha elementos em coluna */
+    gap: 8px;                                   /* espaço entre campos/labels */
+}
+
+.password-modal__label {                        /* rótulos dos campos (Senha atual / Nova senha) */
+    font-size: 13px;                            /* fonte um pouco menor */
+    color: #374151;                             /* cinza escuro */
+}
+
+.password-modal__input {                        /* inputs de senha dentro do modal */
+    border-radius: 10px;                        /* cantos arredondados */
+    border: 1px solid #d1d5db;                  /* borda cinza clara */
+    padding: 8px 10px;                          /* espaçamento interno (altura e largura) */
+    font-size: 14px;                            /* tamanho da fonte do texto digitado */
+    outline: none;                              /* remove o contorno padrão do navegador */
+    width: 100%;                                /* ocupa toda a largura disponível do formulário */
+}
+
+.password-modal__input:focus {                  /* estilo quando o input está em foco */
+    border-color: #0b71f1;                      /* borda azul Nortetel */
+    box-shadow: 0 0 0 1px rgba(11, 113, 241, 0.15); /* leve glow azul ao redor */
+}
+
+.password-modal__error {                        /* mensagem de erro no modal (senha incorreta, etc.) */
+    font-size: 13px;                            /* fonte pequena */
+    color: #dc2626;                             /* vermelho (erro) */
+    margin-top: 4px;                            /* pequeno espaço acima do texto */
+}
+
+.password-modal__actions {                      /* container da área dos botões no rodapé do modal */
+    margin-top: 12px;                           /* espaço acima dos botões */
+    display: flex;                              /* usa flexbox */
+    justify-content: flex-end;                  /* alinha o botão à direita */
+}
+
+/* Se quiser deixar o botão do modal com largura total, descomente abaixo */
+
+.password-modal__actions .btn-primary {         /* botão principal dentro do modal */
+    width: 100%;                                /* faz o botão ocupar toda a largura */
+}
+
+/* Linhas da tabela que representam avaliações clicáveis (para abrir em modo de edição) */
+.table tbody tr.avaliacao-row {        /* estiliza apenas as linhas com classe .avaliacao-row */
+  cursor: pointer;                     /* mostra cursor de mão para indicar que a linha é clicável */
+}
+
+/* Card de gestão de usuários (apenas administradores) */
+.card-users {                            /* card específico para a área de usuários */
+  grid-column: 1 / -1;                   /* faz o card ocupar as duas colunas da grid (linha inteira) */
+}
+
+/* tabela genérica de auditoria, reaproveita para usuários e avaliações */
+.tabela-auditoria th, /* aplica estilos às células de cabeçalho da tabela de auditoria */
+.tabela-auditoria td { /* aplica estilos às células de dados da tabela de auditoria */
+  padding: 6px 8px;          /* define espaçamento interno das células para melhor leitura */
+  font-size: 0.85rem;        /* deixa o texto um pouco menor para caber melhor em telas estreitas */
+  vertical-align: top;       /* alinha o texto ao topo da célula, útil em linhas com textos grandes */
+  word-break: break-word;    /* permite quebrar palavras longas para evitar estouro de coluna */
+  overflow-wrap: anywhere;   /* garante quebra de texto em qualquer ponto, evitando sobreposição */
+}
+
+/* contêiner com rolagem para tabelas de auditoria */
+.table-wrapper {              /* classe usada para envolver as tabelas permitindo rolagem */
+  max-height: 260px;          /* altura máxima fixa do bloco de tabela (ajuste conforme preferir) */
+  overflow-y: auto;           /* habilita rolagem vertical se o conteúdo ultrapassar a altura definida */
+  overflow-x: auto;           /* habilita rolagem horizontal caso haja muitas colunas */
+}
+
+/* ==========================
+   Layout específico da aba de auditoria
+   ========================== */
+
+.auditoria-layout {                       /* layout específico para os cards de auditoria */
+  display: grid;                          /* usa grid para posicionar os dois cards lado a lado em telas amplas */
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); /* duas colunas proporcionais para cada card */
+  gap: 22px;                              /* espaçamento visual entre os cards */
+}
+
+.card.card-compact {                      /* variação de card mais enxuta, usada na tela de auditoria */
+  min-height: auto;                       /* remove a altura mínima alta e deixa o card acompanhar o conteúdo */
+}
+
+.auditoria-layout .table-wrapper {        /* wrapper de tabela dentro dos cards de auditoria */
+  margin-top: 10px;                       /* separa visualmente a tabela da área de filtros */
+}
+
+@media (max-width: 1120px) {              /* comportamento para telas médias/pequenas */
+  .auditoria-layout {                     /* ajusta o layout da aba de auditoria em telas menores */
+    grid-template-columns: minmax(0, 1fr);/* empilha os dois cards, um abaixo do outro */
+  }
+}

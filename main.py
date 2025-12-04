@@ -1459,7 +1459,7 @@ app = FastAPI(                                                   # instancia a a
 origins = [                                                      # lista de origens autorizadas a consumir a API
     "http://localhost:8000",                                     # origem padrão quando o front é servido pelo próprio FastAPI em desenvolvimento
     "http://127.0.0.1:8000",                                     # variação com IP local
-    "https://avaliacao-nortetel.netlify.app/",                              # origem do front em produção (substituir pelo domínio real do Netlify)
+    "https://avaliacao-nortetel.netlify.app",                              # origem do front em produção (substituir pelo domínio real do Netlify)
 ]                                                                # você pode adicionar mais origens aqui se precisar
 
 app.add_middleware(                                              # registra um middleware na aplicação
@@ -1479,7 +1479,7 @@ app.mount(                                                       # chama o méto
 
 @app.get("/")                                                    # define a rota GET para a raiz do site ("/")
 def servir_frontend() -> FileResponse:                           # função que será chamada quando acessarmos a raiz
-    return FileResponse("static/index.html")                     # devolve o arquivo index.html da pasta static como resposta
+    return FileResponse("index.html")                     # devolve o arquivo index.html da pasta static como resposta
 
 # -----------------------------------------------------------
 # Rota de saúde (opcional, só para testar se está no ar)
