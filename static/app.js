@@ -26,7 +26,7 @@ const API_BASE_URL = (function () {                               // IIFE (funç
 
   // Para qualquer outro hostname (produção no Netlify, por exemplo),
   // apontamos para a URL pública do backend hospedado no Render.
-  return "https://SEU-BACKEND.onrender.com";                      // <-- SUBSTITUA depois pela URL real da sua API no Render
+  return "https://avaliacao-nortetel-backend.onrender.com/";                      // <-- SUBSTITUA depois pela URL real da sua API no Render
 })();                                                             // a função é executada imediatamente e o valor retornado é atribuído a API_BASE_URL
 
 // Variável global para manter o token JWT em memória enquanto a página está aberta.
