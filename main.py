@@ -165,7 +165,7 @@ class Avaliacao(Base):                                           # define a clas
     q1_qtd_portas_patch_panel = Column(Integer)                  # quantidade de portas do patch panel
     q1_qtd_patch_cords = Column(Integer)                         # quantidade total de patch cords previstos
     q1_marca_cab = Column(String(50))                            # marca do cabeamento UTP (Furukawa, Commscope, etc.)
-    q1_modelo_patch_panel = Column(Text)                         # modelo do patch panel (fabricante, número de portas, etc.)
+    q1_modelo_patch_panel = Column(Text)                         # modelo do patch panel quando houver novo fornecimento (CommScope 24 portas, Furukawa 24 portas, Systimax 24 portas ou "Outro: <texto>")
     q1_qtd_guias_cabos = Column(Integer)                         # quantidade de guias de cabos a instalar
     q1_patch_cords_modelo = Column(Text)                         # modelo/descrição dos patch cords (comprimentos, categoria, etc.)
     q1_patch_cords_cor = Column(String(50))                      # cor ou cores dos patch cords utilizados
@@ -642,7 +642,7 @@ class AvaliacaoCreateSchema(AvaliacaoBaseSchema):  # Schema usado para criação
     q1_qtd_portas_patch_panel: Optional[int] = None  # (número) Quantidade de portas no patch panel
     q1_qtd_patch_cords: Optional[int] = None  # (número) Quantidade de patch cords (cordões de rede)
     q1_marca_cab: Optional[str] = None  # (texto) Marca do cabeamento UTP (ex.: Furukawa, Commscope, etc.)
-    q1_modelo_patch_panel: Optional[str] = None  # (texto) Modelo do patch panel (fabricante, número de portas, etc.)
+    q1_modelo_patch_panel: Optional[str] = None  # (texto) Modelo do patch panel quando houver novo fornecimento (CommScope/Furukawa/Systimax ou "Outro: <texto>")
     q1_qtd_guias_cabos: Optional[int] = None  # (número) Quantidade de guias de cabos a instalar
     q1_patch_cords_modelo: Optional[str] = None  # (texto) Modelo/descrição dos patch cords (comprimentos, categoria, etc.)
     q1_patch_cords_cor: Optional[str] = None  # (texto) Cor ou cores dos patch cords utilizados
@@ -845,7 +845,7 @@ class AvaliacaoUpdateSchema(BaseModel):  # schema usado para atualizar uma avali
     )
     q1_modelo_patch_panel: Optional[str] = Field(  # modelo do patch panel
         None,  # None = não alterar
-        description="Modelo do patch panel (fabricante, número de portas, etc.)"  # descrição do campo
+        description="Modelo do patch panel quando houver novo fornecimento (CommScope 24 portas, Furukawa 24 portas, Systimax 24 portas ou 'Outro: <texto>')"  # descrição do campo
     )
     q1_qtd_guias_cabos: Optional[int] = Field(  # quantidade de guias de cabos
         None,  # None = não alterar
@@ -1299,7 +1299,7 @@ class AvaliacaoOutSchema(AvaliacaoBaseSchema):                      # schema de 
     )
     q1_modelo_patch_panel: Optional[str] = Field(                   # modelo do patch panel
         None,                                                       # opcional
-        description="Modelo do patch panel (fabricante, número de portas, etc.)"  # descrição do campo
+        description="Modelo do patch panel quando houver novo fornecimento (CommScope 24 portas, Furukawa 24 portas, Systimax 24 portas ou 'Outro: <texto>')"  # descrição do campo
     )
     q1_qtd_guias_cabos: Optional[int] = Field(                      # quantidade de guias de cabos
         None,                                                       # opcional

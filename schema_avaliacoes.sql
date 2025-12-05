@@ -48,7 +48,7 @@ CREATE TABLE avaliacoes (
     q1_qtd_portas_patch_panel INTEGER,           -- quantidade de portas do patch panel
     q1_qtd_patch_cords INTEGER,                  -- quantidade total de patch cords previstos
     q1_marca_cab VARCHAR(50),                    -- marca do cabeamento UTP (Furukawa, Commscope, etc.)
-    q1_modelo_patch_panel TEXT,                  -- modelo do patch panel (fabricante, número de portas, etc.)
+    q1_modelo_patch_panel TEXT,                  -- modelo do patch panel quando houver novo fornecimento (CommScope 24 portas, Furukawa 24 portas, Systimax 24 portas ou "Outro: <texto>")
     q1_qtd_guias_cabos INTEGER,                  -- quantidade de guias de cabos a instalar
     q1_patch_cords_modelo TEXT,                  -- modelo/descrição dos patch cords (comprimentos, categoria, etc.)
     q1_patch_cords_cor VARCHAR(50),              -- cor ou cores dos patch cords

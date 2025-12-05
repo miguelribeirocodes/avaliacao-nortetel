@@ -431,19 +431,20 @@
               <button
                 type="button"
                 class="avaliacao-tab-btn active"
-                data-tipo="redes"
+                data-tipo="utp_fibra"           
               >
-                Formulário de Redes
-              </button> <!-- aba para o tipo de formulário "Redes" (padrão) -->
+                UTP e Fibra Óptica
+              </button> <!-- aba para o formulário "UTP e Fibra Óptica" (padrão) -->
 
               <button
                 type="button"
-                class="avaliacao-tab-btn"
-                data-tipo="infraestrutura"
+                class="avaliacao-tab-btn"       
+                data-tipo="cameras"             
               >
-                Formulário de Infraestrutura
-              </button> <!-- aba para o tipo de formulário "Infraestrutura" -->
+                Câmeras
+              </button> <!-- aba para o formulário "Câmeras" -->
             </div>
+
 
             <div class="card-header">
                 <h2 id="form-avaliacao-titulo">Nova Avaliação</h2> <!-- título do formulário, alterado pelo JS entre "Nova" e "Editar" -->
@@ -460,8 +461,9 @@
               <input
                 type="hidden"
                 id="tipo-formulario"
-                value="redes"
-              /> <!-- campo hidden que armazena o tipo de formulário selecionado (redes/infraestrutura) -->
+                value="utp_fibra"
+              /> <!-- campo hidden que armazena o tipo de formulário selecionado
+                    (utp_fibra/cameras; ainda aceita valores legados como "redes"/"infraestrutura") -->
 
               <!-- Linha: cliente + data -->
               <div class="form-row">
@@ -697,6 +699,71 @@
                   </div>
                 </div>
 
+                <!-- linha com marca do cabeamento e modelo do patch panel -->
+                <div class="form-row">
+                  <div class="form-group"><!-- marca do cabeamento UTP -->
+                    <label for="q1-marca-cab">Marca do cabeamento</label>
+                    <input
+                      type="text"
+                      id="q1-marca-cab"
+                      placeholder="Ex.: Furukawa, Commscope, outra..."
+                    />
+                  </div>
+
+                  <div class="form-group"><!-- modelo/descrição do patch panel -->
+                    <label for="q1-modelo-patch-panel">Modelo do patch panel</label>
+                    <input
+                      type="text"
+                      id="q1-modelo-patch-panel"
+                      placeholder="Ex.: Patch panel 24p Cat6 Nortel, Furukawa X, etc."
+                    />
+                  </div>
+                </div>
+
+                <!-- linha com quantidade de guias de cabos e nome do patch panel existente -->
+                <div class="form-row">
+                  <div class="form-group"><!-- quantidade de guias de cabos -->
+                    <label for="q1-qtd-guias-cabos">Qtd. de guias de cabos</label>
+                    <input
+                      type="number"
+                      id="q1-qtd-guias-cabos"
+                      min="0"
+                      step="1"
+                      placeholder="Ex.: 2"
+                    />
+                  </div>
+
+                  <div class="form-group"><!-- identificação do patch panel existente -->
+                    <label for="q1-patch-panel-existente-nome">Nome/identificação do patch panel existente</label>
+                    <input
+                      type="text"
+                      id="q1-patch-panel-existente-nome"
+                      placeholder="Preencha se for utilizar patch panel existente"
+                    />
+                  </div>
+                </div>
+
+                <!-- linha com detalhes dos patch cords (modelo e cor) -->
+                <div class="form-row">
+                  <div class="form-group"><!-- modelo dos patch cords -->
+                    <label for="q1-patch-cords-modelo">Modelo dos patch cords</label>
+                    <input
+                      type="text"
+                      id="q1-patch-cords-modelo"
+                      placeholder="Ex.: Cat6 3m, Cat6A 5m, etc."
+                    />
+                  </div>
+
+                  <div class="form-group"><!-- cor dos patch cords -->
+                    <label for="q1-patch-cords-cor">Cor dos patch cords</label>
+                    <input
+                      type="text"
+                      id="q1-patch-cords-cor"
+                      placeholder="Ex.: amarelo, cinza, vermelho..."
+                    />
+                  </div>
+                </div>
+
                 <!-- Seção: Quantitativo 02 - Switch -->
                 <h3 class="form-section-title">Quantitativo 02 - Switch</h3>
 
@@ -749,6 +816,48 @@
                       min="0"
                       step="1"
                       placeholder="Ex.: 24"
+                    />
+                  </div>
+                </div>
+
+                <!-- linha com fornecedor e modelo do switch -->
+                <div class="form-row">
+                  <div class="form-group"><!-- fornecedor do switch (Nortetel ou cliente) -->
+                    <label for="q2-fornecedor-switch">Fornecedor do switch</label>
+                    <select id="q2-fornecedor-switch">
+                      <option value="">Selecione...</option>
+                      <option value="nortetel">Nortetel</option>
+                      <option value="cliente">Cliente</option>
+                    </select>
+                  </div>
+
+                  <div class="form-group"><!-- modelo do switch -->
+                    <label for="q2-modelo-switch">Modelo do switch</label>
+                    <input
+                      type="text"
+                      id="q2-modelo-switch"
+                      placeholder="Ex.: Switch 24p Gigabit, modelo XYZ..."
+                    />
+                  </div>
+                </div>
+
+                <!-- linha com identificação e foto do switch existente -->
+                <div class="form-row">
+                  <div class="form-group"><!-- nome/identificação do switch existente -->
+                    <label for="q2-switch-existente-nome">Nome/identificação do switch existente</label>
+                    <input
+                      type="text"
+                      id="q2-switch-existente-nome"
+                      placeholder="Ex.: SW-01 CPD, SW-Andar1, etc."
+                    />
+                  </div>
+
+                  <div class="form-group"><!-- URL da foto do switch existente -->
+                    <label for="q2-switch-foto-url">URL da foto do switch</label>
+                    <input
+                      type="text"
+                      id="q2-switch-foto-url"
+                      placeholder="Link para foto (Drive, WhatsApp Web, etc.)"
                     />
                   </div>
                 </div>
@@ -901,6 +1010,39 @@
                   </div>
                 </div>
 
+                <!-- linha com marca do cabo óptico e modelo do DIO -->
+                <div class="form-row">
+                  <div class="form-group"><!-- marca do cabo óptico -->
+                    <label for="q3-marca-cab-optico">Marca do cabo óptico</label>
+                    <input
+                      type="text"
+                      id="q3-marca-cab-optico"
+                      placeholder="Ex.: Furukawa, Prysmian, outra..."
+                    />
+                  </div>
+
+                  <div class="form-group"><!-- modelo do DIO -->
+                    <label for="q3-modelo-dio">Modelo do DIO</label>
+                    <input
+                      type="text"
+                      id="q3-modelo-dio"
+                      placeholder="Ex.: DIO 24F, 48F, rack/parede, etc."
+                    />
+                  </div>
+                </div>
+
+                <!-- linha com modelo do cordão óptico -->
+                <div class="form-row">
+                  <div class="form-group full-width"><!-- modelo/descrição do cordão óptico -->
+                    <label for="q3-modelo-cordao-optico">Modelo do cordão óptico</label>
+                    <input
+                      type="text"
+                      id="q3-modelo-cordao-optico"
+                      placeholder="Ex.: LC-LC 2m, LC-SC 3m, etc."
+                    />
+                  </div>
+                </div>
+
                 <div class="form-row"><!-- linha de observações de fibra -->
                   <div class="form-group full-width"><!-- campo texto de observações de fibra -->
                     <label for="q3-observacoes">Observações sobre fibra óptica</label>
@@ -912,6 +1054,7 @@
                   </div>
                 </div>
               </div>
+
               <!-- Seção: Quantitativo 04 - Equipamentos -->
               <div class="tipo-infra-only">
                 <h3 class="form-section-title">Quantitativo 04 - Equipamentos</h3> <!-- título da seção de equipamentos -->
@@ -974,6 +1117,84 @@
                   </div>
                 </div>
 
+                <!-- blocos de detalhes de câmeras / NVR / conversor / GBIC -->
+                <!-- linha com se a câmera é nova/realocação e quem fornece -->
+                <div class="form-row">
+                  <div class="form-group"><!-- indica se a câmera é nova ou apenas realocação -->
+                    <label for="q4-camera-nova">Câmera nova/realocação?</label>
+                    <select id="q4-camera-nova"><!-- select Sim/Não para câmera nova -->
+                      <option value="">Selecione...</option><!-- padrão -->
+                      <option value="sim">Sim</option><!-- true -->
+                      <option value="nao">Não</option><!-- false -->
+                    </select>
+                  </div>
+
+                  <div class="form-group"><!-- quem fornece a câmera (Nortetel ou cliente) -->
+                    <label for="q4-camera-fornecedor">Fornecedor da câmera</label>
+                    <select id="q4-camera-fornecedor"><!-- fornecedor da câmera -->
+                      <option value="">Selecione...</option><!-- padrão -->
+                      <option value="nortetel">Nortetel</option><!-- fornecida pela Nortetel -->
+                      <option value="cliente">Cliente</option><!-- fornecida pelo cliente -->
+                    </select>
+                  </div>
+                </div>
+
+                <!-- linha com modelo e quantidade de câmeras -->
+                <div class="form-row">
+                  <div class="form-group"><!-- modelo da câmera -->
+                    <label for="q4-camera-modelo">Modelo da câmera</label>
+                    <input
+                      type="text"
+                      id="q4-camera-modelo"
+                      placeholder="Ex.: Bullet 8MP IR, Dome 4MP, etc."
+                    />
+                  </div>
+
+                  <div class="form-group"><!-- quantidade de câmeras do modelo informado -->
+                    <label for="q4-camera-qtd">Qtd. de câmeras</label>
+                    <input
+                      type="number"
+                      id="q4-camera-qtd"
+                      min="0"
+                      step="1"
+                      placeholder="Ex.: 8"
+                    />
+                  </div>
+                </div>
+
+                <!-- linha com modelo do NVR/DVR -->
+                <div class="form-row">
+                  <div class="form-group full-width"><!-- modelo do NVR ou DVR -->
+                    <label for="q4-nvr-dvr-modelo">Modelo do NVR / DVR</label>
+                    <input
+                      type="text"
+                      id="q4-nvr-dvr-modelo"
+                      placeholder="Ex.: NVR 32 canais 4K, DVR 16 canais, etc."
+                    />
+                  </div>
+                </div>
+
+                <!-- linha com modelo de conversor de mídia e modelo de GBIC -->
+                <div class="form-row">
+                  <div class="form-group"><!-- modelo do conversor de mídia -->
+                    <label for="q4-conversor-midia-modelo">Modelo do conversor de mídia</label>
+                    <input
+                      type="text"
+                      id="q4-conversor-midia-modelo"
+                      placeholder="Ex.: Conversor 10/100/1000 RJ45 &lt;-&gt; Fibra, etc."
+                    />
+                  </div>
+
+                  <div class="form-group"><!-- modelo do GBIC -->
+                    <label for="q4-gbic-modelo">Modelo do GBIC</label>
+                    <input
+                      type="text"
+                      id="q4-gbic-modelo"
+                      placeholder="Ex.: SFP 1G, SFP+ 10G, etc."
+                    />
+                  </div>
+                </div>
+
                 <!-- Seção: Quantitativo 05 - Infraestrutura -->
                 <h3 class="form-section-title">Quantitativo 05 - Infraestrutura</h3> <!-- título seção infraestrutura -->
 
@@ -1032,6 +1253,122 @@
                       <option value="sim">Sim</option>
                       <option value="nao">Não</option>
                     </select>
+                  </div>
+                </div>
+
+                <!-- linha com modelo/quantidade de eletrocalha -->
+                <div class="form-row">
+                  <div class="form-group"><!-- modelo da eletrocalha -->
+                    <label for="q5-eletrocalha-modelo">Modelo da eletrocalha</label>
+                    <input
+                      type="text"
+                      id="q5-eletrocalha-modelo"
+                      placeholder="Ex.: Eletrocalha 100x50 galvanizada, leito, etc."
+                    />
+                  </div>
+
+                  <div class="form-group"><!-- quantidade de eletrocalhas -->
+                    <label for="q5-eletrocalha-qtd">Qtd. de eletrocalhas</label>
+                    <input
+                      type="number"
+                      id="q5-eletrocalha-qtd"
+                      min="0"
+                      step="1"
+                      placeholder="Ex.: 10"
+                    />
+                  </div>
+                </div>
+
+                <!-- linha com modelo/quantidade de eletroduto -->
+                <div class="form-row">
+                  <div class="form-group"><!-- modelo do eletroduto -->
+                    <label for="q5-eletroduto-modelo">Modelo do eletroduto</label>
+                    <input
+                      type="text"
+                      id="q5-eletroduto-modelo"
+                      placeholder="Ex.: Eletroduto 3/4\" PVC rígido, etc."
+                    />
+                  </div>
+
+                  <div class="form-group"><!-- quantidade de eletrodutos -->
+                    <label for="q5-eletroduto-qtd">Qtd. de eletrodutos</label>
+                    <input
+                      type="number"
+                      id="q5-eletroduto-qtd"
+                      min="0"
+                      step="1"
+                      placeholder="Ex.: 20"
+                    />
+                  </div>
+                </div>
+
+                <!-- linha com modelo/quantidade de rack -->
+                <div class="form-row">
+                  <div class="form-group"><!-- modelo do rack -->
+                    <label for="q5-rack-modelo">Modelo do rack</label>
+                    <input
+                      type="text"
+                      id="q5-rack-modelo"
+                      placeholder="Ex.: Rack 19/24U, parede/piso, etc."
+                    />
+                  </div>
+
+                  <div class="form-group"><!-- quantidade de racks -->
+                    <label for="q5-rack-qtd">Qtd. de racks</label>
+                    <input
+                      type="number"
+                      id="q5-rack-qtd"
+                      min="0"
+                      step="1"
+                      placeholder="Ex.: 1"
+                    />
+                  </div>
+                </div>
+
+                <!-- linha com modelo/quantidade de nobreak -->
+                <div class="form-row">
+                  <div class="form-group"><!-- modelo do nobreak -->
+                    <label for="q5-nobreak-modelo">Modelo do nobreak</label>
+                    <input
+                      type="text"
+                      id="q5-nobreak-modelo"
+                      placeholder="Ex.: Nobreak 1500 VA online, marca X..."
+                    />
+                  </div>
+
+                  <div class="form-group"><!-- quantidade de nobreaks -->
+                    <label for="q5-nobreak-qtd">Qtd. de nobreaks</label>
+                    <input
+                      type="number"
+                      id="q5-nobreak-qtd"
+                      min="0"
+                      step="1"
+                      placeholder="Ex.: 1"
+                    />
+                  </div>
+                </div>
+
+                <!-- linha com descrição de serralheria -->
+                <div class="form-row">
+                  <div class="form-group full-width"><!-- descrição dos serviços de serralheria -->
+                    <label for="q5-serralheria-descricao">Descrição da serralheria</label>
+                    <textarea
+                      id="q5-serralheria-descricao"
+                      rows="2"
+                      placeholder="Descrever detalhes de suportes, fixações, estruturas metálicas, etc."
+                    ></textarea>
+                  </div>
+                </div>
+
+                <!-- linha com observações da instalação elétrica -->
+                <div class="form-row">
+                  <div class="form-group full-width"><!-- observações sobre instalação elétrica -->
+                    <label for="q5-instalacao-eletrica-obs">Observações de instalação elétrica</label>
+                    <textarea
+                      id="q5-instalacao-eletrica-obs"
+                      rows="2"
+                      placeholder="Observações específicas de quadros, circuitos, disjuntores, cabeamento de força, etc."
+                    ></textarea>
                   </div>
                 </div>
               </div>

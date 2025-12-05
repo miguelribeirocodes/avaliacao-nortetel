@@ -1,0 +1,139 @@
+1º Prompt) 
+
+Vamos planejar fazer as seguintes alterações:
+
+- O campo cliente deverá ser um select com as opções: Novo Nordisk, FFEX, Somai, União Química, CSN, Alpargatas, Eurofarma, Cristália, Santo Agostino, Cervantes e outro. Caso selecione outro, deverá aparecer uma caixa embaixo para digitar e no banco de dados será registrado: "Outro: " + "valor digitado".
+
+Patch Panel: primeiro, só pra avisar, o patch panel aparecerá para os dois formulários, OBS.: ESSA ALTERAÇÃO JÁ IMPLEMENTEI!
+
+OK OK OK OK OK OK OK OK OK OK OK OK OK OK OK OK OK OK OK OK OK OK OK OK OK OK OK OK OK OK OK OK OK OK OK OK OK
+
+- O campo "necessita novo patch panel" deverá aparecer um outro campo que só aparecerá caso a pessoa escolha "sim", nesse caso, se necessário, vamos alterar o banco de dados pra incluir essa opção que seria o modelo do patch panel. E esse novo campo do modelo será um select com as seguintes opções: CommScope 24 portas, Furukawa 24 portas, Systimax 24 portas e outro (e se selecionar outro, aparecerá um input ao lado para escrever qual e no banco de dados será registrado "Outro: " + "valor digitado".
+
+Vamos implementar estas duas alterações:
+
+- Impacto no banco de dados
+- Impacto no front end
+- Impacto no back end
+
+Sempre em pequenos patches para evitar sobrecarga e dividir em sub etapas se necessário.
+
+
+----------------------------------------------------------------------------------
+Novo chato prompt)
+
+Vamos continuar este projeto em outro chat, portanto devemos ensinar ao chat o contexo e vamos precisar corrigir que algumas informações não estão sendo lidas corretamente quando carrega uma avaliação já salva (minha suspeita é que sejam os campos select). Por exemplo: precisa de serviço fora de montes claros não está pegando o valor "sim/não" e convertendo em "true/false", vem sempre false e na hora de ler uma avaliação já salva, ele não puxa o valor atual no campo do select. Vamos primeiro resumir o projeto e só depois fazer essa correção.
+
+----------------------------------------------------------------------------------
+2º Prompt)
+
+Ainda em patch panel:
+- Marca do cabeamento deverá ser um select com as seguintes opções: CommScope, Furukawa e outro (aparecendo então um input ao lado para digitar e sendo registrado no banco de dados como "Outro: " + "valor digitado".
+
+Já que criamos a função: atualizarVisibilidadeClienteOutro,vamos transformar ela em genérica pq utilizaremos ela em outras partes.
+
+- "Incluir guia de cabos?": caso escolha "sim", aparece ao lado para digitar e criar uma nova coluna na tabela com a quantidade de guia de cabos, sendo o valor digitado.
+
+Vamos implementar estas alterações:
+
+- Impacto no banco de dados
+- Impacto no front end
+- Impacto no back end
+
+Sempre em pequenos patches para evitar sobrecarga e dividir em sub etapas se necessário.
+
+----------------------------------------------------------------------------------
+3º Prompt)
+
+Ainda em patch panel:
+
+- Modelo dos patch cords: select com opções 0,5 mt; 1,5 mt; 3,0 mt; 5mt; 10mt; 15mt
+- Cor dos patch cords: select com opções branco, amarelo, cinza, vermelho, azul
+
+Vamos implementar estas alterações:
+
+- Impacto no banco de dados
+- Impacto no front end
+- Impacto no back end
+
+Sempre em pequenos patches para evitar sobrecarga e dividir em sub etapas se necessário.
+
+----------------------------------------------------------------------------------
+4º Prompt)
+
+Quantitativo 02 - Switch:
+
+- O campo "fornecedor do switch" só aparecerá se selecionar "Sim" em "Necessita novo switch?"
+
+- Manter o campo do modelo de switch
+
+- Esconder todos os outros campos do switch que não foram impactados neste patch.
+
+Vamos implementar estas alterações:
+
+- Impacto no banco de dados
+- Impacto no front end
+- Impacto no back end
+
+Sempre em pequenos patches para evitar sobrecarga e dividir em sub etapas se necessário.
+
+----------------------------------------------------------------------------------
+5º Prompt)
+
+Quantitativo 03 - Fibra Óptica:
+
+- Marca do cabo óptico: select com Furukawa, CommScope e outro (aparecendo opção para escrever e registrando "Outro: " + "valor digitado".
+
+- Manter tipo de fibra óptica, quantidade de fibras por cabo, tipo do conector
+
+- Necessário novo DIO: aparecer campo caso selecione sim e aparecer input para digitar e criar coluna de modelo no banco de dados para o DIO
+
+- Manter caixa de terminação, caixa de emenda, quantidade de cabos, metragem necessária, modelo do cordão óptico e quantidade de cordão óptico.
+
+- Remover todos os outros campos que não foram afetados.
+
+Vamos implementar estas alterações:
+
+- Impacto no banco de dados
+- Impacto no front end
+- Impacto no back end
+
+Sempre em pequenos patches para evitar sobrecarga e dividir em sub etapas se necessário.
+
+----------------------------------------------------------------------------------
+5º Prompt)
+
+Quantitativo 03 - Fibra Óptica:
+
+- Marca do cabo óptico: select com Furukawa, CommScope e outro (aparecendo opção para escrever e registrando "Outro: " + "valor digitado".
+
+- Manter tipo de fibra óptica, quantidade de fibras por cabo, tipo do conector
+
+- Necessário novo DIO: aparecer campo caso selecione sim e aparecer input para digitar e criar coluna de modelo no banco de dados para o DIO
+
+- Manter caixa de terminação, caixa de emenda, quantidade de cabos, metragem necessária, modelo do cordão óptico e quantidade de cordão óptico.
+
+- Incluir novos campos Conversor de Mídia (select sim e não com opção para escrever modelo do lado) e GBIC (select sim e não com opção para escrever modelo do lado).
+
+- Remover todos os outros campos que não foram afetados.
+
+Vamos implementar estas alterações:
+
+- Impacto no banco de dados
+- Impacto no front end
+- Impacto no back end
+
+Sempre em pequenos patches para evitar sobrecarga e dividir em sub etapas se necessário.
+
+----------------------------------------------------------------------------------
+6º Prompt)
+
+Avaliar alterações necessárias para o formulário de câmeras.
+
+Vamos implementar estas alterações:
+
+- Impacto no banco de dados
+- Impacto no front end
+- Impacto no back end
+
+Sempre em pequenos patches para evitar sobrecarga e dividir em sub etapas se necessário.

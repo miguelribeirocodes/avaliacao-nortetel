@@ -70,7 +70,9 @@ const avaliacoesTbody = document.getElementById("avaliacoes-tbody"); // corpo da
 // Elementos do formulário de avaliação.
 // Elementos do formulário de avaliação.
 const formAvaliacao = document.getElementById("form-avaliacao"); // formulário de nova avaliação
-const clienteNomeInput = document.getElementById("cliente-nome"); // input de nome do cliente
+const clienteNomeInput = document.getElementById("cliente-nome"); // select com nome do cliente (lista fixa + opção "Outro")
+const clienteNomeOutroInput = document.getElementById("cliente-nome-outro"); // input de texto para o caso "Outro"
+const clienteOutroWrapper = document.getElementById("cliente-outro-wrapper"); // wrapper usado para mostrar/ocultar o campo "Outro"
 const dataAvaliacaoInput = document.getElementById("data-avaliacao"); // input de data da avaliação
 const localInput = document.getElementById("local"); // input de local
 const objetoInput = document.getElementById("objeto"); // input de objeto
@@ -95,16 +97,25 @@ const servicoForaMC = document.getElementById("servico-fora-montes-claros"); // 
 const servicoIntermediario = document.getElementById("servico-intermediario"); // checkbox serviço para intermediário
 
 // Quantitativo 01 – Patch Panel / Cabeamento
-const q1Categoria = document.getElementById("q1-categoria-cab");              // select de categoria do cabeamento (Cat5e/Cat6/Cat6A)
-const q1Blindado = document.getElementById("q1-blindado");                    // select Sim/Não para cabeamento blindado
-const q1NovoPatch = document.getElementById("q1-novo-patch-panel");           // select Sim/Não para novo patch panel
-const q1IncluirGuia = document.getElementById("q1-incluir-guia");             // select Sim/Não para incluir guia de cabos
-const q1QtdPontosRede = document.getElementById("q1-qtd-pontos-rede");        // input numérico para quantidade de pontos de rede
-const q1QtdCabos = document.getElementById("q1-qtd-cabos");                   // input numérico para quantidade de cabos
-const q1QtdPortasPP = document.getElementById("q1-qtd-portas-patch-panel");   // input numérico para quantidade de portas do patch panel
-const q1QtdPatchCords = document.getElementById("q1-qtd-patch-cords");        // input numérico para quantidade de patch cords
+// Quantitativo 01 – Patch Panel / Cabeamento
+const q1Categoria = document.getElementById("q1-categoria-cab");              // select de categoria do cabeamento (CAT5e/CAT6/CAT6A)
+const q1Blindado = document.getElementById("q1-blindado");                    // select Sim/Não: cabeamento blindado?
+const q1NovoPatch = document.getElementById("q1-novo-patch-panel");           // select Sim/Não: necessita novo patch panel?
+const q1IncluirGuia = document.getElementById("q1-incluir-guia");             // select Sim/Não: incluir guia de cabos?
+const q1QtdPontosRede = document.getElementById("q1-qtd-pontos-rede");        // input numérico: quantidade de pontos de rede
+const q1QtdCabos = document.getElementById("q1-qtd-cabos");                   // input numérico: quantidade de cabos
+const q1QtdPortasPP = document.getElementById("q1-qtd-portas-patch-panel");   // input numérico: quantidade de portas no patch panel
+const q1QtdPatchCords = document.getElementById("q1-qtd-patch-cords");        // input numérico: quantidade de patch cords
+
+const q1ModeloPatchPanel = document.getElementById("q1-modelo-patch-panel");  // select: modelo do patch panel (CommScope/Furukawa/Systimax/Outro)
+const q1ModeloPatchPanelOutroInput = document.getElementById(                 // input texto: descrição do modelo quando a opção "Outro" for usada
+  "q1-modelo-patch-panel-outro"
+);
+const q1ModeloPatchPanelRow = document.getElementById("q1-modelo-patch-panel-row"); // linha contendo os campos de modelo de patch panel
+const q1ModeloPatchPanelOutroWrapper = document.getElementById(              // wrapper do campo "Outro" para modelo de patch panel
+  "q1-modelo-patch-panel-outro-wrapper"
+);
 const q1MarcaCab = document.getElementById("q1-marca-cab");                   // input de texto para marca do cabeamento UTP
-const q1ModeloPatchPanel = document.getElementById("q1-modelo-patch-panel");  // input de texto para modelo/descrição do patch panel
 const q1QtdGuiasCabos = document.getElementById("q1-qtd-guias-cabos");        // input numérico para quantidade de guias de cabos
 const q1PatchCordsModelo = document.getElementById("q1-patch-cords-modelo");  // input de texto para modelo dos patch cords
 const q1PatchCordsCor = document.getElementById("q1-patch-cords-cor");        // input de texto para cor dos patch cords
@@ -1215,7 +1226,48 @@ async function carregarAvaliacaoParaEdicao(avaliacaoId) {
     }
 
     // Preenche os campos do formulário com os valores retornados
-    clienteNomeInput.value = dados.cliente_nome || ""; // nome do cliente
+    const nomeCliente = dados.cliente_nome || "";                 // valor bruto do nome do cliente vindo da API
+
+    if (clienteNomeInput) {                                       // se o select de cliente existir
+      const opcoesFixas = [                                      // lista de clientes fixos configurados no select
+        "Novo Nordisk",
+        "FFEX",
+        "Somai",
+        "União Química",
+        "CSN",
+        "Alpargatas",
+        "Eurofarma",
+        "Cristália",
+        "Santo Agostino",
+        "Cervantes",
+      ];
+
+      let valorSelect = "";                                      // valor que será aplicado no select de cliente
+      let textoOutro = "";                                       // texto que será aplicado no campo de "Outro"
+      const prefixoOutro = "Outro: ";                            // prefixo usado ao salvar clientes livres
+
+      if (!nomeCliente) {                                        // se vier vazio do backend
+        valorSelect = "";                                        // mantemos o select sem seleção
+        textoOutro = "";                                         // e o campo de "Outro" vazio
+      } else if (opcoesFixas.includes(nomeCliente)) {            // se o nome for exatamente uma das opções fixas
+        valorSelect = nomeCliente;                               // seleciona diretamente a opção no combo
+        textoOutro = "";                                         // não há valor de "Outro"
+      } else if (nomeCliente.startsWith(prefixoOutro)) {         // se começar com "Outro: "
+        valorSelect = "outro";                                   // seleciona a opção "Outro" no combo
+        textoOutro = nomeCliente.substring(prefixoOutro.length); // pega somente o texto após "Outro: "
+      } else {                                                   // qualquer outro texto (registros antigos ou nomes não catalogados)
+        valorSelect = "outro";                                   // trata como "Outro"
+        textoOutro = nomeCliente;                                // preserva o texto original no campo "Outro"
+      }
+
+      clienteNomeInput.value = valorSelect;                      // aplica o valor calculado ao select
+
+      if (clienteNomeOutroInput) {                               // se o input de "Outro" existir
+        clienteNomeOutroInput.value = textoOutro;                // aplica o texto calculado ao campo "Outro"
+      }
+
+      atualizarVisibilidadeClienteOutro();                       // ajusta a visibilidade do campo "Outro" conforme seleção atual
+    }
     dataAvaliacaoInput.value = dados.data_avaliacao || ""; // data no formato YYYY-MM-DD
     localInput.value = dados.local || ""; // local
     objetoInput.value = dados.objeto || ""; // objeto
@@ -1230,14 +1282,75 @@ async function carregarAvaliacaoParaEdicao(avaliacaoId) {
     if (servicoIntermediario) servicoIntermediario.checked = dados.servico_intermediario ?? false; // idem para intermediário
 
     // Quantitativo 01 – Patch Panel / Cabeamento
-    if (q1Categoria) q1Categoria.value = dados.q1_categoria_cab || "";                    // categoria do cabeamento
-    if (q1Blindado) q1Blindado.checked = dados.q1_blindado ?? false;                      // TODO: futuramente usar booleanParaSelectSimNao
-    if (q1NovoPatch) q1NovoPatch.checked = dados.q1_novo_patch_panel ?? false;            // idem
-    if (q1IncluirGuia) q1IncluirGuia.checked = dados.q1_incluir_guia ?? false;            // idem
-    if (q1QtdPontosRede) q1QtdPontosRede.value = dados.q1_qtd_pontos_rede || "";          // quantidade de pontos de rede
-    if (q1QtdCabos) q1QtdCabos.value = dados.q1_qtd_cabos || "";                          // quantidade de cabos
-    if (q1QtdPortasPP) q1QtdPortasPP.value = dados.q1_qtd_portas_patch_panel || "";       // quantidade de portas do patch panel
-    if (q1QtdPatchCords) q1QtdPatchCords.value = dados.q1_qtd_patch_cords || "";          // quantidade de patch cords
+    if (q1Categoria) {
+      q1Categoria.value = dados.q1_categoria_cab || "";          // preenche categoria do cabeamento
+    }
+    if (q1Blindado) {
+      booleanParaSelectSimNao(q1Blindado, dados.q1_blindado);    // preenche select de cabeamento blindado
+    }
+    if (q1NovoPatch) {
+      booleanParaSelectSimNao(
+        q1NovoPatch,
+        dados.q1_novo_patch_panel
+      );                                                          // preenche select "Necessita novo patch panel?"
+    }
+    if (q1IncluirGuia) {
+      booleanParaSelectSimNao(
+        q1IncluirGuia,
+        dados.q1_incluir_guia
+      );                                                          // preenche select "Incluir guia de cabos?"
+    }
+    if (q1QtdPontosRede) {
+      q1QtdPontosRede.value = dados.q1_qtd_pontos_rede || "";     // preenche quantidade de pontos de rede
+    }
+    if (q1QtdCabos) {
+      q1QtdCabos.value = dados.q1_qtd_cabos || "";                // preenche quantidade de cabos
+    }
+    if (q1QtdPortasPP) {
+      q1QtdPortasPP.value = dados.q1_qtd_portas_patch_panel || ""; // preenche quantidade de portas no patch panel
+    }
+    if (q1QtdPatchCords) {
+      q1QtdPatchCords.value = dados.q1_qtd_patch_cords || "";     // preenche quantidade de patch cords
+    }
+
+    if (q1ModeloPatchPanel) {                                     // se o select de modelo de patch panel existir
+      const modelo = dados.q1_modelo_patch_panel || "";           // valor bruto vindo da API
+      const opcoesFixasModelo = [                                // opções fixas do combo
+        "CommScope 24 portas",
+        "Furukawa 24 portas",
+        "Systimax 24 portas",
+      ];
+      const prefixoOutroModelo = "Outro: ";                       // prefixo usado quando o valor foi salvo como "Outro: <texto>"
+
+      let valorSelectModelo = "";                                 // valor que será aplicado no select
+      let textoOutroModelo = "";                                  // valor que será aplicado no campo de "Outro"
+
+      if (!modelo) {                                              // se não houver valor salvo
+        valorSelectModelo = "";                                   // deixa o select vazio
+        textoOutroModelo = "";                                    // e o campo de "Outro" vazio
+      } else if (opcoesFixasModelo.includes(modelo)) {            // se for exatamente uma das opções fixas
+        valorSelectModelo = modelo;                               // seleciona o valor correspondente no combo
+        textoOutroModelo = "";                                    // não há texto de "Outro"
+      } else if (modelo.startsWith(prefixoOutroModelo)) {         // se começar com "Outro: "
+        valorSelectModelo = "outro";                              // seleciona a opção "Outro"
+        textoOutroModelo = modelo.substring(                      // extrai apenas o texto após o prefixo
+          prefixoOutroModelo.length
+        );
+      } else {                                                    // qualquer outro valor (dados antigos ou livres)
+        valorSelectModelo = "outro";                              // trata como "Outro"
+        textoOutroModelo = modelo;                                // preserva o texto original no campo de "Outro"
+      }
+
+      q1ModeloPatchPanel.value = valorSelectModelo;               // aplica o valor calculado ao select
+
+      if (q1ModeloPatchPanelOutroInput) {                         // se o campo de "Outro" existir
+        q1ModeloPatchPanelOutroInput.value = textoOutroModelo;    // aplica o texto correspondente
+      }
+    }
+
+    atualizarVisibilidadeModeloPatchPanel();                      // garante que a linha de modelo esteja coerente com "Necessita novo patch panel?"
+    atualizarVisibilidadeModeloPatchPanelOutro();                 // garante que o campo "Outro" de modelo esteja coerente com o select
+
     if (q1MarcaCab) q1MarcaCab.value = dados.q1_marca_cab || "";                          // marca do cabeamento
     if (q1ModeloPatchPanel)
       q1ModeloPatchPanel.value = dados.q1_modelo_patch_panel || "";                       // modelo/descrição do patch panel
@@ -1504,19 +1617,37 @@ function resetarFormularioParaNovaAvaliacao() {
   }
 
   // Flags gerais
-  if (servicoForaMC) servicoForaMC.checked = false;
-  if (servicoIntermediario) servicoIntermediario.checked = false;
+  if (servicoForaMC) servicoForaMC.checked = false;             // desmarca a opção "serviço fora de Montes Claros"
+  if (servicoIntermediario) servicoIntermediario.checked = false; // desmarca a opção de serviço intermediário
 
-  // Quantitativo 01 – Cabeamento
-  if (q1Categoria) q1Categoria.value = "";
-  if (q1Blindado) q1Blindado.checked = false;
-  if (q1NovoPatch) q1NovoPatch.checked = false;
-  if (q1IncluirGuia) q1IncluirGuia.checked = false;
-  if (q1QtdPontosRede) q1QtdPontosRede.value = "";
-  if (q1QtdCabos) q1QtdCabos.value = "";
-  if (q1QtdPortasPP) q1QtdPortasPP.value = "";
-  if (q1QtdPatchCords) q1QtdPatchCords.value = "";
+  // Campo de cliente (select + "Outro")
+  if (clienteNomeInput) {                                       // se o select de cliente existir
+    clienteNomeInput.value = "";                                // limpa a seleção de cliente
+  }
+  if (clienteNomeOutroInput) {                                  // se o input de "Outro" existir
+    clienteNomeOutroInput.value = "";                           // limpa qualquer texto digitado
+  }
+  if (clienteOutroWrapper) {                                    // se o wrapper do campo "Outro" existir
+    clienteOutroWrapper.classList.add("hidden");                // garante que o campo "Outro" fique oculto no reset
+  }
 
+  // Quantitativo 01 – Patch Panel / Cabeamento
+  if (q1Categoria) q1Categoria.value = "";                         // limpa categoria do cabeamento
+  if (q1Blindado) q1Blindado.value = "";                           // reseta select de cabeamento blindado
+  if (q1NovoPatch) q1NovoPatch.value = "";                         // reseta select "Necessita novo patch panel?"
+  if (q1IncluirGuia) q1IncluirGuia.value = "";                     // reseta select "Incluir guia de cabos?"
+  if (q1QtdPontosRede) q1QtdPontosRede.value = "";                 // limpa quantidade de pontos de rede
+  if (q1QtdCabos) q1QtdCabos.value = "";                           // limpa quantidade de cabos
+  if (q1QtdPortasPP) q1QtdPortasPP.value = "";                     // limpa quantidade de portas no patch panel
+  if (q1QtdPatchCords) q1QtdPatchCords.value = "";                 // limpa quantidade de patch cords
+
+  if (q1ModeloPatchPanel) q1ModeloPatchPanel.value = "";           // reseta o select de modelo do patch panel
+  if (q1ModeloPatchPanelOutroInput) q1ModeloPatchPanelOutroInput.value = ""; // limpa o texto de "Outro" do modelo
+  if (q1ModeloPatchPanelRow) q1ModeloPatchPanelRow.classList.add("hidden");  // esconde a linha de modelo de patch panel
+  if (q1ModeloPatchPanelOutroWrapper) {                            // se o wrapper de "Outro" existir
+    q1ModeloPatchPanelOutroWrapper.classList.add("hidden");        // garante que o campo de "Outro" esteja oculto
+  }
+  
   // Quantitativo 02 – Switch
   if (q2NovoSwitch) q2NovoSwitch.checked = false;
   if (q2SwitchPoe) q2SwitchPoe.checked = false;
@@ -1641,6 +1772,58 @@ function booleanParaSelectSimNao(selectEl, valor) {              // recebe o sel
     selectEl.value = "nao";                                      // ...seleciona "nao"
   } else {                                                       // se for null/undefined
     selectEl.value = "";                                         // deixa o select sem seleção
+  }
+}
+
+// Atualiza a visibilidade do campo "Outro" do cliente
+function atualizarVisibilidadeClienteOutro() {                   // função que mostra/esconde o campo de "Outro" conforme o select
+  if (!clienteNomeInput || !clienteOutroWrapper) return;         // se não houver elementos necessários, sai sem fazer nada
+
+  const valorSelecionado = clienteNomeInput.value;               // obtém o valor atualmente selecionado no select de cliente
+
+  if (valorSelecionado === "outro") {                            // se a opção selecionada for "outro"
+    clienteOutroWrapper.classList.remove("hidden");              // remove a classe hidden para exibir o grupo de "Outro"
+  } else {                                                       // para qualquer outro valor (incluindo vazio)
+    clienteOutroWrapper.classList.add("hidden");                 // adiciona a classe hidden para esconder o grupo
+    if (clienteNomeOutroInput) {                                 // se o input de texto de "Outro" existir
+      clienteNomeOutroInput.value = "";                          // limpa o texto digitado anteriormente
+    }
+  }
+}
+
+// Atualiza a visibilidade da linha de modelo de patch panel quando o usuário escolhe se precisa de novo patch panel
+function atualizarVisibilidadeModeloPatchPanel() {               // função para mostrar/esconder o bloco de modelo de patch panel
+  if (!q1ModeloPatchPanelRow || !q1NovoPatch) return;            // se não houver elementos envolvidos, sai sem fazer nada
+
+  const valor = q1NovoPatch.value;                               // lê o valor atual do select "Necessita novo patch panel?"
+
+  if (valor === "sim") {                                         // se o usuário marcou que precisa de novo patch panel
+    q1ModeloPatchPanelRow.classList.remove("hidden");            // mostra a linha de seleção de modelo
+  } else {                                                       // se marcou "não" ou deixou em branco
+    q1ModeloPatchPanelRow.classList.add("hidden");               // esconde a linha de modelo
+    if (q1ModeloPatchPanel) q1ModeloPatchPanel.value = "";       // limpa o select de modelo
+    if (q1ModeloPatchPanelOutroInput) {                          // se o input de "Outro" existir
+      q1ModeloPatchPanelOutroInput.value = "";                   // limpa o texto digitado
+    }
+    if (q1ModeloPatchPanelOutroWrapper) {                        // se o wrapper de "Outro" existir
+      q1ModeloPatchPanelOutroWrapper.classList.add("hidden");    // garante que o campo "Outro" fique oculto
+    }
+  }
+}
+
+// Atualiza a visibilidade do campo "Outro" do modelo de patch panel
+function atualizarVisibilidadeModeloPatchPanelOutro() {          // função que mostra/esconde o campo "Outro" de modelo de patch panel
+  if (!q1ModeloPatchPanel || !q1ModeloPatchPanelOutroWrapper) return; // sai se não houver elementos necessários
+
+  const valorModelo = q1ModeloPatchPanel.value;                  // lê o valor selecionado no combo de modelo
+
+  if (valorModelo === "outro") {                                 // se o usuário escolheu a opção "Outro"
+    q1ModeloPatchPanelOutroWrapper.classList.remove("hidden");   // mostra o campo texto para detalhar o modelo
+  } else {                                                       // para qualquer outro valor
+    q1ModeloPatchPanelOutroWrapper.classList.add("hidden");      // esconde o campo de "Outro"
+    if (q1ModeloPatchPanelOutroInput) {                          // se o input existir
+      q1ModeloPatchPanelOutroInput.value = "";                   // limpa o texto digitado anteriormente
+    }
   }
 }
 
@@ -1774,7 +1957,36 @@ async function salvarAvaliacao(event) {
   avaliacaoFeedbackEl.className = "form-feedback"; // reseta as classes de estado (erro/sucesso)
 
   // Lê os valores do formulário
-  const clienteNome = clienteNomeInput.value.trim(); // nome do cliente sem espaços extras
+  let clienteNome = "";                                            // variável que armazenará o nome final do cliente
+  if (clienteNomeInput) {                                          // garante que o select de cliente exista
+    const valorSelect = clienteNomeInput.value;                    // lê o valor selecionado no combo de clientes
+
+    if (!valorSelect) {                                            // se nenhuma opção foi selecionada
+      avaliacaoFeedbackEl.textContent =
+        "Selecione o cliente antes de salvar a avaliação.";        // mensagem de erro orientando o usuário
+      avaliacaoFeedbackEl.className = "form-feedback form-error";  // aplica estilo de erro na mensagem
+      return;                                                      // interrompe o envio do formulário
+    }
+
+    if (valorSelect === "outro") {                                 // se a opção selecionada for "Outro"
+      const textoOutro =                                          // lê o texto digitado no campo de "Outro"
+        (clienteNomeOutroInput && clienteNomeOutroInput.value
+          ? clienteNomeOutroInput.value.trim()
+          : "");
+
+      if (!textoOutro) {                                          // se o campo "Outro" estiver vazio
+        avaliacaoFeedbackEl.textContent =
+          "Informe o nome do cliente no campo 'Outro'.";           // pede para preencher o texto do cliente
+        avaliacaoFeedbackEl.className = "form-feedback form-error"; // aplica estilo de erro
+        return;                                                    // interrompe o envio
+      }
+
+      clienteNome = `Outro: ${textoOutro}`;                        // monta o valor final no formato "Outro: <texto>"
+    } else {                                                       // se não for "Outro"
+      clienteNome = valorSelect;                                   // usa diretamente o valor da opção selecionada
+    }
+  }
+
   const dataAvaliacao = dataAvaliacaoInput.value; // data no formato YYYY-MM-DD vinda do input date
   const local = localInput.value.trim(); // local da avaliação
   const objeto = objetoInput.value.trim(); // objeto da avaliação
@@ -1827,14 +2039,51 @@ async function salvarAvaliacao(event) {
     servicoIntermediario ? servicoIntermediario.checked : false; // mesma lógica: só acessa .checked se o elemento existir
 
   // Quantitativo 01 – Patch Panel / Cabeamento
-  payload.q1_categoria_cab = q1Categoria ? q1Categoria.value || null : null;        // categoria do cabeamento (Cat5e/Cat6/Cat6A)
-  payload.q1_blindado = q1Blindado ? q1Blindado.checked : null;                     // TODO: futuramente converter select "sim"/"nao" para boolean
-  payload.q1_novo_patch_panel = q1NovoPatch ? q1NovoPatch.checked : null;           // idem: ajuste de conversão será feito em etapa posterior
-  payload.q1_incluir_guia = q1IncluirGuia ? q1IncluirGuia.checked : null;           // idem
-  payload.q1_qtd_pontos_rede = intOrNullFromInput(q1QtdPontosRede);                // quantidade de pontos de rede
-  payload.q1_qtd_cabos = intOrNullFromInput(q1QtdCabos);                            // quantidade de cabos UTP
-  payload.q1_qtd_portas_patch_panel = intOrNullFromInput(q1QtdPortasPP);            // quantidade de portas no patch panel
-  payload.q1_qtd_patch_cords = intOrNullFromInput(q1QtdPatchCords);                 // quantidade de patch cords
+  payload.q1_categoria_cab =
+    q1Categoria && q1Categoria.value ? q1Categoria.value : null;  // categoria do cabeamento (CAT5e/CAT6/CAT6A)
+
+  payload.q1_blindado = q1Blindado
+    ? selectSimNaoParaBoolean(q1Blindado)                        // converte "sim"/"nao" para boolean (cabeamento blindado?)
+    : null;
+
+  payload.q1_novo_patch_panel = q1NovoPatch
+    ? selectSimNaoParaBoolean(q1NovoPatch)                       // converte "sim"/"nao" para boolean (necessita novo patch panel?)
+    : null;
+
+  payload.q1_incluir_guia = q1IncluirGuia
+    ? selectSimNaoParaBoolean(q1IncluirGuia)                     // converte "sim"/"nao" para boolean (incluir guia de cabos?)
+    : null;
+
+  payload.q1_qtd_pontos_rede = intOrNullFromInput(q1QtdPontosRede); // quantidade de pontos de rede
+  payload.q1_qtd_cabos = intOrNullFromInput(q1QtdCabos);             // quantidade de cabos
+  payload.q1_qtd_portas_patch_panel = intOrNullFromInput(
+    q1QtdPortasPP
+  );                                                              // quantidade de portas no patch panel
+  payload.q1_qtd_patch_cords = intOrNullFromInput(
+    q1QtdPatchCords
+  );                                                              // quantidade de patch cords
+
+  let modeloPatchPanelFinal = null;                              // variável para armazenar o valor final de modelo de patch panel
+
+  if (q1ModeloPatchPanel) {                                      // se o select de modelo existir
+    const valorModelo = q1ModeloPatchPanel.value;                // lê o valor selecionado no combo
+
+    if (valorModelo === "outro") {                               // se o usuário escolheu "Outro"
+      const textoOutro =
+        q1ModeloPatchPanelOutroInput && q1ModeloPatchPanelOutroInput.value
+          ? q1ModeloPatchPanelOutroInput.value.trim()
+          : "";                                                  // lê o texto digitado no campo "Outro"
+
+      if (textoOutro) {                                          // se houver texto preenchido
+        modeloPatchPanelFinal = `Outro: ${textoOutro}`;          // monta a string no formato "Outro: <texto>"
+      } else {
+        modeloPatchPanelFinal = null;                            // se não houver texto, não envia valor de modelo
+      }
+    } else if (valorModelo) {                                    // se o valor do select não for vazio nem "outro"
+      modeloPatchPanelFinal = valorModelo;                       // usa diretamente o valor selecionado (CommScope/Furukawa/Systimax)
+    }
+  }
+  payload.q1_modelo_patch_panel = modeloPatchPanelFinal;         // envia o modelo do patch panel (ou null se não preenchido)
   payload.q1_marca_cab =
     q1MarcaCab && q1MarcaCab.value.trim() ? q1MarcaCab.value.trim() : null;         // marca do cabeamento (texto livre)
   payload.q1_modelo_patch_panel =
@@ -2181,14 +2430,35 @@ function registrarEventos() {
   }
 
   // Evento de submit do formulário de avaliação
-  if (formAvaliacao) {
-    formAvaliacao.addEventListener("submit", salvarAvaliacao);
+  if (formAvaliacao) {                                            // verifica se o formulário de avaliação existe
+    formAvaliacao.addEventListener("submit", salvarAvaliacao);    // registra o handler de submit para salvar a avaliação
   }
 
-  if(salvarAvaliacaoButton){                                      // verifica se o botão de salvar avaliação existe
-    salvarAvaliacaoButton.addEventListener("click", (event) => {   // registra o handler de clique
-      event.preventDefault();                                     // evita o comportamento padrão de submit
-      salvarAvaliacao(event);                                    // chama a função de salvar avaliação
+  if (salvarAvaliacaoButton) {                                    // verifica se o botão de salvar avaliação existe
+    salvarAvaliacaoButton.addEventListener("click", (event) => {  // registra o handler de clique no botão
+      event.preventDefault();                                     // evita o comportamento padrão de submit do formulário
+      salvarAvaliacao(event);                                     // chama a função de salvar avaliação manualmente
+    });
+  }
+
+  if (clienteNomeInput) {                                         // se o select de cliente existir
+    atualizarVisibilidadeClienteOutro();                          // aplica o estado inicial da visibilidade do campo "Outro"
+    clienteNomeInput.addEventListener("change", () => {           // registra evento de mudança no select de cliente
+      atualizarVisibilidadeClienteOutro();                        // ao mudar o valor, atualiza a visibilidade do campo "Outro"
+    });
+  }
+
+  if (q1NovoPatch) {                                              // se o select "Necessita novo patch panel?" existir
+    atualizarVisibilidadeModeloPatchPanel();                      // aplica o estado inicial da visibilidade do bloco de modelo
+    q1NovoPatch.addEventListener("change", () => {                // registra evento de mudança nesse select
+      atualizarVisibilidadeModeloPatchPanel();                    // ao mudar o valor, atualiza a visibilidade do bloco de modelo
+    });
+  }
+
+  if (q1ModeloPatchPanel) {                                       // se o select de modelo de patch panel existir
+    atualizarVisibilidadeModeloPatchPanelOutro();                 // ajusta a visibilidade do campo "Outro" de modelo
+    q1ModeloPatchPanel.addEventListener("change", () => {         // registra evento de mudança no select de modelo
+      atualizarVisibilidadeModeloPatchPanelOutro();               // ao mudar o valor, ajusta o campo "Outro" de modelo
     });
   }
 

@@ -467,14 +467,37 @@
 
               <!-- Linha: cliente + data -->
               <div class="form-row">
-                <div class="form-group">
-                  <label for="cliente-nome">Cliente *</label>
-                  <input
-                    type="text"
-                    id="cliente-nome"
-                    placeholder="Nome do cliente"
-                    required
-                  />
+                <div class="form-group"> <!-- grupo de campos relacionados ao cliente -->
+                  <label for="cliente-nome">Cliente *</label> <!-- rótulo principal do campo de cliente -->
+                  <select
+                    id="cliente-nome"                        
+                    required                                 
+                  >
+                    <option value="">Selecione...</option>   
+                    <option value="Novo Nordisk">Novo Nordisk</option> 
+                    <option value="FFEX">FFEX</option>       
+                    <option value="Somai">Somai</option>     
+                    <option value="União Química">União Química</option>
+                    <option value="CSN">CSN</option>         
+                    <option value="Alpargatas">Alpargatas</option>
+                    <option value="Eurofarma">Eurofarma</option> 
+                    <option value="Cristália">Cristália</option> 
+                    <option value="Santo Agostino">Santo Agostino</option>
+                    <option value="Cervantes">Cervantes</option>
+                    <option value="outro">Outro (especificar)</option>
+                  </select>
+
+                  <div
+                    class="form-group hidden"              
+                    id="cliente-outro-wrapper"             
+                  >
+                    <label for="cliente-nome-outro">Informe o nome do cliente</label> <!-- rótulo do campo "Outro" -->
+                    <input
+                      type="text"
+                      id="cliente-nome-outro"                
+                      placeholder="Digite o nome do cliente"
+                    />
+                  </div>
                 </div>
 
                 <div class="form-group">
@@ -609,9 +632,7 @@
               </div>
 
               <!-- Seção: Quantitativo 01 - Patch Panel -->
-              <div class="tipo-redes-only">
-                <h3 class="form-section-title">Quantitativo 01 - Patch Panel</h3> <!-- título da seção de patch panel -->
-
+              <h3 class="form-section-title">Análise de Rack - Patch Panel</h3> <!-- título da seção de patch panel -->
                 <div class="form-row"><!-- linha com categoria, blindado e novo patch panel -->
                   <div class="form-group"><!-- categoria do cabeamento -->
                     <label for="q1-categoria-cab">Categoria do cabeamento</label> <!-- rótulo do campo -->
@@ -642,6 +663,31 @@
                   </div>
                 </div>
 
+                <!-- linha com modelo do patch panel (aparece apenas se "Necessita novo patch panel?" = Sim) -->
+                <div class="form-row hidden" id="q1-modelo-patch-panel-row"><!-- linha com seleção de modelo de patch panel -->
+                  <div class="form-group" id="q1-modelo-patch-panel-wrapper"><!-- grupo do select de modelo -->
+                    <label for="q1-modelo-patch-panel">Modelo do patch panel</label> <!-- rótulo do campo de modelo -->
+                    <select id="q1-modelo-patch-panel"><!-- select com modelos de patch panel -->
+                      <option value="">Selecione...</option> <!-- opção vazia padrão -->
+                      <option value="CommScope 24 portas">CommScope 24 portas</option> <!-- modelo CommScope 24 portas -->
+                      <option value="Furukawa 24 portas">Furukawa 24 portas</option> <!-- modelo Furukawa 24 portas -->
+                      <option value="Systimax 24 portas">Systimax 24 portas</option> <!-- modelo Systimax 24 portas -->
+                      <option value="outro">Outro (especificar)</option> <!-- opção para informar outro modelo -->
+                    </select>
+                  </div>
+
+                  <div
+                    class="form-group hidden"                         
+                    id="q1-modelo-patch-panel-outro-wrapper"          
+                  >
+                    <label for="q1-modelo-patch-panel-outro">Informe o modelo</label> <!-- rótulo do campo "Outro" -->
+                    <input
+                      type="text"                                     
+                      id="q1-modelo-patch-panel-outro"                
+                      placeholder="Digite o modelo do patch panel"    
+                    />
+                  </div>
+                </div>
                 <div class="form-row"><!-- linha com incluir guia e quantitativos de rede -->
                   <div class="form-group"><!-- flag: incluir guia -->
                     <label for="q1-incluir-guia">Incluir guia de cabos?</label> <!-- rótulo do campo -->
@@ -763,7 +809,7 @@
                     />
                   </div>
                 </div>
-
+              <div class="tipo-redes-only">
                 <!-- Seção: Quantitativo 02 - Switch -->
                 <h3 class="form-section-title">Quantitativo 02 - Switch</h3>
 
