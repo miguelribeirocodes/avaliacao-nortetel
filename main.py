@@ -2081,22 +2081,32 @@ def criar_avaliacao(                                             # função para
         servico_intermediario=payload.servico_intermediario,             # flag se serviço é para intermediário/empreiteira
 
         # ====== Quantitativo 01 – Patch Panel ======
-        q1_categoria_cab=payload.q1_categoria_cab,                   # categoria do cabeamento (Cat5e/Cat6/Cat6a)
-        q1_blindado=payload.q1_blindado,                             # se o cabeamento é blindado
-        q1_novo_patch_panel=payload.q1_novo_patch_panel,             # se precisa de patch panel novo
-        q1_incluir_guia=payload.q1_incluir_guia,                     # se deve incluir guia de cabos
-        q1_qtd_pontos_rede=payload.q1_qtd_pontos_rede,               # quantidade de pontos de rede
-        q1_qtd_cabos=payload.q1_qtd_cabos,                           # quantidade de cabos
-        q1_qtd_portas_patch_panel=payload.q1_qtd_portas_patch_panel, # quantidade de portas no patch panel
-        q1_qtd_patch_cords=payload.q1_qtd_patch_cords,               # quantidade de patch cords
+        q1_categoria_cab=payload.q1_categoria_cab,                        # categoria do cabeamento (Cat5e/Cat6/Cat6a)
+        q1_blindado=payload.q1_blindado,                                  # se o cabeamento é blindado (STP/UTP)
+        q1_novo_patch_panel=payload.q1_novo_patch_panel,                  # indica se será fornecido novo patch panel
+        q1_incluir_guia=payload.q1_incluir_guia,                          # indica se devem ser incluídas guias de cabos
+        q1_qtd_pontos_rede=payload.q1_qtd_pontos_rede,                    # quantidade de pontos de rede previstos
+        q1_qtd_cabos=payload.q1_qtd_cabos,                                # quantidade de cabos UTP previstos
+        q1_qtd_portas_patch_panel=payload.q1_qtd_portas_patch_panel,      # quantidade de portas do patch panel
+        q1_qtd_patch_cords=payload.q1_qtd_patch_cords,                    # quantidade de patch cords previstos
+        q1_marca_cab=payload.q1_marca_cab,                                # marca do cabeamento UTP a ser usado (Furukawa, Commscope etc.)
+        q1_modelo_patch_panel=payload.q1_modelo_patch_panel,              # modelo/descrição do patch panel (fabricante, nº de portas, etc.)
+        q1_qtd_guias_cabos=payload.q1_qtd_guias_cabos,                    # quantidade de guias de cabos a instalar
+        q1_patch_cords_modelo=payload.q1_patch_cords_modelo,              # modelo/descrição dos patch cords (categoria, comprimento, etc.)
+        q1_patch_cords_cor=payload.q1_patch_cords_cor,                    # cor ou cores dos patch cords
+        q1_patch_panel_existente_nome=payload.q1_patch_panel_existente_nome,  # identificação do patch panel existente, quando não for fornecido novo
 
         # ====== Quantitativo 02 – Switch ======
-        q2_novo_switch=payload.q2_novo_switch,                       # se será necessário switch novo
-        q2_switch_poe=payload.q2_switch_poe,                         # se o switch precisa suportar PoE
-        q2_rede_industrial=payload.q2_rede_industrial,               # se é rede industrial
-        q2_qtd_pontos_rede=payload.q2_qtd_pontos_rede,               # quantidade de pontos de rede (switch)
-        q2_qtd_portas_switch=payload.q2_qtd_portas_switch,           # quantidade de portas de switch necessárias
-        q2_observacoes=payload.q2_observacoes,                       # observações específicas do switch
+        q2_novo_switch=payload.q2_novo_switch,                       # indica se haverá fornecimento de switch novo
+        q2_switch_poe=payload.q2_switch_poe,                         # LEGADO - necessidade de PoE (modelo antigo de formulário)
+        q2_rede_industrial=payload.q2_rede_industrial,               # LEGADO - indicação de rede industrial (modelo antigo)
+        q2_qtd_pontos_rede=payload.q2_qtd_pontos_rede,               # LEGADO - quantidade de pontos atendidos (modelo antigo)
+        q2_qtd_portas_switch=payload.q2_qtd_portas_switch,           # LEGADO - quantidade de portas do switch (modelo antigo)
+        q2_fornecedor_switch=payload.q2_fornecedor_switch,           # quem fornece o switch: 'nortetel' ou 'cliente'
+        q2_modelo_switch=payload.q2_modelo_switch,                   # modelo do switch (novo ou existente)
+        q2_switch_foto_url=payload.q2_switch_foto_url,               # URL ou caminho da foto do switch existente
+        q2_switch_existente_nome=payload.q2_switch_existente_nome,   # identificação/nome do switch existente
+        q2_observacoes=payload.q2_observacoes,                       # observações gerais sobre o(s) switch(es)
 
         # ====== Quantitativo 03 – Cabeamento Óptico ======
         q3_tipo_fibra=payload.q3_tipo_fibra,                         # tipo de fibra (SM, OM1, OM3...)
@@ -2106,28 +2116,48 @@ def criar_avaliacao(                                             # função para
         q3_caixa_terminacao=payload.q3_caixa_terminacao,             # se precisa de caixa de terminação
         q3_tipo_cabo_optico=payload.q3_tipo_cabo_optico,             # tipo de cabo óptico (indoor, outdoor, autossustentado)
         q3_caixa_emenda=payload.q3_caixa_emenda,                     # se precisa de caixa de emenda
-        q3_qtd_cabos=payload.q3_qtd_cabos,                           # quantidade de cabos ópticos
-        q3_tamanho_total_m=payload.q3_tamanho_total_m,               # metragem total dos cabos (m)
+        q3_qtd_cabos=payload.q3_qtd_cabos,                           # quantidade de cabos ópticos previstos
+        q3_tamanho_total_m=payload.q3_tamanho_total_m,               # metragem total estimada dos cabos ópticos (em metros)
         q3_qtd_fibras=payload.q3_qtd_fibras,                         # quantidade total de fibras
-        q3_qtd_portas_dio=payload.q3_qtd_portas_dio,                 # quantidade de portas no DIO (fusões)
+        q3_qtd_portas_dio=payload.q3_qtd_portas_dio,                 # quantidade de portas do DIO
         q3_qtd_cordoes_opticos=payload.q3_qtd_cordoes_opticos,       # quantidade de cordões ópticos
-        q3_observacoes=payload.q3_observacoes,                       # observações da parte óptica
+        q3_marca_cab_optico=payload.q3_marca_cab_optico,             # marca do cabeamento óptico
+        q3_modelo_dio=payload.q3_modelo_dio,                         # modelo/descrição do DIO
+        q3_modelo_cordao_optico=payload.q3_modelo_cordao_optico,     # modelo/descrição dos cordões ópticos
+        q3_observacoes=payload.q3_observacoes,                       # observações gerais sobre o cabeamento óptico
 
-        # ====== Quantitativo 04 – Equipamentos ======
-        q4_camera=payload.q4_camera,                                 # se inclui câmeras CFTV
-        q4_nvr_dvr=payload.q4_nvr_dvr,                               # se inclui NVR/DVR
-        q4_access_point=payload.q4_access_point,                     # se inclui access points Wi-Fi
-        q4_conversor_midia=payload.q4_conversor_midia,               # se inclui conversores de mídia
-        q4_gbic=payload.q4_gbic,                                     # se inclui módulos GBIC/SFP
-        q4_switch=payload.q4_switch,                                 # se inclui switches adicionais
+        # ====== Quantitativo 04 – Equipamentos (Câmeras / NVR/DVR / Conversor / GBIC) ======
+        q4_camera=payload.q4_camera,                                 # indica se a avaliação envolve câmeras de CFTV
+        q4_nvr_dvr=payload.q4_nvr_dvr,                               # indica se haverá NVR ou DVR
+        q4_access_point=payload.q4_access_point,                     # LEGADO - Access Points (modelo antigo, não usado nos novos formulários)
+        q4_conversor_midia=payload.q4_conversor_midia,               # indica se haverá conversor de mídia
+        q4_gbic=payload.q4_gbic,                                     # indica se haverá GBIC/SFP
+        q4_switch=payload.q4_switch,                                 # LEGADO - switches adicionais (modelo antigo)
+        q4_conversor_midia_modelo=payload.q4_conversor_midia_modelo, # modelo/descrição do conversor de mídia
+        q4_gbic_modelo=payload.q4_gbic_modelo,                       # modelo/descrição do GBIC/SFP
+        q4_camera_nova=payload.q4_camera_nova,                       # True = câmeras novas, False = realocação
+        q4_camera_modelo=payload.q4_camera_modelo,                   # modelo das câmeras de CFTV
+        q4_camera_qtd=payload.q4_camera_qtd,                         # quantidade de câmeras do modelo informado
+        q4_camera_fornecedor=payload.q4_camera_fornecedor,           # quem fornece as câmeras: 'nortetel' ou 'cliente'
+        q4_nvr_dvr_modelo=payload.q4_nvr_dvr_modelo,                 # modelo/descrição do NVR/DVR
 
         # ====== Quantitativo 05 – Infraestrutura ======
-        q5_nova_eletrocalha=payload.q5_nova_eletrocalha,             # se precisará de nova eletrocalha
-        q5_novo_eletroduto=payload.q5_novo_eletroduto,               # se precisará de novo eletroduto
-        q5_novo_rack=payload.q5_novo_rack,                           # se haverá rack novo
-        q5_instalacao_eletrica=payload.q5_instalacao_eletrica,       # se envolve instalação elétrica complementar
-        q5_nobreak=payload.q5_nobreak,                               # se envolve fornecimento/instalação de nobreak
-        q5_serralheria=payload.q5_serralheria,                       # se envolve serviços de serralheria
+        q5_nova_eletrocalha=payload.q5_nova_eletrocalha,             # indica se haverá nova eletrocalha
+        q5_novo_eletroduto=payload.q5_novo_eletroduto,               # indica se haverá novo eletroduto
+        q5_novo_rack=payload.q5_novo_rack,                           # indica se haverá novo rack
+        q5_instalacao_eletrica=payload.q5_instalacao_eletrica,       # indica se haverá adequação/instalação elétrica
+        q5_nobreak=payload.q5_nobreak,                               # indica se haverá fornecimento de nobreak
+        q5_serralheria=payload.q5_serralheria,                       # indica se haverá serviços de serralheria/suportes
+        q5_eletrocalha_modelo=payload.q5_eletrocalha_modelo,         # modelo/descrição da eletrocalha
+        q5_eletrocalha_qtd=payload.q5_eletrocalha_qtd,               # quantidade de eletrocalhas
+        q5_eletroduto_modelo=payload.q5_eletroduto_modelo,           # modelo/descrição do eletroduto
+        q5_eletroduto_qtd=payload.q5_eletroduto_qtd,                 # quantidade de eletrodutos
+        q5_rack_modelo=payload.q5_rack_modelo,                       # modelo/descrição do rack
+        q5_rack_qtd=payload.q5_rack_qtd,                             # quantidade de racks
+        q5_nobreak_modelo=payload.q5_nobreak_modelo,                 # modelo/descrição do nobreak
+        q5_nobreak_qtd=payload.q5_nobreak_qtd,                       # quantidade de nobreaks
+        q5_serralheria_descricao=payload.q5_serralheria_descricao,   # descrição detalhada da serralheria necessária
+        q5_instalacao_eletrica_obs=payload.q5_instalacao_eletrica_obs, # observações adicionais sobre instalação elétrica
 
         # ====== Localização / imagens de referência ======
         localizacao_imagem1_url=payload.localizacao_imagem1_url,     # URL da primeira imagem de referência
@@ -2535,54 +2565,84 @@ def atualizar_avaliacao(                                         # função para
     atualiza_campo("servico_fora_montes_claros", "servico_fora_montes_claros")  # indica se o serviço é fora de Montes Claros
     atualiza_campo("servico_intermediario", "servico_intermediario")            # indica se é serviço para intermediário/empreiteira
 
-    # ===== Novos campos: Quantitativo 01 – Patch Panel =====
-    atualiza_campo("q1_categoria_cab", "q1_categoria_cab")                      # categoria do cabeamento (Cat5e, Cat6, etc.)
-    atualiza_campo("q1_blindado", "q1_blindado")                                # cabeamento blindado (True/False)
-    atualiza_campo("q1_novo_patch_panel", "q1_novo_patch_panel")                # se precisa de patch panel novo
-    atualiza_campo("q1_incluir_guia", "q1_incluir_guia")                        # se deve incluir guia de cabos
-    atualiza_campo("q1_qtd_pontos_rede", "q1_qtd_pontos_rede")                  # quantidade de pontos de rede
-    atualiza_campo("q1_qtd_cabos", "q1_qtd_cabos")                              # quantidade de cabos
-    atualiza_campo("q1_qtd_portas_patch_panel", "q1_qtd_portas_patch_panel")    # quantidade de portas no patch panel
-    atualiza_campo("q1_qtd_patch_cords", "q1_qtd_patch_cords")                  # quantidade de patch cords
+    # Quantitativo 01 – Patch Panel / Cabeamento UTP
+    atualiza_campo("q1_categoria_cab", "q1_categoria_cab")                    # categoria do cabeamento (Cat5e/Cat6/Cat6a)
+    atualiza_campo("q1_blindado", "q1_blindado")                              # se o cabeamento é blindado
+    atualiza_campo("q1_novo_patch_panel", "q1_novo_patch_panel")              # se será fornecido novo patch panel
+    atualiza_campo("q1_incluir_guia", "q1_incluir_guia")                      # se inclui guia de cabos
+    atualiza_campo("q1_qtd_pontos_rede", "q1_qtd_pontos_rede")                # quantidade de pontos de rede
+    atualiza_campo("q1_qtd_cabos", "q1_qtd_cabos")                            # quantidade de cabos UTP
+    atualiza_campo("q1_qtd_portas_patch_panel", "q1_qtd_portas_patch_panel")  # quantidade de portas do patch panel
+    atualiza_campo("q1_qtd_patch_cords", "q1_qtd_patch_cords")                # quantidade de patch cords
+    atualiza_campo("q1_marca_cab", "q1_marca_cab")                            # marca do cabeamento UTP
+    atualiza_campo("q1_modelo_patch_panel", "q1_modelo_patch_panel")          # modelo/descrição do patch panel
+    atualiza_campo("q1_qtd_guias_cabos", "q1_qtd_guias_cabos")                # quantidade de guias de cabos
+    atualiza_campo("q1_patch_cords_modelo", "q1_patch_cords_modelo")          # modelo/descrição dos patch cords
+    atualiza_campo("q1_patch_cords_cor", "q1_patch_cords_cor")                # cor ou cores dos patch cords
+    atualiza_campo("q1_patch_panel_existente_nome", "q1_patch_panel_existente_nome")  # identificação do patch panel existente
 
-    # ===== Novos campos: Quantitativo 02 – Switch =====
-    atualiza_campo("q2_novo_switch", "q2_novo_switch")                          # se será necessário switch novo
-    atualiza_campo("q2_switch_poe", "q2_switch_poe")                            # se o switch precisa ser PoE
-    atualiza_campo("q2_rede_industrial", "q2_rede_industrial")                  # se trata de rede industrial
-    atualiza_campo("q2_qtd_pontos_rede", "q2_qtd_pontos_rede")                  # quantidade de pontos de rede (switch)
-    atualiza_campo("q2_qtd_portas_switch", "q2_qtd_portas_switch")              # portas necessárias no switch
-    atualiza_campo("q2_observacoes", "q2_observacoes")                          # observações do bloco de switch
+    # Quantitativo 02 – Switch
+    atualiza_campo("q2_novo_switch", "q2_novo_switch")                    # indica se haverá fornecimento de switch novo
+    atualiza_campo("q2_switch_poe", "q2_switch_poe")                      # LEGADO - PoE (modelo antigo)
+    atualiza_campo("q2_rede_industrial", "q2_rede_industrial")            # LEGADO - rede industrial (modelo antigo)
+    atualiza_campo("q2_qtd_pontos_rede", "q2_qtd_pontos_rede")            # LEGADO - dimensionamento antigo de pontos
+    atualiza_campo("q2_qtd_portas_switch", "q2_qtd_portas_switch")        # LEGADO - dimensionamento antigo de portas
+    atualiza_campo("q2_fornecedor_switch", "q2_fornecedor_switch")        # quem fornece o switch: 'nortetel' ou 'cliente'
+    atualiza_campo("q2_modelo_switch", "q2_modelo_switch")                # modelo do switch (novo ou existente)
+    atualiza_campo("q2_switch_foto_url", "q2_switch_foto_url")            # URL/caminho da foto do switch
+    atualiza_campo("q2_switch_existente_nome", "q2_switch_existente_nome")# identificação do switch existente
+    atualiza_campo("q2_observacoes", "q2_observacoes")                    # observações gerais sobre o switch
 
-    # ===== Novos campos: Quantitativo 03 – Cabeamento Óptico =====
-    atualiza_campo("q3_tipo_fibra", "q3_tipo_fibra")                            # tipo da fibra (SM, OM1, OM3, etc.)
-    atualiza_campo("q3_qtd_fibras_por_cabo", "q3_qtd_fibras_por_cabo")          # número de fibras por cabo
-    atualiza_campo("q3_tipo_conector", "q3_tipo_conector")                      # tipo de conector (LC, SC, etc.)
-    atualiza_campo("q3_novo_dio", "q3_novo_dio")                                # se precisa de DIO novo
-    atualiza_campo("q3_caixa_terminacao", "q3_caixa_terminacao")                # se precisa de caixa de terminação
-    atualiza_campo("q3_tipo_cabo_optico", "q3_tipo_cabo_optico")                # tipo do cabo óptico
-    atualiza_campo("q3_caixa_emenda", "q3_caixa_emenda")                        # se precisa de caixa de emenda
-    atualiza_campo("q3_qtd_cabos", "q3_qtd_cabos")                              # quantidade de cabos ópticos
-    atualiza_campo("q3_tamanho_total_m", "q3_tamanho_total_m")                  # metragem total de fibra em metros
-    atualiza_campo("q3_qtd_fibras", "q3_qtd_fibras")                            # quantidade total de fibras
-    atualiza_campo("q3_qtd_portas_dio", "q3_qtd_portas_dio")                    # quantidade de portas/fusões no DIO
-    atualiza_campo("q3_qtd_cordoes_opticos", "q3_qtd_cordoes_opticos")          # quantidade de cordões ópticos
-    atualiza_campo("q3_observacoes", "q3_observacoes")                          # observações do bloco óptico
+    # Quantitativo 03 – Cabeamento Óptico
+    atualiza_campo("q3_tipo_fibra", "q3_tipo_fibra")                        # tipo de fibra (SM/OMx)
+    atualiza_campo("q3_qtd_fibras_por_cabo", "q3_qtd_fibras_por_cabo")      # número de fibras por cabo
+    atualiza_campo("q3_tipo_conector", "q3_tipo_conector")                  # tipo de conector (LC/SC etc.)
+    atualiza_campo("q3_novo_dio", "q3_novo_dio")                            # se será fornecido novo DIO
+    atualiza_campo("q3_caixa_terminacao", "q3_caixa_terminacao")            # se haverá caixa de terminação
+    atualiza_campo("q3_tipo_cabo_optico", "q3_tipo_cabo_optico")            # tipo de cabo óptico
+    atualiza_campo("q3_caixa_emenda", "q3_caixa_emenda")                    # se haverá caixa de emenda
+    atualiza_campo("q3_qtd_cabos", "q3_qtd_cabos")                          # quantidade de cabos ópticos
+    atualiza_campo("q3_tamanho_total_m", "q3_tamanho_total_m")              # metragem total estimada (m)
+    atualiza_campo("q3_qtd_fibras", "q3_qtd_fibras")                        # quantidade total de fibras
+    atualiza_campo("q3_qtd_portas_dio", "q3_qtd_portas_dio")                # quantidade de portas no DIO
+    atualiza_campo("q3_qtd_cordoes_opticos", "q3_qtd_cordoes_opticos")      # quantidade de cordões ópticos
+    atualiza_campo("q3_marca_cab_optico", "q3_marca_cab_optico")            # marca do cabeamento óptico
+    atualiza_campo("q3_modelo_dio", "q3_modelo_dio")                        # modelo/descrição do DIO
+    atualiza_campo("q3_modelo_cordao_optico", "q3_modelo_cordao_optico")    # modelo/descrição dos cordões ópticos
+    atualiza_campo("q3_observacoes", "q3_observacoes")                      # observações gerais sobre o cabeamento óptico
 
-    # ===== Novos campos: Quantitativo 04 – Equipamentos =====
-    atualiza_campo("q4_camera", "q4_camera")                                    # se o orçamento inclui câmeras CFTV
-    atualiza_campo("q4_nvr_dvr", "q4_nvr_dvr")                                  # se inclui NVR/DVR
-    atualiza_campo("q4_access_point", "q4_access_point")                        # se inclui access points Wi-Fi
-    atualiza_campo("q4_conversor_midia", "q4_conversor_midia")                  # se inclui conversores de mídia
-    atualiza_campo("q4_gbic", "q4_gbic")                                        # se inclui módulos GBIC/SFP
-    atualiza_campo("q4_switch", "q4_switch")                                    # se inclui switches adicionais
+    # Quantitativo 04 – Equipamentos (Câmeras / NVR/DVR / Conversor / GBIC)
+    atualiza_campo("q4_camera", "q4_camera")                              # indica se a avaliação inclui câmeras
+    atualiza_campo("q4_nvr_dvr", "q4_nvr_dvr")                            # indica se haverá NVR/DVR
+    atualiza_campo("q4_access_point", "q4_access_point")                  # LEGADO - Access Points (modelo antigo)
+    atualiza_campo("q4_conversor_midia", "q4_conversor_midia")            # indica se inclui conversores de mídia
+    atualiza_campo("q4_gbic", "q4_gbic")                                  # indica se inclui módulos GBIC/SFP
+    atualiza_campo("q4_switch", "q4_switch")                              # LEGADO - switches adicionais (modelo antigo)
+    atualiza_campo("q4_conversor_midia_modelo", "q4_conversor_midia_modelo")  # modelo do conversor de mídia
+    atualiza_campo("q4_gbic_modelo", "q4_gbic_modelo")                    # modelo do GBIC/SFP
+    atualiza_campo("q4_camera_nova", "q4_camera_nova")                    # True = câmeras novas, False = realocação
+    atualiza_campo("q4_camera_modelo", "q4_camera_modelo")                # modelo das câmeras
+    atualiza_campo("q4_camera_qtd", "q4_camera_qtd")                      # quantidade de câmeras
+    atualiza_campo("q4_camera_fornecedor", "q4_camera_fornecedor")        # quem fornece as câmeras
+    atualiza_campo("q4_nvr_dvr_modelo", "q4_nvr_dvr_modelo")              # modelo/descrição do NVR/DVR
 
-    # ===== Novos campos: Quantitativo 05 – Infraestrutura =====
-    atualiza_campo("q5_nova_eletrocalha", "q5_nova_eletrocalha")                # necessidade de nova eletrocalha
-    atualiza_campo("q5_novo_eletroduto", "q5_novo_eletroduto")                  # necessidade de novo eletroduto
-    atualiza_campo("q5_novo_rack", "q5_novo_rack")                              # necessidade de novo rack
-    atualiza_campo("q5_instalacao_eletrica", "q5_instalacao_eletrica")          # se envolve instalação elétrica
-    atualiza_campo("q5_nobreak", "q5_nobreak")                                  # se inclui nobreak
-    atualiza_campo("q5_serralheria", "q5_serralheria")                          # se inclui serviços de serralheria
+    # Quantitativo 05 – Infraestrutura
+    atualiza_campo("q5_nova_eletrocalha", "q5_nova_eletrocalha")          # indica se haverá nova eletrocalha
+    atualiza_campo("q5_novo_eletroduto", "q5_novo_eletroduto")            # indica se haverá novo eletroduto
+    atualiza_campo("q5_novo_rack", "q5_novo_rack")                        # indica se haverá novo rack
+    atualiza_campo("q5_instalacao_eletrica", "q5_instalacao_eletrica")    # indica se haverá instalação elétrica
+    atualiza_campo("q5_nobreak", "q5_nobreak")                            # indica se haverá nobreak
+    atualiza_campo("q5_serralheria", "q5_serralheria")                    # indica se haverá serviços de serralheria
+    atualiza_campo("q5_eletrocalha_modelo", "q5_eletrocalha_modelo")      # modelo da eletrocalha
+    atualiza_campo("q5_eletrocalha_qtd", "q5_eletrocalha_qtd")            # quantidade de eletrocalhas
+    atualiza_campo("q5_eletroduto_modelo", "q5_eletroduto_modelo")        # modelo do eletroduto
+    atualiza_campo("q5_eletroduto_qtd", "q5_eletroduto_qtd")              # quantidade de eletrodutos
+    atualiza_campo("q5_rack_modelo", "q5_rack_modelo")                    # modelo do rack
+    atualiza_campo("q5_rack_qtd", "q5_rack_qtd")                          # quantidade de racks
+    atualiza_campo("q5_nobreak_modelo", "q5_nobreak_modelo")              # modelo do nobreak
+    atualiza_campo("q5_nobreak_qtd", "q5_nobreak_qtd")                    # quantidade de nobreaks
+    atualiza_campo("q5_serralheria_descricao", "q5_serralheria_descricao")# descrição detalhada da serralheria
+    atualiza_campo("q5_instalacao_eletrica_obs", "q5_instalacao_eletrica_obs")  # observações adicionais de instalação elétrica
 
     # ===== Novos campos: Localização / Referências =====
     atualiza_campo("localizacao_imagem1_url", "localizacao_imagem1_url")        # URL da primeira imagem de localização

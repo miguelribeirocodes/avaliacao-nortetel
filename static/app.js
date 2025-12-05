@@ -79,12 +79,12 @@ const equipeSelect = document.getElementById("equipe"); // select de equipe
 const responsavelInput = document.getElementById("responsavel-avaliacao"); // input de responsável
 const contatoInput = document.getElementById("contato-cliente"); // input de contato do cliente
 const emailClienteInput = document.getElementById("email-cliente"); // input de e-mail do cliente
-const escopoTextarea = document.getElementById("escopo-texto"); // textarea de escopo / observações
+const escopoTextarea = document.getElementById("escopo-texto");     // textarea de escopo / observações
 //tipo_formulario
-const tipoFormularioInput = document.getElementById("tipo-formulario"); // input hidden que armazena o tipo atual de formulário (redes/infraestrutura)
-//const tabButtons = document.querySelectorAll(".avaliacao-tab-btn"); // NodeList contendo todos os botões de aba de tipo de formulário
-//const blocosTipoRedes = document.querySelectorAll(".tipo-redes-only"); // blocos de campos exclusivos do tipo "Redes"
-//const blocosTipoInfra = document.querySelectorAll(".tipo-infra-only"); // blocos de campos exclusivos do tipo "Infraestrutura"
+const tipoFormularioInput = document.getElementById("tipo-formulario");         // input hidden que armazena o tipo atual de formulário selecionado
+const tabButtons = document.querySelectorAll(".avaliacao-tab-btn");             // NodeList contendo todos os botões de aba de tipo de formulário
+const blocosTipoRedes = document.querySelectorAll(".tipo-redes-only");          // blocos exclusivos do formulário UTP/Fibra (legado "Redes")
+const blocosTipoInfra = document.querySelectorAll(".tipo-infra-only");          // blocos exclusivos do formulário de Câmeras (legado "Infraestrutura")
 //tipo_formulario
 // ===================== CAMPOS NOVOS =====================
 
@@ -95,53 +95,89 @@ const servicoForaMC = document.getElementById("servico-fora-montes-claros"); // 
 const servicoIntermediario = document.getElementById("servico-intermediario"); // checkbox serviço para intermediário
 
 // Quantitativo 01 – Patch Panel / Cabeamento
-const q1Categoria = document.getElementById("q1-categoria-cab");
-const q1Blindado = document.getElementById("q1-blindado");
-const q1NovoPatch = document.getElementById("q1-novo-patch-panel");
-const q1IncluirGuia = document.getElementById("q1-incluir-guia");
-const q1QtdPontosRede = document.getElementById("q1-qtd-pontos-rede");
-const q1QtdCabos = document.getElementById("q1-qtd-cabos");
-const q1QtdPortasPP = document.getElementById("q1-qtd-portas-patch-panel");
-const q1QtdPatchCords = document.getElementById("q1-qtd-patch-cords");
+const q1Categoria = document.getElementById("q1-categoria-cab");              // select de categoria do cabeamento (Cat5e/Cat6/Cat6A)
+const q1Blindado = document.getElementById("q1-blindado");                    // select Sim/Não para cabeamento blindado
+const q1NovoPatch = document.getElementById("q1-novo-patch-panel");           // select Sim/Não para novo patch panel
+const q1IncluirGuia = document.getElementById("q1-incluir-guia");             // select Sim/Não para incluir guia de cabos
+const q1QtdPontosRede = document.getElementById("q1-qtd-pontos-rede");        // input numérico para quantidade de pontos de rede
+const q1QtdCabos = document.getElementById("q1-qtd-cabos");                   // input numérico para quantidade de cabos
+const q1QtdPortasPP = document.getElementById("q1-qtd-portas-patch-panel");   // input numérico para quantidade de portas do patch panel
+const q1QtdPatchCords = document.getElementById("q1-qtd-patch-cords");        // input numérico para quantidade de patch cords
+const q1MarcaCab = document.getElementById("q1-marca-cab");                   // input de texto para marca do cabeamento UTP
+const q1ModeloPatchPanel = document.getElementById("q1-modelo-patch-panel");  // input de texto para modelo/descrição do patch panel
+const q1QtdGuiasCabos = document.getElementById("q1-qtd-guias-cabos");        // input numérico para quantidade de guias de cabos
+const q1PatchCordsModelo = document.getElementById("q1-patch-cords-modelo");  // input de texto para modelo dos patch cords
+const q1PatchCordsCor = document.getElementById("q1-patch-cords-cor");        // input de texto para cor dos patch cords
+const q1PatchPanelExistenteNome = document.getElementById(                    // input de texto para identificar o patch panel existente
+  "q1-patch-panel-existente-nome"
+);
 
 // Quantitativo 02 – Switch
-const q2NovoSwitch = document.getElementById("q2-novo-switch");
-const q2SwitchPoe = document.getElementById("q2-switch-poe");
-const q2RedeIndustrial = document.getElementById("q2-rede-industrial");
-const q2QtdPontosRede = document.getElementById("q2-qtd-pontos-rede");
-const q2QtdPortasSwitch = document.getElementById("q2-qtd-portas-switch");
-const q2ObsSwitch = document.getElementById("q2-observacoes");
+const q2NovoSwitch = document.getElementById("q2-novo-switch");                 // select Sim/Não indicando se precisa de switch novo
+const q2SwitchPoe = document.getElementById("q2-switch-poe");                   // select Sim/Não para PoE (LEGADO)
+const q2RedeIndustrial = document.getElementById("q2-rede-industrial");         // select Sim/Não para rede industrial (LEGADO)
+const q2QtdPontosRede = document.getElementById("q2-qtd-pontos-rede");          // input numérico: quantidade de pontos atendidos
+const q2QtdPortasSwitch = document.getElementById("q2-qtd-portas-switch");      // input numérico: quantidade de portas do switch
+const q2FornecedorSwitch = document.getElementById("q2-fornecedor-switch");      // select: fornecedor do switch ("nortetel" ou "cliente")
+const q2ModeloSwitch = document.getElementById("q2-modelo-switch");             // input texto: modelo do switch
+const q2SwitchExistenteNome = document.getElementById("q2-switch-existente-nome"); // input texto: identificação do switch existente
+const q2SwitchFotoUrl = document.getElementById("q2-switch-foto-url");          // input texto: URL da foto do switch
+const q2ObsSwitch = document.getElementById("q2-observacoes");                  // textarea: observações sobre switches
 
 // Quantitativo 03 – Cabeamento Óptico
-const q3TipoFibra = document.getElementById("q3-tipo-fibra");
-const q3QtdFibrasPorCabo = document.getElementById("q3-qtd-fibras-por-cabo");
-const q3TipoConector = document.getElementById("q3-tipo-conector");
-const q3NovoDio = document.getElementById("q3-novo-dio");
-const q3CaixaTerminacao = document.getElementById("q3-caixa-terminacao");
-const q3TipoCaboOptico = document.getElementById("q3-tipo-cabo-optico");
-const q3CaixaEmenda = document.getElementById("q3-caixa-emenda");
-const q3QtdCabos = document.getElementById("q3-qtd-cabos");
-const q3TamanhoTotal = document.getElementById("q3-tamanho-total-m");
-const q3QtdFibras = document.getElementById("q3-qtd-fibras");
-const q3QtdPortasDio = document.getElementById("q3-qtd-portas-dio");
-const q3QtdCordoesOpticos = document.getElementById("q3-qtd-cordoes-opticos");
-const q3Obs = document.getElementById("q3-observacoes");
+const q3TipoFibra = document.getElementById("q3-tipo-fibra");                   // select: tipo de fibra (SM/OMx)
+const q3QtdFibrasPorCabo = document.getElementById("q3-qtd-fibras-por-cabo");  // select: número de fibras por cabo
+const q3TipoConector = document.getElementById("q3-tipo-conector");            // select: tipo de conector (LC/SC/ST/MTRJ)
+const q3NovoDio = document.getElementById("q3-novo-dio");                      // select Sim/Não: precisa de novo DIO?
+const q3CaixaTerminacao = document.getElementById("q3-caixa-terminacao");      // select Sim/Não: caixa de terminação?
+const q3TipoCaboOptico = document.getElementById("q3-tipo-cabo-optico");       // select: tipo de cabo óptico (indoor/outdoor etc.)
+const q3CaixaEmenda = document.getElementById("q3-caixa-emenda");              // select Sim/Não: caixa de emenda?
+const q3QtdCabos = document.getElementById("q3-qtd-cabos");                    // input numérico: quantidade de cabos ópticos
+const q3TamanhoTotal = document.getElementById("q3-tamanho-total-m");          // input numérico: metragem total em metros
+const q3QtdFibras = document.getElementById("q3-qtd-fibras");                  // input numérico: quantidade total de fibras
+const q3QtdPortasDio = document.getElementById("q3-qtd-portas-dio");           // input numérico: quantidade de portas do DIO
+const q3QtdCordoesOpticos = document.getElementById("q3-qtd-cordoes-opticos"); // input numérico: quantidade de cordões ópticos
+const q3MarcaCabOptico = document.getElementById("q3-marca-cab-optico");       // input texto: marca do cabo óptico
+const q3ModeloDio = document.getElementById("q3-modelo-dio");                  // input texto: modelo do DIO
+const q3ModeloCordaoOptico = document.getElementById("q3-modelo-cordao-optico"); // input texto: modelo do cordão óptico
+const q3Obs = document.getElementById("q3-observacoes");                       // textarea: observações sobre fibra óptica
 
 // Quantitativo 04 – Equipamentos
-const q4Camera = document.getElementById("q4-camera");
-const q4NvrDvr = document.getElementById("q4-nvr-dvr");
-const q4AccessPoint = document.getElementById("q4-access-point");
-const q4Conversor = document.getElementById("q4-conversor-midia");
-const q4Gbic = document.getElementById("q4-gbic");
-const q4Switch = document.getElementById("q4-switch");
+const q4Camera = document.getElementById("q4-camera");                     // select Sim/Não indicando se há câmeras no projeto
+const q4NvrDvr = document.getElementById("q4-nvr-dvr");                   // select Sim/Não indicando se há NVR/DVR
+const q4AccessPoint = document.getElementById("q4-access-point");         // select Sim/Não para Access Point (LEGADO)
+const q4Conversor = document.getElementById("q4-conversor-midia");        // select Sim/Não para conversor de mídia
+const q4Gbic = document.getElementById("q4-gbic");                        // select Sim/Não para GBIC
+const q4Switch = document.getElementById("q4-switch");                    // select Sim/Não para switch (LEGADO)
+
+const q4CameraNova = document.getElementById("q4-camera-nova");           // select Sim/Não: indica se a câmera é nova/realocação
+const q4CameraFornecedor = document.getElementById("q4-camera-fornecedor"); // select: fornecedor da câmera (nortetel/cliente)
+const q4CameraModelo = document.getElementById("q4-camera-modelo");       // input texto: modelo da câmera
+const q4CameraQtd = document.getElementById("q4-camera-qtd");             // input numérico: quantidade de câmeras
+const q4NvrDvrModelo = document.getElementById("q4-nvr-dvr-modelo");      // input texto: modelo do NVR/DVR
+const q4ConversorMidiaModelo = document.getElementById(                   // input texto: modelo do conversor de mídia
+  "q4-conversor-midia-modelo"
+);
+const q4GbicModelo = document.getElementById("q4-gbic-modelo");           // input texto: modelo do GBIC
 
 // Quantitativo 05 – Infraestrutura
-const q5NovaEletrocalha = document.getElementById("q5-nova-eletrocalha");
-const q5NovoEletroduto = document.getElementById("q5-novo-eletroduto");
-const q5NovoRack = document.getElementById("q5-novo-rack");
-const q5InstalacaoEletrica = document.getElementById("q5-instalacao-eletrica");
-const q5Nobreak = document.getElementById("q5-nobreak");
-const q5Serralheria = document.getElementById("q5-serralheria");
+const q5NovaEletrocalha = document.getElementById("q5-nova-eletrocalha");           // select Sim/Não: nova eletrocalha?
+const q5NovoEletroduto = document.getElementById("q5-novo-eletroduto");             // select Sim/Não: novo eletroduto?
+const q5NovoRack = document.getElementById("q5-novo-rack");                         // select Sim/Não: novo rack?
+const q5InstalacaoEletrica = document.getElementById("q5-instalacao-eletrica");     // select Sim/Não: instalação elétrica?
+const q5Nobreak = document.getElementById("q5-nobreak");                            // select Sim/Não: nobreak?
+const q5Serralheria = document.getElementById("q5-serralheria");                    // select Sim/Não: serralheria?
+
+const q5EletrocalhaModelo = document.getElementById("q5-eletrocalha-modelo");       // input texto: modelo da eletrocalha
+const q5EletrocalhaQtd = document.getElementById("q5-eletrocalha-qtd");             // input numérico: quantidade de eletrocalhas
+const q5EletrodutoModelo = document.getElementById("q5-eletroduto-modelo");         // input texto: modelo do eletroduto
+const q5EletrodutoQtd = document.getElementById("q5-eletroduto-qtd");               // input numérico: quantidade de eletrodutos
+const q5RackModelo = document.getElementById("q5-rack-modelo");                     // input texto: modelo do rack
+const q5RackQtd = document.getElementById("q5-rack-qtd");                           // input numérico: quantidade de racks
+const q5NobreakModelo = document.getElementById("q5-nobreak-modelo");               // input texto: modelo do nobreak
+const q5NobreakQtd = document.getElementById("q5-nobreak-qtd");                     // input numérico: quantidade de nobreaks
+const q5SerralheriaDescricao = document.getElementById("q5-serralheria-descricao"); // textarea: descrição da serralheria
+const q5InstalacaoEletricaObs = document.getElementById("q5-instalacao-eletrica-obs"); // textarea: observações da instalação elétrica
 
 // Imagens
 const imgRef1 = document.getElementById("localizacao-imagem1-url");
@@ -1157,13 +1193,16 @@ async function carregarAvaliacaoParaEdicao(avaliacaoId) {
 
     avaliacaoEmEdicaoId = dados.id;                          // guarda o id da avaliação em edição
     //tipo_formulario
-    const tipo = (dados.tipo_formulario || "redes");         // obtém o tipo de formulário vindo da API ou assume "redes" como padrão
+    const tipoBruto = dados.tipo_formulario || "utp_fibra";          // lê o tipo de formulário vindo da API ou assume "utp_fibra" como padrão
+    const tipoNormalizado = tipoBruto.toString().toLowerCase();      // normaliza para minúsculas (aceita valores legados como "redes"/"infra")
 
-    if (tipoFormularioInput) {                               // se o input hidden existir
-      tipoFormularioInput.value = tipo;                      // grava o tipo atual da avaliação no campo hidden
+    if (tipoFormularioInput) {                                       // se o input hidden existir
+      tipoFormularioInput.value = tipoNormalizado;                   // grava o tipo normalizado da avaliação no campo hidden
     }
-    //aplicarVisibilidadeTipoFormulario(tipo);                 // aplica a visibilidade dos blocos e estado das abas para o tipo carregado
+
+    aplicarVisibilidadeTipoFormulario(tipoNormalizado);              // aplica a visibilidade dos blocos/abas de acordo com o tipo carregado
     //tipo_formulario
+
     // Ajusta o título/subtítulo para indicar que estamos editando
     if (formTituloEl) {
       formTituloEl.textContent = `${dados.objeto}`;          // ex.: "Editar Avaliação #3"
@@ -1190,58 +1229,209 @@ async function carregarAvaliacaoParaEdicao(avaliacaoId) {
     if (servicoForaMC) servicoForaMC.checked = dados.servico_fora_montes_claros ?? false; // só marca se o checkbox existir
     if (servicoIntermediario) servicoIntermediario.checked = dados.servico_intermediario ?? false; // idem para intermediário
 
-    // Quantitativo 01
-    q1Categoria.value = dados.q1_categoria_cab || "";
-    q1Blindado.checked = dados.q1_blindado ?? false;
-    q1NovoPatch.checked = dados.q1_novo_patch_panel ?? false;
-    q1IncluirGuia.checked = dados.q1_incluir_guia ?? false;
-    q1QtdPontosRede.value = dados.q1_qtd_pontos_rede || "";
-    q1QtdCabos.value = dados.q1_qtd_cabos || "";
-    q1QtdPortasPP.value = dados.q1_qtd_portas_patch_panel || "";
-    q1QtdPatchCords.value = dados.q1_qtd_patch_cords || "";
+    // Quantitativo 01 – Patch Panel / Cabeamento
+    if (q1Categoria) q1Categoria.value = dados.q1_categoria_cab || "";                    // categoria do cabeamento
+    if (q1Blindado) q1Blindado.checked = dados.q1_blindado ?? false;                      // TODO: futuramente usar booleanParaSelectSimNao
+    if (q1NovoPatch) q1NovoPatch.checked = dados.q1_novo_patch_panel ?? false;            // idem
+    if (q1IncluirGuia) q1IncluirGuia.checked = dados.q1_incluir_guia ?? false;            // idem
+    if (q1QtdPontosRede) q1QtdPontosRede.value = dados.q1_qtd_pontos_rede || "";          // quantidade de pontos de rede
+    if (q1QtdCabos) q1QtdCabos.value = dados.q1_qtd_cabos || "";                          // quantidade de cabos
+    if (q1QtdPortasPP) q1QtdPortasPP.value = dados.q1_qtd_portas_patch_panel || "";       // quantidade de portas do patch panel
+    if (q1QtdPatchCords) q1QtdPatchCords.value = dados.q1_qtd_patch_cords || "";          // quantidade de patch cords
+    if (q1MarcaCab) q1MarcaCab.value = dados.q1_marca_cab || "";                          // marca do cabeamento
+    if (q1ModeloPatchPanel)
+      q1ModeloPatchPanel.value = dados.q1_modelo_patch_panel || "";                       // modelo/descrição do patch panel
+    if (q1QtdGuiasCabos)
+      q1QtdGuiasCabos.value = dados.q1_qtd_guias_cabos ?? "";                             // quantidade de guias de cabos
+    if (q1PatchCordsModelo)
+      q1PatchCordsModelo.value = dados.q1_patch_cords_modelo || "";                       // modelo dos patch cords
+    if (q1PatchCordsCor)
+      q1PatchCordsCor.value = dados.q1_patch_cords_cor || "";                             // cor dos patch cords
+    if (q1PatchPanelExistenteNome)
+      q1PatchPanelExistenteNome.value = dados.q1_patch_panel_existente_nome || "";        // identificação do patch panel existente
 
-    // Quantitativo 02
-    q2NovoSwitch.checked = dados.q2_novo_switch ?? false;
-    q2SwitchPoe.checked = dados.q2_switch_poe ?? false;
-    q2RedeIndustrial.checked = dados.q2_rede_industrial ?? false;
-    q2QtdPontosRede.value = dados.q2_qtd_pontos_rede || "";
-    q2QtdPortasSwitch.value = dados.q2_qtd_portas_switch || "";
-    q2ObsSwitch.value = dados.q2_observacoes || "";
+    // Quantitativo 02 – Switch
+    if (q2NovoSwitch) {
+      booleanParaSelectSimNao(q2NovoSwitch, dados.q2_novo_switch);            // preenche select com "sim"/"nao" para novo switch
+    }
+    if (q2SwitchPoe) {
+      booleanParaSelectSimNao(q2SwitchPoe, dados.q2_switch_poe);              // LEGADO - PoE
+    }
+    if (q2RedeIndustrial) {
+      booleanParaSelectSimNao(q2RedeIndustrial, dados.q2_rede_industrial);    // LEGADO - rede industrial
+    }
+    if (q2QtdPontosRede) {
+      q2QtdPontosRede.value = dados.q2_qtd_pontos_rede ?? "";                 // quantidade de pontos atendidos
+    }
+    if (q2QtdPortasSwitch) {
+      q2QtdPortasSwitch.value = dados.q2_qtd_portas_switch ?? "";             // quantidade de portas do switch
+    }
+    if (q2FornecedorSwitch) {
+      q2FornecedorSwitch.value = dados.q2_fornecedor_switch || "";            // fornecedor do switch ("nortetel"/"cliente" ou vazio)
+    }
+    if (q2ModeloSwitch) {
+      q2ModeloSwitch.value = dados.q2_modelo_switch || "";                    // modelo do switch
+    }
+    if (q2SwitchExistenteNome) {
+      q2SwitchExistenteNome.value = dados.q2_switch_existente_nome || "";     // identificação do switch existente
+    }
+    if (q2SwitchFotoUrl) {
+      q2SwitchFotoUrl.value = dados.q2_switch_foto_url || "";                 // URL da foto do switch
+    }
+    if (q2ObsSwitch) {
+      q2ObsSwitch.value = dados.q2_observacoes || "";                         // observações sobre switches
+    }
 
-    // Quantitativo 03
-    q3TipoFibra.value = dados.q3_tipo_fibra || "";
-    q3QtdFibrasPorCabo.value = dados.q3_qtd_fibras_por_cabo || "";
-    q3TipoConector.value = dados.q3_tipo_conector || "";
-    q3NovoDio.checked = dados.q3_novo_dio ?? false;
-    q3CaixaTerminacao.checked = dados.q3_caixa_terminacao ?? false;
-    q3TipoCaboOptico.value = dados.q3_tipo_cabo_optico || "";
-    q3CaixaEmenda.checked = dados.q3_caixa_emenda ?? false;
-    q3QtdCabos.value = dados.q3_qtd_cabos || "";
-    q3TamanhoTotal.value = dados.q3_tamanho_total_m || "";
-    q3QtdFibras.value = dados.q3_qtd_fibras || "";
-    q3QtdPortasDio.value = dados.q3_qtd_portas_dio || "";
-    q3QtdCordoesOpticos.value = dados.q3_qtd_cordoes_opticos || "";
-    q3Obs.value = dados.q3_observacoes || "";
+    // Quantitativo 03 – Cabeamento Óptico
+    if (q3TipoFibra) {
+      q3TipoFibra.value = dados.q3_tipo_fibra || "";                          // tipo de fibra
+    }
+    if (q3QtdFibrasPorCabo) {
+      q3QtdFibrasPorCabo.value = dados.q3_qtd_fibras_por_cabo ?? "";          // fibras por cabo
+    }
+    if (q3TipoConector) {
+      q3TipoConector.value = dados.q3_tipo_conector || "";                    // tipo de conector
+    }
+    if (q3NovoDio) {
+      booleanParaSelectSimNao(q3NovoDio, dados.q3_novo_dio);                  // preenche select "novo DIO?"
+    }
+    if (q3CaixaTerminacao) {
+      booleanParaSelectSimNao(q3CaixaTerminacao, dados.q3_caixa_terminacao);  // preenche select "caixa de terminação?"
+    }
+    if (q3TipoCaboOptico) {
+      q3TipoCaboOptico.value = dados.q3_tipo_cabo_optico || "";               // tipo de cabo óptico
+    }
+    if (q3CaixaEmenda) {
+      booleanParaSelectSimNao(q3CaixaEmenda, dados.q3_caixa_emenda);          // preenche select "caixa de emenda?"
+    }
+    if (q3QtdCabos) {
+      q3QtdCabos.value = dados.q3_qtd_cabos ?? "";                            // quantidade de cabos ópticos
+    }
+    if (q3TamanhoTotal) {
+      q3TamanhoTotal.value = dados.q3_tamanho_total_m ?? "";                  // metragem total
+    }
+    if (q3QtdFibras) {
+      q3QtdFibras.value = dados.q3_qtd_fibras ?? "";                          // quantidade total de fibras
+    }
+    if (q3QtdPortasDio) {
+      q3QtdPortasDio.value = dados.q3_qtd_portas_dio ?? "";                   // quantidade de portas do DIO
+    }
+    if (q3QtdCordoesOpticos) {
+      q3QtdCordoesOpticos.value = dados.q3_qtd_cordoes_opticos ?? "";         // quantidade de cordões ópticos
+    }
+    if (q3MarcaCabOptico) {
+      q3MarcaCabOptico.value = dados.q3_marca_cab_optico || "";               // marca do cabo óptico
+    }
+    if (q3ModeloDio) {
+      q3ModeloDio.value = dados.q3_modelo_dio || "";                          // modelo do DIO
+    }
+    if (q3ModeloCordaoOptico) {
+      q3ModeloCordaoOptico.value = dados.q3_modelo_cordao_optico || "";       // modelo do cordão óptico
+    }
+    if (q3Obs) {
+      q3Obs.value = dados.q3_observacoes || "";                               // observações sobre fibra
+    }
 
-    // Quantitativo 04
-    q4Camera.checked = dados.q4_camera ?? false;
-    q4NvrDvr.checked = dados.q4_nvr_dvr ?? false;
-    q4AccessPoint.checked = dados.q4_access_point ?? false;
-    q4Conversor.checked = dados.q4_conversor_midia ?? false;
-    q4Gbic.checked = dados.q4_gbic ?? false;
-    q4Switch.checked = dados.q4_switch ?? false;
+    // Quantitativo 04 – Equipamentos
+    if (q4Camera) {
+      booleanParaSelectSimNao(q4Camera, dados.q4_camera);                      // preenche select da flag "Câmera?"
+    }
+    if (q4NvrDvr) {
+      booleanParaSelectSimNao(q4NvrDvr, dados.q4_nvr_dvr);                     // preenche select da flag "NVR/DVR?"
+    }
+    if (q4AccessPoint) {
+      booleanParaSelectSimNao(q4AccessPoint, dados.q4_access_point);           // LEGADO – flag "Access Point?"
+    }
+    if (q4Conversor) {
+      booleanParaSelectSimNao(q4Conversor, dados.q4_conversor_midia);          // flag "Conversor de mídia?"
+    }
+    if (q4Gbic) {
+      booleanParaSelectSimNao(q4Gbic, dados.q4_gbic);                          // flag "GBIC?"
+    }
+    if (q4Switch) {
+      booleanParaSelectSimNao(q4Switch, dados.q4_switch);                      // LEGADO – flag "Switch?"
+    }
 
-    // Quantitativo 05
-    q5NovaEletrocalha.checked = dados.q5_nova_eletrocalha ?? false;
-    q5NovoEletroduto.checked = dados.q5_novo_eletroduto ?? false;
-    q5NovoRack.checked = dados.q5_novo_rack ?? false;
-    q5InstalacaoEletrica.checked = dados.q5_instalacao_eletrica ?? false;
-    q5Nobreak.checked = dados.q5_nobreak ?? false;
-    q5Serralheria.checked = dados.q5_serralheria ?? false;
+    if (q4CameraNova) {
+      booleanParaSelectSimNao(q4CameraNova, dados.q4_camera_nova);             // preenche select "Câmera nova/realocação?"
+    }
+    if (q4CameraFornecedor) {
+      q4CameraFornecedor.value = dados.q4_camera_fornecedor || "";             // fornecedor da câmera
+    }
+    if (q4CameraModelo) {
+      q4CameraModelo.value = dados.q4_camera_modelo || "";                     // modelo da câmera
+    }
+    if (q4CameraQtd) {
+      q4CameraQtd.value = dados.q4_camera_qtd ?? "";                           // quantidade de câmeras
+    }
+    if (q4NvrDvrModelo) {
+      q4NvrDvrModelo.value = dados.q4_nvr_dvr_modelo || "";                    // modelo do NVR/DVR
+    }
+    if (q4ConversorMidiaModelo) {
+      q4ConversorMidiaModelo.value = dados.q4_conversor_midia_modelo || "";    // modelo do conversor de mídia
+    }
+    if (q4GbicModelo) {
+      q4GbicModelo.value = dados.q4_gbic_modelo || "";                         // modelo do GBIC
+    }
+
+    // Quantitativo 05 – Infraestrutura
+    if (q5NovaEletrocalha) {
+      booleanParaSelectSimNao(q5NovaEletrocalha, dados.q5_nova_eletrocalha);      // preenche select de nova eletrocalha
+    }
+    if (q5NovoEletroduto) {
+      booleanParaSelectSimNao(q5NovoEletroduto, dados.q5_novo_eletroduto);        // preenche select de novo eletroduto
+    }
+    if (q5NovoRack) {
+      booleanParaSelectSimNao(q5NovoRack, dados.q5_novo_rack);                    // preenche select de novo rack
+    }
+    if (q5InstalacaoEletrica) {
+      booleanParaSelectSimNao(q5InstalacaoEletrica, dados.q5_instalacao_eletrica);// preenche select de instalação elétrica
+    }
+    if (q5Nobreak) {
+      booleanParaSelectSimNao(q5Nobreak, dados.q5_nobreak);                        // preenche select de nobreak
+    }
+    if (q5Serralheria) {
+      booleanParaSelectSimNao(q5Serralheria, dados.q5_serralheria);                // preenche select de serralheria
+    }
+
+    if (q5EletrocalhaModelo) {
+      q5EletrocalhaModelo.value = dados.q5_eletrocalha_modelo || "";               // modelo da eletrocalha
+    }
+    if (q5EletrocalhaQtd) {
+      q5EletrocalhaQtd.value = dados.q5_eletrocalha_qtd ?? "";                     // quantidade de eletrocalhas
+    }
+    if (q5EletrodutoModelo) {
+      q5EletrodutoModelo.value = dados.q5_eletroduto_modelo || "";                 // modelo do eletroduto
+    }
+    if (q5EletrodutoQtd) {
+      q5EletrodutoQtd.value = dados.q5_eletroduto_qtd ?? "";                       // quantidade de eletrodutos
+    }
+    if (q5RackModelo) {
+      q5RackModelo.value = dados.q5_rack_modelo || "";                             // modelo do rack
+    }
+    if (q5RackQtd) {
+      q5RackQtd.value = dados.q5_rack_qtd ?? "";                                   // quantidade de racks
+    }
+    if (q5NobreakModelo) {
+      q5NobreakModelo.value = dados.q5_nobreak_modelo || "";                       // modelo do nobreak
+    }
+    if (q5NobreakQtd) {
+      q5NobreakQtd.value = dados.q5_nobreak_qtd ?? "";                             // quantidade de nobreaks
+    }
+    if (q5SerralheriaDescricao) {
+      q5SerralheriaDescricao.value = dados.q5_serralheria_descricao || "";         // descrição da serralheria
+    }
+    if (q5InstalacaoEletricaObs) {
+      q5InstalacaoEletricaObs.value = dados.q5_instalacao_eletrica_obs || "";      // observações da instalação elétrica
+    }
 
     // Imagens
-    imgRef1.value = dados.localizacao_imagem1_url || "";
-    imgRef2.value = dados.localizacao_imagem2_url || "";
+    if (imgRef1) {
+      imgRef1.value = dados.localizacao_imagem1_url || "";                         // URL da primeira imagem
+    }
+    if (imgRef2) {
+      imgRef2.value = dados.localizacao_imagem2_url || "";                         // URL da segunda imagem
+    }
 
     // Pré-requisitos
     preTrabalhoAltura.checked = dados.pre_trabalho_altura ?? false;
@@ -1351,20 +1541,39 @@ function resetarFormularioParaNovaAvaliacao() {
   if (q3Obs) q3Obs.value = "";
 
   // Quantitativo 04 – Equipamentos
-  if (q4Camera) q4Camera.checked = false;
-  if (q4NvrDvr) q4NvrDvr.checked = false;
-  if (q4AccessPoint) q4AccessPoint.checked = false;
-  if (q4Conversor) q4Conversor.checked = false;
-  if (q4Gbic) q4Gbic.checked = false;
-  if (q4Switch) q4Switch.checked = false;
+  if (q4Camera) q4Camera.value = "";                                     // reseta select de flag "Câmera?"
+  if (q4NvrDvr) q4NvrDvr.value = "";                                     // reseta select de flag "NVR/DVR?"
+  if (q4AccessPoint) q4AccessPoint.value = "";                           // reseta select de Access Point (LEGADO)
+  if (q4Conversor) q4Conversor.value = "";                               // reseta select de conversor de mídia
+  if (q4Gbic) q4Gbic.value = "";                                         // reseta select de GBIC
+  if (q4Switch) q4Switch.value = "";                                     // reseta select de switch (LEGADO)
+
+  if (q4CameraNova) q4CameraNova.value = "";                             // reseta select "Câmera nova/realocação?"
+  if (q4CameraFornecedor) q4CameraFornecedor.value = "";                 // reseta fornecedor da câmera
+  if (q4CameraModelo) q4CameraModelo.value = "";                         // limpa modelo da câmera
+  if (q4CameraQtd) q4CameraQtd.value = "";                               // limpa quantidade de câmeras
+  if (q4NvrDvrModelo) q4NvrDvrModelo.value = "";                         // limpa modelo do NVR/DVR
+  if (q4ConversorMidiaModelo) q4ConversorMidiaModelo.value = "";         // limpa modelo do conversor de mídia
+  if (q4GbicModelo) q4GbicModelo.value = "";                             // limpa modelo do GBIC
 
   // Quantitativo 05 – Infraestrutura
-  if (q5NovaEletrocalha) q5NovaEletrocalha.checked = false;
-  if (q5NovoEletroduto) q5NovoEletroduto.checked = false;
-  if (q5NovoRack) q5NovoRack.checked = false;
-  if (q5InstalacaoEletrica) q5InstalacaoEletrica.checked = false;
-  if (q5Nobreak) q5Nobreak.checked = false;
-  if (q5Serralheria) q5Serralheria.checked = false;
+  if (q5NovaEletrocalha) q5NovaEletrocalha.value = "";                // reseta select de nova eletrocalha
+  if (q5NovoEletroduto) q5NovoEletroduto.value = "";                  // reseta select de novo eletroduto
+  if (q5NovoRack) q5NovoRack.value = "";                              // reseta select de novo rack
+  if (q5InstalacaoEletrica) q5InstalacaoEletrica.value = "";          // reseta select de instalação elétrica
+  if (q5Nobreak) q5Nobreak.value = "";                                // reseta select de nobreak
+  if (q5Serralheria) q5Serralheria.value = "";                        // reseta select de serralheria
+
+  if (q5EletrocalhaModelo) q5EletrocalhaModelo.value = "";            // limpa modelo da eletrocalha
+  if (q5EletrocalhaQtd) q5EletrocalhaQtd.value = "";                  // limpa quantidade de eletrocalhas
+  if (q5EletrodutoModelo) q5EletrodutoModelo.value = "";              // limpa modelo do eletroduto
+  if (q5EletrodutoQtd) q5EletrodutoQtd.value = "";                    // limpa quantidade de eletrodutos
+  if (q5RackModelo) q5RackModelo.value = "";                          // limpa modelo do rack
+  if (q5RackQtd) q5RackQtd.value = "";                                // limpa quantidade de racks
+  if (q5NobreakModelo) q5NobreakModelo.value = "";                    // limpa modelo do nobreak
+  if (q5NobreakQtd) q5NobreakQtd.value = "";                          // limpa quantidade de nobreaks
+  if (q5SerralheriaDescricao) q5SerralheriaDescricao.value = "";      // limpa descrição da serralheria
+  if (q5InstalacaoEletricaObs) q5InstalacaoEletricaObs.value = "";    // limpa observações da instalação elétrica
 
   // Imagens
   if (imgRef1) imgRef1.value = "";
@@ -1468,60 +1677,89 @@ function floatOrNullFromInput(inputEl) {                    // recebe o input qu
 /**
  * Aplica visibilidade das seções de formulário e estado visual das abas
  * com base no tipo de formulário selecionado.
+ *
+ * Tipos principais esperados:
+ * - "utp_fibra"  → formulário de UTP e Fibra Óptica
+ * - "cameras"    → formulário de Câmeras
+ *
+ * Também aceita valores legados:
+ * - "redes"         → tratado como "utp_fibra"
+ * - "infraestrutura" / "infra" → tratados como "cameras"
  */
 function aplicarVisibilidadeTipoFormulario(tipo) {                        // recebe uma string indicando o tipo de formulário
-  // const tipoNormalizado = (tipo || "").toLowerCase();                     // normaliza o tipo para minúsculas e trata undefined/null
-  // const ehRedes = tipoNormalizado === "redes";                            // verdadeiro se o tipo atual for "redes"
-  // const ehInfra =                                                        // verdadeiro se o tipo atual for "infraestrutura"
-  //   tipoNormalizado === "infraestrutura" || tipoNormalizado === "infra"; // aceita tanto "infraestrutura" quanto um eventual "infra"
+  const tipoNormalizado = (tipo || "")                                    // garante que tipo seja uma string
+    .toString()                                                           // converte para string, caso venha como outro tipo
+    .toLowerCase();                                                       // normaliza para minúsculas
 
-  // // Atualiza estado visual das abas (botões)
-  // if (tabButtons && tabButtons.length > 0) {                              // garante que exista ao menos uma aba no DOM
-  //   tabButtons.forEach((btn) => {                                         // percorre cada botão de aba
-  //     const btnTipo = (btn.dataset.tipo || "").toLowerCase();            // obtém o valor do atributo data-tipo e normaliza
-  //     const ehAbaAtiva = btnTipo === tipoNormalizado;                     // verifica se a aba representa o tipo atual
+  const ehUTPFibra =
+    tipoNormalizado === "utp_fibra" ||                                    // tipo novo padrão para UTP/Fibra
+    tipoNormalizado === "utp-fibra" ||                                    // variação com hífen
+    tipoNormalizado === "utp" ||                                          // forma abreviada
+    tipoNormalizado === "redes";                                          // valor legado "redes"
 
-  //     if (ehAbaAtiva) {                                                   // se esta aba for a aba correspondente ao tipo atual
-  //       btn.classList.add("active");                                      // adiciona a classe de estado ativo
-  //     } else {                                                            // caso contrário
-  //       btn.classList.remove("active");                                   // remove a classe de estado ativo
-  //     }
-  //   });
-  // }
+  const ehCameras =
+    tipoNormalizado === "cameras" ||                                      // tipo novo padrão para Câmeras
+    tipoNormalizado === "câmeras" ||                                      // variação com acento
+    tipoNormalizado === "infraestrutura" ||                               // valor legado "infraestrutura"
+    tipoNormalizado === "infra";                                          // abreviação legada "infra"
 
-  // // Se tipo não for reconhecido, mostra tudo e sai (fallback seguro)
-  // if (!ehRedes && !ehInfra) {                                             // se não for nenhum dos tipos conhecidos
-  //   if (blocosTipoRedes) {                                                // se existirem blocos de redes
-  //     blocosTipoRedes.forEach((bloco) => bloco.classList.remove("hidden"));// garante que eles apareçam
-  //   }
-  //   if (blocosTipoInfra) {                                                // se existirem blocos de infraestrutura
-  //     blocosTipoInfra.forEach((bloco) => bloco.classList.remove("hidden"));// garante que eles apareçam
-  //   }
-  //   return;                                                               // encerra a função (não aplica regras específicas)
-  // }
+  // Atualiza estado visual das abas (botões)
+  if (tabButtons && tabButtons.length > 0) {                              // garante que exista ao menos uma aba no DOM
+    tabButtons.forEach((btn) => {                                         // percorre cada botão de aba
+      const btnTipo = (btn.dataset.tipo || "")                            // lê o atributo data-tipo da aba
+        .toString()                                                       // garante string
+        .toLowerCase();                                                   // normaliza para minúsculas
 
-  // // Exibe ou oculta blocos do tipo "Redes"
-  // if (blocosTipoRedes) {                                                  // se a NodeList de blocos de redes existir
-  //   blocosTipoRedes.forEach((bloco) => {                                  // percorre cada bloco
-  //     if (ehRedes) {                                                      // se o tipo atual for "redes"
-  //       bloco.classList.remove("hidden");                                 // garante que o bloco fique visível
-  //     } else {                                                            // se o tipo atual não for "redes"
-  //       bloco.classList.add("hidden");                                    // esconde o bloco adicionando a classe hidden
-  //     }
-  //   });
-  return;
+      const ehAbaUTPFibra =
+        btnTipo === "utp_fibra" || btnTipo === "utp-fibra" || btnTipo === "utp"; // mapeia variações para UTP/Fibra
+      const ehAbaCameras =
+        btnTipo === "cameras" || btnTipo === "câmeras" || btnTipo === "infraestrutura" || btnTipo === "infra"; // variações para Câmeras
+
+      const deveFicarAtiva =
+        (ehAbaUTPFibra && ehUTPFibra) ||                                  // aba UTP/Fibra ativa quando tipo é UTP/Fibra
+        (ehAbaCameras && ehCameras);                                      // aba Câmeras ativa quando tipo é Câmeras
+
+      if (deveFicarAtiva) {                                               // se esta aba for a correspondente ao tipo atual
+        btn.classList.add("active");                                      // marca visualmente como ativa
+      } else {                                                            // caso contrário
+        btn.classList.remove("active");                                   // remove o estado ativo
+      }
+    });
   }
 
-  // Exibe ou oculta blocos do tipo "Infraestrutura"
-  if (blocosTipoInfra) {                                                  // se a NodeList de blocos de infra existir
-    blocosTipoInfra.forEach((bloco) => {                                  // percorre cada bloco
-      if (ehInfra) {                                                      // se o tipo atual for "infraestrutura"
-        bloco.classList.remove("hidden");                                 // mostra o bloco de infraestrutura
-      } else {                                                            // se não for tipo infraestrutura
+  // Se não identificou claramente o tipo, mostra tudo
+  if (!ehUTPFibra && !ehCameras) {                                        // se não conseguimos classificar o tipo
+    if (blocosTipoRedes) {                                                // e existirem blocos de UTP/Fibra
+      blocosTipoRedes.forEach((bloco) => bloco.classList.remove("hidden"));// garante que todos apareçam
+    }
+    if (blocosTipoInfra) {                                                // se existirem blocos de Câmeras/Infra
+      blocosTipoInfra.forEach((bloco) => bloco.classList.remove("hidden"));// também garante visibilidade
+    }
+    return;                                                               // encerra a função porque não há mais nada a aplicar
+  }
+
+  // Exibe ou oculta blocos do tipo UTP/Fibra (legado "Redes")
+  if (blocosTipoRedes) {                                                  // se a NodeList de blocos UTP/Fibra existir
+    blocosTipoRedes.forEach((bloco) => {                                  // percorre cada bloco
+      if (ehUTPFibra) {                                                   // se o tipo atual for UTP/Fibra
+        bloco.classList.remove("hidden");                                 // garante que o bloco fique visível
+      } else {                                                            // se o tipo atual não for UTP/Fibra
         bloco.classList.add("hidden");                                    // esconde o bloco adicionando a classe hidden
       }
     });
   }
+
+  // Exibe ou oculta blocos do tipo Câmeras (legado "Infraestrutura")
+  if (blocosTipoInfra) {                                                  // se a NodeList de blocos Câmeras existir
+    blocosTipoInfra.forEach((bloco) => {                                  // percorre cada bloco
+      if (ehCameras) {                                                    // se o tipo atual for Câmeras
+        bloco.classList.remove("hidden");                                 // mostra os blocos de Câmeras
+      } else {                                                            // se não for tipo Câmeras
+        bloco.classList.add("hidden");                                    // esconde os blocos adicionando a classe hidden
+      }
+    });
+  }
+}
 
 //tipo_formulario
 /**
@@ -1547,9 +1785,9 @@ async function salvarAvaliacao(event) {
   const emailCliente = emailClienteInput.value.trim() || null; // e-mail do cliente
   const escopoTexto = escopoTextarea.value.trim() || null; // escopo / observações
   //tipo_formulario
-  const tipoFormulario = tipoFormularioInput              // lê o tipo de formulário do input hidden, se existir
-    ? (tipoFormularioInput.value || null)                // usa o valor atual ou null se estiver vazio
-    : null;                                              // se o input não existir, considera null (seguro para ambientes antigos)
+  const tipoFormulario = tipoFormularioInput                   // lê o tipo de formulário do input hidden, se existir
+    ? (tipoFormularioInput.value || "utp_fibra")               // usa o valor atual ou assume "utp_fibra" como padrão se estiver vazio
+    : "utp_fibra";                                             // em ambientes antigos sem o hidden, considera "utp_fibra" como padrão
   //tipo_formulario
   // Validações mínimas de campos obrigatórios
   if (!clienteNome) {
@@ -1578,7 +1816,7 @@ async function salvarAvaliacao(event) {
     email_cliente: emailCliente, // e-mail do cliente
     escopo_texto: escopoTexto, // escopo / observações
     //tipo_formulario
-    tipo_formulario: tipoFormulario,    // tipo de formulário selecionado (redes/infraestrutura/etc.)
+    tipo_formulario: tipoFormulario,    // tipo de formulário selecionado (utp/cameras/etc)
     //tipo_formulario
   };
   // Flags gerais
@@ -1588,58 +1826,227 @@ async function salvarAvaliacao(event) {
   payload.servico_intermediario =                          // campo booleano indicando se o serviço é para intermediário
     servicoIntermediario ? servicoIntermediario.checked : false; // mesma lógica: só acessa .checked se o elemento existir
 
-  // Quantitativo 01
-  payload.q1_categoria_cab = q1Categoria.value;
-  payload.q1_blindado = q1Blindado.checked;
-  payload.q1_novo_patch_panel = q1NovoPatch.checked;
-  payload.q1_incluir_guia = q1IncluirGuia.checked;
-  payload.q1_qtd_pontos_rede = intOrNullFromInput(q1QtdPontosRede);
-  payload.q1_qtd_cabos = intOrNullFromInput(q1QtdCabos);
-  payload.q1_qtd_portas_patch_panel = intOrNullFromInput(q1QtdPortasPP);
-  payload.q1_qtd_patch_cords = intOrNullFromInput(q1QtdPatchCords);
+  // Quantitativo 01 – Patch Panel / Cabeamento
+  payload.q1_categoria_cab = q1Categoria ? q1Categoria.value || null : null;        // categoria do cabeamento (Cat5e/Cat6/Cat6A)
+  payload.q1_blindado = q1Blindado ? q1Blindado.checked : null;                     // TODO: futuramente converter select "sim"/"nao" para boolean
+  payload.q1_novo_patch_panel = q1NovoPatch ? q1NovoPatch.checked : null;           // idem: ajuste de conversão será feito em etapa posterior
+  payload.q1_incluir_guia = q1IncluirGuia ? q1IncluirGuia.checked : null;           // idem
+  payload.q1_qtd_pontos_rede = intOrNullFromInput(q1QtdPontosRede);                // quantidade de pontos de rede
+  payload.q1_qtd_cabos = intOrNullFromInput(q1QtdCabos);                            // quantidade de cabos UTP
+  payload.q1_qtd_portas_patch_panel = intOrNullFromInput(q1QtdPortasPP);            // quantidade de portas no patch panel
+  payload.q1_qtd_patch_cords = intOrNullFromInput(q1QtdPatchCords);                 // quantidade de patch cords
+  payload.q1_marca_cab =
+    q1MarcaCab && q1MarcaCab.value.trim() ? q1MarcaCab.value.trim() : null;         // marca do cabeamento (texto livre)
+  payload.q1_modelo_patch_panel =
+    q1ModeloPatchPanel && q1ModeloPatchPanel.value.trim()
+      ? q1ModeloPatchPanel.value.trim()
+      : null;                                                                        // modelo/descrição do patch panel
+  payload.q1_qtd_guias_cabos = intOrNullFromInput(q1QtdGuiasCabos);                 // quantidade de guias de cabos
+  payload.q1_patch_cords_modelo =
+    q1PatchCordsModelo && q1PatchCordsModelo.value.trim()
+      ? q1PatchCordsModelo.value.trim()
+      : null;                                                                        // modelo dos patch cords (comprimento, categoria)
+  payload.q1_patch_cords_cor =
+    q1PatchCordsCor && q1PatchCordsCor.value.trim()
+      ? q1PatchCordsCor.value.trim()
+      : null;                                                                        // cor dos patch cords
+  payload.q1_patch_panel_existente_nome =
+    q1PatchPanelExistenteNome && q1PatchPanelExistenteNome.value.trim()
+      ? q1PatchPanelExistenteNome.value.trim()
+      : null;                                                                        // identificação do patch panel existente
 
-  // Quantitativo 02
-  payload.q2_novo_switch = q2NovoSwitch.checked;
-  payload.q2_switch_poe = q2SwitchPoe.checked;
-  payload.q2_rede_industrial = q2RedeIndustrial.checked;
-  payload.q2_qtd_pontos_rede = intOrNullFromInput(q2QtdPontosRede);     // quantidade de pontos de rede via switch
-  payload.q2_qtd_portas_switch = intOrNullFromInput(q2QtdPortasSwitch); // quantidade de portas do switch
-  payload.q2_observacoes = q2ObsSwitch.value;
+  // Quantitativo 02 – Switch
+  payload.q2_novo_switch = q2NovoSwitch
+    ? selectSimNaoParaBoolean(q2NovoSwitch)                              // converte "sim"/"nao" em boolean para novo switch
+    : null;
+  payload.q2_switch_poe = q2SwitchPoe
+    ? selectSimNaoParaBoolean(q2SwitchPoe)                               // LEGADO - converte "sim"/"nao" em boolean para PoE
+    : null;
+  payload.q2_rede_industrial = q2RedeIndustrial
+    ? selectSimNaoParaBoolean(q2RedeIndustrial)                          // LEGADO - converte "sim"/"nao" em boolean para rede industrial
+    : null;
+  payload.q2_qtd_pontos_rede = intOrNullFromInput(q2QtdPontosRede);      // quantidade de pontos atendidos via switch
+  payload.q2_qtd_portas_switch = intOrNullFromInput(q2QtdPortasSwitch);  // quantidade de portas do switch
 
-  // Quantitativo 03
-  payload.q3_tipo_fibra = q3TipoFibra.value;
-  payload.q3_qtd_fibras_por_cabo = intOrNullFromInput(q3QtdFibrasPorCabo);
-  payload.q3_tipo_conector = q3TipoConector.value;
-  payload.q3_novo_dio = q3NovoDio.checked;
-  payload.q3_caixa_terminacao = q3CaixaTerminacao.checked;
-  payload.q3_tipo_cabo_optico = q3TipoCaboOptico.value;
-  payload.q3_caixa_emenda = q3CaixaEmenda.checked;
-  payload.q3_qtd_cabos = intOrNullFromInput(q3QtdCabos);                     // quantidade de cabos ópticos
-  payload.q3_tamanho_total_m = floatOrNullFromInput(q3TamanhoTotal);        // metragem total em metros (float)
+  payload.q2_fornecedor_switch =
+    q2FornecedorSwitch && q2FornecedorSwitch.value
+      ? q2FornecedorSwitch.value                                         // "nortetel" ou "cliente"
+      : null;
+
+  payload.q2_modelo_switch =
+    q2ModeloSwitch && q2ModeloSwitch.value.trim()
+      ? q2ModeloSwitch.value.trim()                                      // modelo/descrição do switch
+      : null;
+
+  payload.q2_switch_foto_url =
+    q2SwitchFotoUrl && q2SwitchFotoUrl.value.trim()
+      ? q2SwitchFotoUrl.value.trim()                                     // URL da foto do switch
+      : null;
+
+  payload.q2_switch_existente_nome =
+    q2SwitchExistenteNome && q2SwitchExistenteNome.value.trim()
+      ? q2SwitchExistenteNome.value.trim()                               // identificação do switch existente
+      : null;
+
+  payload.q2_observacoes =
+    q2ObsSwitch && q2ObsSwitch.value.trim()
+      ? q2ObsSwitch.value.trim()                                         // observações sobre switches
+      : null;
+
+  // Quantitativo 03 – Cabeamento Óptico
+  payload.q3_tipo_fibra = q3TipoFibra ? q3TipoFibra.value || null : null;    // tipo de fibra (SM/OMx)
+  payload.q3_qtd_fibras_por_cabo = intOrNullFromInput(q3QtdFibrasPorCabo);  // número de fibras por cabo
+  payload.q3_tipo_conector = q3TipoConector ? q3TipoConector.value || null : null; // tipo de conector (LC/SC etc.)
+
+  payload.q3_novo_dio = q3NovoDio
+    ? selectSimNaoParaBoolean(q3NovoDio)                                    // converte "sim"/"nao" em boolean para novo DIO
+    : null;
+  payload.q3_caixa_terminacao = q3CaixaTerminacao
+    ? selectSimNaoParaBoolean(q3CaixaTerminacao)                            // converte "sim"/"nao" em boolean para caixa de terminação
+    : null;
+  payload.q3_tipo_cabo_optico = q3TipoCaboOptico
+    ? q3TipoCaboOptico.value || null                                       // tipo de cabo óptico
+    : null;
+  payload.q3_caixa_emenda = q3CaixaEmenda
+    ? selectSimNaoParaBoolean(q3CaixaEmenda)                                // converte "sim"/"nao" em boolean para caixa de emenda
+    : null;
+
+  payload.q3_qtd_cabos = intOrNullFromInput(q3QtdCabos);                    // quantidade de cabos ópticos
+  payload.q3_tamanho_total_m = floatOrNullFromInput(q3TamanhoTotal);        // metragem total em metros
   payload.q3_qtd_fibras = intOrNullFromInput(q3QtdFibras);                  // quantidade total de fibras
   payload.q3_qtd_portas_dio = intOrNullFromInput(q3QtdPortasDio);           // quantidade de portas no DIO
   payload.q3_qtd_cordoes_opticos = intOrNullFromInput(q3QtdCordoesOpticos); // quantidade de cordões ópticos
-  payload.q3_observacoes = q3Obs.value;
 
-  // Quantitativo 04
-  payload.q4_camera = q4Camera.checked;
-  payload.q4_nvr_dvr = q4NvrDvr.checked;
-  payload.q4_access_point = q4AccessPoint.checked;
-  payload.q4_conversor_midia = q4Conversor.checked;
-  payload.q4_gbic = q4Gbic.checked;
-  payload.q4_switch = q4Switch.checked;
+  payload.q3_marca_cab_optico =
+    q3MarcaCabOptico && q3MarcaCabOptico.value.trim()
+      ? q3MarcaCabOptico.value.trim()                                       // marca do cabo óptico
+      : null;
 
-  // Quantitativo 05
-  payload.q5_nova_eletrocalha = q5NovaEletrocalha.checked;
-  payload.q5_novo_eletroduto = q5NovoEletroduto.checked;
-  payload.q5_novo_rack = q5NovoRack.checked;
-  payload.q5_instalacao_eletrica = q5InstalacaoEletrica.checked;
-  payload.q5_nobreak = q5Nobreak.checked;
-  payload.q5_serralheria = q5Serralheria.checked;
+  payload.q3_modelo_dio =
+    q3ModeloDio && q3ModeloDio.value.trim()
+      ? q3ModeloDio.value.trim()                                            // modelo do DIO
+      : null;
+
+  payload.q3_modelo_cordao_optico =
+    q3ModeloCordaoOptico && q3ModeloCordaoOptico.value.trim()
+      ? q3ModeloCordaoOptico.value.trim()                                   // modelo do cordão óptico
+      : null;
+
+  payload.q3_observacoes =
+    q3Obs && q3Obs.value.trim()
+      ? q3Obs.value.trim()                                                  // observações sobre a rede óptica
+      : null;
+
+  // Quantitativo 04 – Equipamentos (flags principais)
+  payload.q4_camera = q4Camera
+    ? selectSimNaoParaBoolean(q4Camera)                               // converte "sim"/"nao" em boolean para flag de câmera
+    : null;
+  payload.q4_nvr_dvr = q4NvrDvr
+    ? selectSimNaoParaBoolean(q4NvrDvr)                               // converte "sim"/"nao" em boolean para flag de NVR/DVR
+    : null;
+  payload.q4_access_point = q4AccessPoint
+    ? selectSimNaoParaBoolean(q4AccessPoint)                          // LEGADO – flag de Access Point
+    : null;
+  payload.q4_conversor_midia = q4Conversor
+    ? selectSimNaoParaBoolean(q4Conversor)                            // flag para conversor de mídia
+    : null;
+  payload.q4_gbic = q4Gbic
+    ? selectSimNaoParaBoolean(q4Gbic)                                 // flag para GBIC
+    : null;
+  payload.q4_switch = q4Switch
+    ? selectSimNaoParaBoolean(q4Switch)                               // LEGADO – flag para switch como equipamento
+    : null;
+
+  // Quantitativo 04 – Equipamentos (detalhes de câmeras / NVR / conversor / GBIC)
+  payload.q4_camera_nova = q4CameraNova
+    ? selectSimNaoParaBoolean(q4CameraNova)                           // converte "sim"/"nao" em boolean para "câmera nova/realocação?"
+    : null;
+
+  payload.q4_camera_fornecedor =
+    q4CameraFornecedor && q4CameraFornecedor.value
+      ? q4CameraFornecedor.value                                      // "nortetel" ou "cliente"
+      : null;
+
+  payload.q4_camera_modelo =
+    q4CameraModelo && q4CameraModelo.value.trim()
+      ? q4CameraModelo.value.trim()                                   // modelo da câmera
+      : null;
+
+  payload.q4_camera_qtd = intOrNullFromInput(q4CameraQtd);            // quantidade de câmeras
+
+  payload.q4_nvr_dvr_modelo =
+    q4NvrDvrModelo && q4NvrDvrModelo.value.trim()
+      ? q4NvrDvrModelo.value.trim()                                   // modelo do NVR/DVR
+      : null;
+
+  payload.q4_conversor_midia_modelo =
+    q4ConversorMidiaModelo && q4ConversorMidiaModelo.value.trim()
+      ? q4ConversorMidiaModelo.value.trim()                           // modelo do conversor de mídia
+      : null;
+
+  payload.q4_gbic_modelo =
+    q4GbicModelo && q4GbicModelo.value.trim()
+      ? q4GbicModelo.value.trim()                                     // modelo do GBIC
+      : null;
+
+  // Quantitativo 05 – Infraestrutura (flags)
+  payload.q5_nova_eletrocalha = q5NovaEletrocalha
+    ? selectSimNaoParaBoolean(q5NovaEletrocalha)                       // converte "sim"/"nao" em boolean p/ nova eletrocalha
+    : null;
+  payload.q5_novo_eletroduto = q5NovoEletroduto
+    ? selectSimNaoParaBoolean(q5NovoEletroduto)                        // converte "sim"/"nao" em boolean p/ novo eletroduto
+    : null;
+  payload.q5_novo_rack = q5NovoRack
+    ? selectSimNaoParaBoolean(q5NovoRack)                              // converte "sim"/"nao" em boolean p/ novo rack
+    : null;
+  payload.q5_instalacao_eletrica = q5InstalacaoEletrica
+    ? selectSimNaoParaBoolean(q5InstalacaoEletrica)                    // converte "sim"/"nao" em boolean p/ instalação elétrica
+    : null;
+  payload.q5_nobreak = q5Nobreak
+    ? selectSimNaoParaBoolean(q5Nobreak)                               // converte "sim"/"nao" em boolean p/ nobreak
+    : null;
+  payload.q5_serralheria = q5Serralheria
+    ? selectSimNaoParaBoolean(q5Serralheria)                           // converte "sim"/"nao" em boolean p/ serralheria
+    : null;
+
+  // Quantitativo 05 – Infraestrutura (detalhes)
+  payload.q5_eletrocalha_modelo =
+    q5EletrocalhaModelo && q5EletrocalhaModelo.value.trim()
+      ? q5EletrocalhaModelo.value.trim()                               // modelo da eletrocalha (texto)
+      : null;
+  payload.q5_eletrocalha_qtd = intOrNullFromInput(q5EletrocalhaQtd);   // quantidade de eletrocalhas
+
+  payload.q5_eletroduto_modelo =
+    q5EletrodutoModelo && q5EletrodutoModelo.value.trim()
+      ? q5EletrodutoModelo.value.trim()                                // modelo do eletroduto
+      : null;
+  payload.q5_eletroduto_qtd = intOrNullFromInput(q5EletrodutoQtd);     // quantidade de eletrodutos
+
+  payload.q5_rack_modelo =
+    q5RackModelo && q5RackModelo.value.trim()
+      ? q5RackModelo.value.trim()                                      // modelo do rack
+      : null;
+  payload.q5_rack_qtd = intOrNullFromInput(q5RackQtd);                 // quantidade de racks
+
+  payload.q5_nobreak_modelo =
+    q5NobreakModelo && q5NobreakModelo.value.trim()
+      ? q5NobreakModelo.value.trim()                                   // modelo do nobreak
+      : null;
+  payload.q5_nobreak_qtd = intOrNullFromInput(q5NobreakQtd);           // quantidade de nobreaks
+
+  payload.q5_serralheria_descricao =
+    q5SerralheriaDescricao && q5SerralheriaDescricao.value.trim()
+      ? q5SerralheriaDescricao.value.trim()                            // descrição da serralheria
+      : null;
+
+  payload.q5_instalacao_eletrica_obs =
+    q5InstalacaoEletricaObs && q5InstalacaoEletricaObs.value.trim()
+      ? q5InstalacaoEletricaObs.value.trim()                           // observações de instalação elétrica
+      : null;
 
   // Imagens
-  payload.localizacao_imagem1_url = imgRef1.value;
-  payload.localizacao_imagem2_url = imgRef2.value;
+  payload.localizacao_imagem1_url = imgRef1 ? imgRef1.value || null : null; // primeira imagem (pode ser null)
+  payload.localizacao_imagem2_url = imgRef2 ? imgRef2.value || null : null; // segunda imagem (pode ser null)
 
   // Pré-requisitos
   payload.pre_trabalho_altura = preTrabalhoAltura.checked;
@@ -1797,34 +2204,36 @@ function registrarEventos() {
 
       resetarFormularioParaNovaAvaliacao();                     // volta o estado interno para "Nova Avaliação"
       //tipo_formulario
-      if (tipoFormularioInput) {                                // se o campo hidden de tipo existir
-        const tipoAtual = tipoFormularioInput.value || "redes"; // obtém o tipo atual ou assume "redes" como padrão
-        //aplicarVisibilidadeTipoFormulario(tipoAtual);           // reaplica a visibilidade das seções conforme o tipo
+      if (tipoFormularioInput) {                                      // se o campo hidden de tipo existir
+        const tipoAtual = tipoFormularioInput.value || "utp_fibra";   // reaproveita o tipo atual ou assume "utp_fibra" como padrão
+        aplicarVisibilidadeTipoFormulario(tipoAtual);                 // garante que os blocos exibidos correspondam ao tipo atual
       }
       //tipo_formulario
     });
     //tipo_formulario
     // Eventos de clique nas abas de tipo de formulário (Redes / Infraestrutura)
-    if (tabButtons && tabButtons.length > 0) {                             // verifica se há abas definidas no DOM
-      tabButtons.forEach((btn) => {                                        // percorre cada botão de aba
-        btn.addEventListener("click", () => {                              // registra o handler de clique
-          const tipo = (btn.dataset.tipo || "redes").toLowerCase();        // recupera o tipo associado à aba e normaliza para minúsculas
+    if (tabButtons && tabButtons.length > 0) {                        // se existirem abas de tipo de formulário
+      tabButtons.forEach((btn) => {                                  // percorre cada botão de aba
+        btn.addEventListener("click", () => {                        // registra o handler de clique em cada aba
+          const tipo = (btn.dataset.tipo || "utp_fibra")             // lê o atributo data-tipo da aba clicada
+            .toString()                                              // garante que seja string
+            .toLowerCase();                                          // normaliza para minúsculas
 
-          if (tipoFormularioInput) {                                       // se o input hidden existir
-            tipoFormularioInput.value = tipo;                              // atualiza o valor do hidden com o tipo escolhido
+          if (tipoFormularioInput) {                                 // se o input hidden de tipo existir
+            tipoFormularioInput.value = tipo;                        // atualiza o hidden com o tipo escolhido
           }
 
-          aplicarVisibilidadeTipoFormulario(tipo);                         // aplica visibilidade das seções e estado visual das abas
+          aplicarVisibilidadeTipoFormulario(tipo);                   // aplica a visibilidade das seções conforme o tipo
         });
       });
     }
 
     // Define um tipo padrão e aplica visibilidade inicial ao carregar a tela
     if (tipoFormularioInput && !tipoFormularioInput.value) {               // se houver input hidden e ele ainda estiver vazio
-      tipoFormularioInput.value = "redes";                                 // define "redes" como tipo padrão
+      tipoFormularioInput.value = "utp_fibra";                             // define "utp_fibra" como tipo padrão
     }
     if (tipoFormularioInput) {                                             // se o input hidden existir
-      aplicarVisibilidadeTipoFormulario(tipoFormularioInput.value);        // aplica a visibilidade inicial conforme o valor atual
+      aplicarVisibilidadeTipoFormulario(tipoFormularioInput.value);       // aplica a visibilidade inicial conforme o valor atual
     }
     //tipo_formulario
 
