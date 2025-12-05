@@ -82,9 +82,9 @@ const emailClienteInput = document.getElementById("email-cliente"); // input de 
 const escopoTextarea = document.getElementById("escopo-texto"); // textarea de escopo / observações
 //tipo_formulario
 const tipoFormularioInput = document.getElementById("tipo-formulario"); // input hidden que armazena o tipo atual de formulário (redes/infraestrutura)
-const tabButtons = document.querySelectorAll(".avaliacao-tab-btn"); // NodeList contendo todos os botões de aba de tipo de formulário
-const blocosTipoRedes = document.querySelectorAll(".tipo-redes-only"); // blocos de campos exclusivos do tipo "Redes"
-const blocosTipoInfra = document.querySelectorAll(".tipo-infra-only"); // blocos de campos exclusivos do tipo "Infraestrutura"
+//const tabButtons = document.querySelectorAll(".avaliacao-tab-btn"); // NodeList contendo todos os botões de aba de tipo de formulário
+//const blocosTipoRedes = document.querySelectorAll(".tipo-redes-only"); // blocos de campos exclusivos do tipo "Redes"
+//const blocosTipoInfra = document.querySelectorAll(".tipo-infra-only"); // blocos de campos exclusivos do tipo "Infraestrutura"
 //tipo_formulario
 // ===================== CAMPOS NOVOS =====================
 
@@ -1162,7 +1162,7 @@ async function carregarAvaliacaoParaEdicao(avaliacaoId) {
     if (tipoFormularioInput) {                               // se o input hidden existir
       tipoFormularioInput.value = tipo;                      // grava o tipo atual da avaliação no campo hidden
     }
-    aplicarVisibilidadeTipoFormulario(tipo);                 // aplica a visibilidade dos blocos e estado das abas para o tipo carregado
+    //aplicarVisibilidadeTipoFormulario(tipo);                 // aplica a visibilidade dos blocos e estado das abas para o tipo carregado
     //tipo_formulario
     // Ajusta o título/subtítulo para indicar que estamos editando
     if (formTituloEl) {
@@ -1470,45 +1470,46 @@ function floatOrNullFromInput(inputEl) {                    // recebe o input qu
  * com base no tipo de formulário selecionado.
  */
 function aplicarVisibilidadeTipoFormulario(tipo) {                        // recebe uma string indicando o tipo de formulário
-  const tipoNormalizado = (tipo || "").toLowerCase();                     // normaliza o tipo para minúsculas e trata undefined/null
-  const ehRedes = tipoNormalizado === "redes";                            // verdadeiro se o tipo atual for "redes"
-  const ehInfra =                                                        // verdadeiro se o tipo atual for "infraestrutura"
-    tipoNormalizado === "infraestrutura" || tipoNormalizado === "infra"; // aceita tanto "infraestrutura" quanto um eventual "infra"
+  // const tipoNormalizado = (tipo || "").toLowerCase();                     // normaliza o tipo para minúsculas e trata undefined/null
+  // const ehRedes = tipoNormalizado === "redes";                            // verdadeiro se o tipo atual for "redes"
+  // const ehInfra =                                                        // verdadeiro se o tipo atual for "infraestrutura"
+  //   tipoNormalizado === "infraestrutura" || tipoNormalizado === "infra"; // aceita tanto "infraestrutura" quanto um eventual "infra"
 
-  // Atualiza estado visual das abas (botões)
-  if (tabButtons && tabButtons.length > 0) {                              // garante que exista ao menos uma aba no DOM
-    tabButtons.forEach((btn) => {                                         // percorre cada botão de aba
-      const btnTipo = (btn.dataset.tipo || "").toLowerCase();            // obtém o valor do atributo data-tipo e normaliza
-      const ehAbaAtiva = btnTipo === tipoNormalizado;                     // verifica se a aba representa o tipo atual
+  // // Atualiza estado visual das abas (botões)
+  // if (tabButtons && tabButtons.length > 0) {                              // garante que exista ao menos uma aba no DOM
+  //   tabButtons.forEach((btn) => {                                         // percorre cada botão de aba
+  //     const btnTipo = (btn.dataset.tipo || "").toLowerCase();            // obtém o valor do atributo data-tipo e normaliza
+  //     const ehAbaAtiva = btnTipo === tipoNormalizado;                     // verifica se a aba representa o tipo atual
 
-      if (ehAbaAtiva) {                                                   // se esta aba for a aba correspondente ao tipo atual
-        btn.classList.add("active");                                      // adiciona a classe de estado ativo
-      } else {                                                            // caso contrário
-        btn.classList.remove("active");                                   // remove a classe de estado ativo
-      }
-    });
-  }
+  //     if (ehAbaAtiva) {                                                   // se esta aba for a aba correspondente ao tipo atual
+  //       btn.classList.add("active");                                      // adiciona a classe de estado ativo
+  //     } else {                                                            // caso contrário
+  //       btn.classList.remove("active");                                   // remove a classe de estado ativo
+  //     }
+  //   });
+  // }
 
-  // Se tipo não for reconhecido, mostra tudo e sai (fallback seguro)
-  if (!ehRedes && !ehInfra) {                                             // se não for nenhum dos tipos conhecidos
-    if (blocosTipoRedes) {                                                // se existirem blocos de redes
-      blocosTipoRedes.forEach((bloco) => bloco.classList.remove("hidden"));// garante que eles apareçam
-    }
-    if (blocosTipoInfra) {                                                // se existirem blocos de infraestrutura
-      blocosTipoInfra.forEach((bloco) => bloco.classList.remove("hidden"));// garante que eles apareçam
-    }
-    return;                                                               // encerra a função (não aplica regras específicas)
-  }
+  // // Se tipo não for reconhecido, mostra tudo e sai (fallback seguro)
+  // if (!ehRedes && !ehInfra) {                                             // se não for nenhum dos tipos conhecidos
+  //   if (blocosTipoRedes) {                                                // se existirem blocos de redes
+  //     blocosTipoRedes.forEach((bloco) => bloco.classList.remove("hidden"));// garante que eles apareçam
+  //   }
+  //   if (blocosTipoInfra) {                                                // se existirem blocos de infraestrutura
+  //     blocosTipoInfra.forEach((bloco) => bloco.classList.remove("hidden"));// garante que eles apareçam
+  //   }
+  //   return;                                                               // encerra a função (não aplica regras específicas)
+  // }
 
-  // Exibe ou oculta blocos do tipo "Redes"
-  if (blocosTipoRedes) {                                                  // se a NodeList de blocos de redes existir
-    blocosTipoRedes.forEach((bloco) => {                                  // percorre cada bloco
-      if (ehRedes) {                                                      // se o tipo atual for "redes"
-        bloco.classList.remove("hidden");                                 // garante que o bloco fique visível
-      } else {                                                            // se o tipo atual não for "redes"
-        bloco.classList.add("hidden");                                    // esconde o bloco adicionando a classe hidden
-      }
-    });
+  // // Exibe ou oculta blocos do tipo "Redes"
+  // if (blocosTipoRedes) {                                                  // se a NodeList de blocos de redes existir
+  //   blocosTipoRedes.forEach((bloco) => {                                  // percorre cada bloco
+  //     if (ehRedes) {                                                      // se o tipo atual for "redes"
+  //       bloco.classList.remove("hidden");                                 // garante que o bloco fique visível
+  //     } else {                                                            // se o tipo atual não for "redes"
+  //       bloco.classList.add("hidden");                                    // esconde o bloco adicionando a classe hidden
+  //     }
+  //   });
+  return;
   }
 
   // Exibe ou oculta blocos do tipo "Infraestrutura"
@@ -1521,7 +1522,7 @@ function aplicarVisibilidadeTipoFormulario(tipo) {                        // rec
       }
     });
   }
-}
+
 //tipo_formulario
 /**
  * Lê os dados do formulário de avaliação e envia para o backend.
@@ -1798,7 +1799,7 @@ function registrarEventos() {
       //tipo_formulario
       if (tipoFormularioInput) {                                // se o campo hidden de tipo existir
         const tipoAtual = tipoFormularioInput.value || "redes"; // obtém o tipo atual ou assume "redes" como padrão
-        aplicarVisibilidadeTipoFormulario(tipoAtual);           // reaplica a visibilidade das seções conforme o tipo
+        //aplicarVisibilidadeTipoFormulario(tipoAtual);           // reaplica a visibilidade das seções conforme o tipo
       }
       //tipo_formulario
     });

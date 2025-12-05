@@ -38,54 +38,84 @@ CREATE TABLE avaliacoes (
     servico_fora_montes_claros BOOLEAN,
     servico_intermediario BOOLEAN,
 
-    -- Quantitativo 01 - Patch Panel / Cabeamento
-    q1_categoria_cab VARCHAR(10),
-    q1_blindado BOOLEAN,
-    q1_novo_patch_panel BOOLEAN,
-    q1_incluir_guia BOOLEAN,
-    q1_qtd_pontos_rede INTEGER,
-    q1_qtd_cabos INTEGER,
-    q1_qtd_portas_patch_panel INTEGER,
-    q1_qtd_patch_cords INTEGER,
+    -- Quantitativo 01 - Patch Panel / Cabeamento UTP
+    q1_categoria_cab VARCHAR(10),                -- categoria do cabeamento (ex.: CAT5E, CAT6)
+    q1_blindado BOOLEAN,                         -- indica se o cabo é blindado
+    q1_novo_patch_panel BOOLEAN,                 -- indica se será fornecido um novo patch panel
+    q1_incluir_guia BOOLEAN,                     -- indica se serão incluídas guias de cabos
+    q1_qtd_pontos_rede INTEGER,                  -- quantidade de pontos de rede
+    q1_qtd_cabos INTEGER,                        -- quantidade de cabos UTP
+    q1_qtd_portas_patch_panel INTEGER,           -- quantidade de portas do patch panel
+    q1_qtd_patch_cords INTEGER,                  -- quantidade total de patch cords previstos
+    q1_marca_cab VARCHAR(50),                    -- marca do cabeamento UTP (Furukawa, Commscope, etc.)
+    q1_modelo_patch_panel TEXT,                  -- modelo do patch panel (fabricante, número de portas, etc.)
+    q1_qtd_guias_cabos INTEGER,                  -- quantidade de guias de cabos a instalar
+    q1_patch_cords_modelo TEXT,                  -- modelo/descrição dos patch cords (comprimentos, categoria, etc.)
+    q1_patch_cords_cor VARCHAR(50),              -- cor ou cores dos patch cords
+    q1_patch_panel_existente_nome TEXT,          -- identificação do patch panel existente quando não houver novo fornecimento
 
     -- Quantitativo 02 - Switch
-    q2_novo_switch BOOLEAN,
-    q2_switch_poe BOOLEAN,
-    q2_rede_industrial BOOLEAN,
-    q2_qtd_pontos_rede INTEGER,
-    q2_qtd_portas_switch INTEGER,
-    q2_observacoes TEXT,
+    q2_novo_switch BOOLEAN,                      -- indica se será fornecido um novo switch
+    q2_switch_poe BOOLEAN,                       -- LEGADO - indicador de switch PoE, não utilizado nos novos formulários
+    q2_rede_industrial BOOLEAN,                  -- LEGADO - indicador de rede industrial, não utilizado nos novos formulários
+    q2_qtd_pontos_rede INTEGER,                  -- LEGADO - dimensionamento antigo de pontos de rede
+    q2_qtd_portas_switch INTEGER,                -- LEGADO - dimensionamento antigo de portas de switch
+    q2_fornecedor_switch VARCHAR(20),            -- quem fornece o switch: 'nortetel' ou 'cliente'
+    q2_modelo_switch TEXT,                       -- modelo do switch (novo ou existente)
+    q2_switch_foto_url TEXT,                     -- URL/caminho da foto do switch
+    q2_switch_existente_nome TEXT,               -- identificação do switch existente quando não for novo
+    q2_observacoes TEXT,                         -- observações gerais sobre o switch
 
     -- Quantitativo 03 – Cabeamento Óptico
-    q3_tipo_fibra VARCHAR(10),
-    q3_qtd_fibras_por_cabo INTEGER,
-    q3_tipo_conector VARCHAR(10),
-    q3_novo_dio BOOLEAN,
-    q3_caixa_terminacao BOOLEAN,
-    q3_tipo_cabo_optico VARCHAR(20),
-    q3_caixa_emenda BOOLEAN,
-    q3_qtd_cabos INTEGER,
-    q3_tamanho_total_m NUMERIC(10,2),
-    q3_qtd_fibras INTEGER,
-    q3_qtd_portas_dio INTEGER,
-    q3_qtd_cordoes_opticos INTEGER,
-    q3_observacoes TEXT,
+    q3_tipo_fibra VARCHAR(10),                   -- tipo de fibra (ex.: MM, SM)
+    q3_qtd_fibras_por_cabo INTEGER,              -- quantidade de fibras por cabo
+    q3_tipo_conector VARCHAR(10),                -- tipo de conector (ex.: LC, SC)
+    q3_novo_dio BOOLEAN,                         -- indica se será fornecido um novo DIO
+    q3_caixa_terminacao BOOLEAN,                 -- indica se haverá caixa de terminação
+    q3_tipo_cabo_optico VARCHAR(20),             -- tipo de cabo óptico
+    q3_caixa_emenda BOOLEAN,                     -- indica se haverá caixa de emenda
+    q3_qtd_cabos INTEGER,                        -- quantidade de cabos ópticos
+    q3_tamanho_total_m NUMERIC(10,2),            -- metragem total estimada dos cabos ópticos
+    q3_qtd_fibras INTEGER,                       -- quantidade total de fibras
+    q3_qtd_portas_dio INTEGER,                   -- quantidade de portas do DIO
+    q3_qtd_cordoes_opticos INTEGER,              -- quantidade de cordões ópticos
+    q3_marca_cab_optico VARCHAR(50),             -- marca do cabeamento óptico
+    q3_modelo_dio TEXT,                          -- modelo do DIO
+    q3_modelo_cordao_optico TEXT,                -- modelo/descrição dos cordões ópticos
+    q3_observacoes TEXT,                         -- observações gerais sobre cabeamento óptico
 
-    -- Quantitativo 04 – Equipamentos (flags gerais)
-    q4_camera BOOLEAN,
-    q4_nvr_dvr BOOLEAN,
-    q4_access_point BOOLEAN,
-    q4_conversor_midia BOOLEAN,
-    q4_gbic BOOLEAN,
-    q4_switch BOOLEAN,
+    -- Quantitativo 04 – Equipamentos (Câmeras, NVR/DVR, conversor, GBIC)
+    q4_camera BOOLEAN,                           -- indica se a avaliação envolve câmeras
+    q4_nvr_dvr BOOLEAN,                          -- indica se há NVR ou DVR
+    q4_access_point BOOLEAN,                     -- LEGADO - flag genérica para Access Points
+    q4_conversor_midia BOOLEAN,                  -- indica se há conversor de mídia
+    q4_gbic BOOLEAN,                             -- indica se há GBIC
+    q4_switch BOOLEAN,                           -- LEGADO - flag genérica para switches adicionais
+    q4_conversor_midia_modelo TEXT,              -- modelo do conversor de mídia
+    q4_gbic_modelo TEXT,                         -- modelo do GBIC
+    q4_camera_nova BOOLEAN,                      -- indica se as câmeras são novas (caso contrário, realocação)
+    q4_camera_modelo TEXT,                       -- modelo das câmeras
+    q4_camera_qtd INTEGER,                       -- quantidade de câmeras
+    q4_camera_fornecedor VARCHAR(20),            -- quem fornece as câmeras: 'nortetel' ou 'cliente'
+    q4_nvr_dvr_modelo TEXT,                      -- modelo do NVR ou DVR
 
     -- Quantitativo 05 – Infraestrutura
-    q5_nova_eletrocalha BOOLEAN,
-    q5_novo_eletroduto BOOLEAN,
-    q5_novo_rack BOOLEAN,
-    q5_instalacao_eletrica BOOLEAN,
-    q5_nobreak BOOLEAN,
-    q5_serralheria BOOLEAN,
+    q5_nova_eletrocalha BOOLEAN,                 -- indica se haverá nova eletrocalha
+    q5_novo_eletroduto BOOLEAN,                  -- indica se haverá novo eletroduto
+    q5_novo_rack BOOLEAN,                        -- indica se haverá novo rack
+    q5_instalacao_eletrica BOOLEAN,              -- indica se haverá adequação/instalação elétrica
+    q5_nobreak BOOLEAN,                          -- indica se haverá nobreak
+    q5_serralheria BOOLEAN,                      -- indica se haverá serviços de serralheria
+    q5_eletrocalha_modelo TEXT,                  -- modelo/descrição da eletrocalha
+    q5_eletrocalha_qtd INTEGER,                  -- quantidade de eletrocalhas
+    q5_eletroduto_modelo TEXT,                   -- modelo/descrição do eletroduto
+    q5_eletroduto_qtd INTEGER,                   -- quantidade de eletrodutos
+    q5_rack_modelo TEXT,                         -- modelo/descrição do rack
+    q5_rack_qtd INTEGER,                         -- quantidade de racks
+    q5_nobreak_modelo TEXT,                      -- modelo/descrição do nobreak
+    q5_nobreak_qtd INTEGER,                      -- quantidade de nobreaks
+    q5_serralheria_descricao TEXT,               -- descrição detalhada da serralheria necessária
+    q5_instalacao_eletrica_obs TEXT,             -- observações adicionais sobre a instalação elétrica
 
     -- Localização / Referências
     localizacao_imagem1_url TEXT,

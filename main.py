@@ -155,54 +155,84 @@ class Avaliacao(Base):                                           # define a clas
     servico_fora_montes_claros = Column(Boolean)                 # True se for fora de Montes Claros
     servico_intermediario = Column(Boolean)                      # True se for intermediário/empreiteira
 
-    # Quantitativo 01 - Patch Panel
-    q1_categoria_cab = Column(String(10))                        # categoria do cabeamento
-    q1_blindado = Column(Boolean)                                # cabeamento blindado
-    q1_novo_patch_panel = Column(Boolean)                        # precisa de novo patch panel
-    q1_incluir_guia = Column(Boolean)                            # precisa incluir guia
-    q1_qtd_pontos_rede = Column(Integer)                         # quantidade de pontos de rede
-    q1_qtd_cabos = Column(Integer)                               # quantidade de cabos
-    q1_qtd_portas_patch_panel = Column(Integer)                  # quantidade de portas em patch panel
-    q1_qtd_patch_cords = Column(Integer)                         # quantidade de patch cords
+    # Quantitativo 01 - Patch Panel / Cabeamento UTP
+    q1_categoria_cab = Column(String(10))                        # categoria do cabeamento (ex.: CAT5E, CAT6)
+    q1_blindado = Column(Boolean)                                # indica se o cabeamento UTP é blindado
+    q1_novo_patch_panel = Column(Boolean)                        # indica se será fornecido um novo patch panel
+    q1_incluir_guia = Column(Boolean)                            # indica se serão incluídas guias de cabos
+    q1_qtd_pontos_rede = Column(Integer)                         # quantidade de pontos de rede previstos
+    q1_qtd_cabos = Column(Integer)                               # quantidade de cabos UTP
+    q1_qtd_portas_patch_panel = Column(Integer)                  # quantidade de portas do patch panel
+    q1_qtd_patch_cords = Column(Integer)                         # quantidade total de patch cords previstos
+    q1_marca_cab = Column(String(50))                            # marca do cabeamento UTP (Furukawa, Commscope, etc.)
+    q1_modelo_patch_panel = Column(Text)                         # modelo do patch panel (fabricante, número de portas, etc.)
+    q1_qtd_guias_cabos = Column(Integer)                         # quantidade de guias de cabos a instalar
+    q1_patch_cords_modelo = Column(Text)                         # modelo/descrição dos patch cords (comprimentos, categoria, etc.)
+    q1_patch_cords_cor = Column(String(50))                      # cor ou cores dos patch cords utilizados
+    q1_patch_panel_existente_nome = Column(Text)                 # identificação do patch panel existente quando não houver novo fornecimento
 
     # Quantitativo 02 - Switch
-    q2_novo_switch = Column(Boolean)                             # precisa de novo switch
-    q2_switch_poe = Column(Boolean)                              # precisa que o switch seja PoE
-    q2_rede_industrial = Column(Boolean)                         # indica se é rede industrial
-    q2_qtd_pontos_rede = Column(Integer)                         # quantidade de pontos de rede
-    q2_qtd_portas_switch = Column(Integer)                       # quantidade de portas em switch
-    q2_observacoes = Column(Text)                                # observações para switch
+    q2_novo_switch = Column(Boolean)                             # indica se será fornecido um novo switch
+    q2_switch_poe = Column(Boolean)                              # LEGADO - indicador de switch PoE (não usado nos novos formulários)
+    q2_rede_industrial = Column(Boolean)                         # LEGADO - indicador de rede industrial (não usado nos novos formulários)
+    q2_qtd_pontos_rede = Column(Integer)                         # LEGADO - dimensionamento antigo de pontos de rede
+    q2_qtd_portas_switch = Column(Integer)                       # LEGADO - dimensionamento antigo de portas de switch
+    q2_fornecedor_switch = Column(String(20))                    # quem fornece o switch: 'nortetel' ou 'cliente'
+    q2_modelo_switch = Column(Text)                              # modelo do switch (novo ou existente)
+    q2_switch_foto_url = Column(Text)                            # URL/caminho da foto do switch
+    q2_switch_existente_nome = Column(Text)                      # identificação do switch existente quando não for novo
+    q2_observacoes = Column(Text)                                # observações gerais sobre o switch
 
     # Quantitativo 03 – Cabeamento Óptico
-    q3_tipo_fibra = Column(String(10))                           # tipo da fibra (SM, OM1, etc.)
+    q3_tipo_fibra = Column(String(10))                           # tipo da fibra (ex.: SM, OM1, OM2, OM3, OM4)
     q3_qtd_fibras_por_cabo = Column(Integer)                     # quantidade de fibras por cabo
-    q3_tipo_conector = Column(String(10))                        # tipo de conector (LC, SC, etc.)
-    q3_novo_dio = Column(Boolean)                                # precisa de novo DIO
-    q3_caixa_terminacao = Column(Boolean)                        # precisa de caixa de terminação
-    q3_tipo_cabo_optico = Column(String(20))                     # tipo de cabo óptico
-    q3_caixa_emenda = Column(Boolean)                            # precisa de caixa de emenda
+    q3_tipo_conector = Column(String(10))                        # tipo de conector (ex.: LC, SC)
+    q3_novo_dio = Column(Boolean)                                # indica se será fornecido um novo DIO
+    q3_caixa_terminacao = Column(Boolean)                        # indica se haverá caixa de terminação
+    q3_tipo_cabo_optico = Column(String(20))                     # tipo de cabo óptico (interno, externo, dielétrico, etc.)
+    q3_caixa_emenda = Column(Boolean)                            # indica se haverá caixa de emenda
     q3_qtd_cabos = Column(Integer)                               # quantidade de cabos ópticos
-    q3_tamanho_total_m = Column(Numeric(10, 2))                  # tamanho total dos cabos em metros
+    q3_tamanho_total_m = Column(Numeric(10, 2))                  # metragem total estimada dos cabos ópticos
     q3_qtd_fibras = Column(Integer)                              # quantidade total de fibras
-    q3_qtd_portas_dio = Column(Integer)                          # quantidade de portas em DIO
+    q3_qtd_portas_dio = Column(Integer)                          # quantidade de portas do DIO
     q3_qtd_cordoes_opticos = Column(Integer)                     # quantidade de cordões ópticos
-    q3_observacoes = Column(Text)                                # observações de cabeamento óptico
+    q3_marca_cab_optico = Column(String(50))                     # marca do cabeamento óptico
+    q3_modelo_dio = Column(Text)                                 # modelo do DIO utilizado/fornecido
+    q3_modelo_cordao_optico = Column(Text)                       # modelo/descrição dos cordões ópticos (comprimento, tipo de conector, etc.)
+    q3_observacoes = Column(Text)                                # observações gerais sobre o cabeamento óptico
 
-    # Quantitativo 04 – Equipamentos (flags)
-    q4_camera = Column(Boolean)                                  # precisa de câmera
-    q4_nvr_dvr = Column(Boolean)                                 # precisa de NVR/DVR
-    q4_access_point = Column(Boolean)                            # precisa de Access Point
-    q4_conversor_midia = Column(Boolean)                         # precisa de conversor de mídia
-    q4_gbic = Column(Boolean)                                    # precisa de GBIC
-    q4_switch = Column(Boolean)                                  # precisa de switch (flag geral)
+    # Quantitativo 04 – Equipamentos (Câmeras, NVR/DVR, conversor, GBIC)
+    q4_camera = Column(Boolean)                                  # indica se a avaliação envolve câmeras
+    q4_nvr_dvr = Column(Boolean)                                 # indica se haverá NVR ou DVR
+    q4_access_point = Column(Boolean)                            # LEGADO - flag genérica para Access Points (não usada nos novos formulários)
+    q4_conversor_midia = Column(Boolean)                         # indica se haverá conversor de mídia
+    q4_gbic = Column(Boolean)                                    # indica se haverá GBIC
+    q4_switch = Column(Boolean)                                  # LEGADO - flag genérica para switches adicionais (não usada nos novos formulários)
+    q4_conversor_midia_modelo = Column(Text)                     # modelo do conversor de mídia
+    q4_gbic_modelo = Column(Text)                                # modelo do GBIC
+    q4_camera_nova = Column(Boolean)                             # indica se as câmeras são novas (caso contrário, realocação)
+    q4_camera_modelo = Column(Text)                              # modelo das câmeras
+    q4_camera_qtd = Column(Integer)                              # quantidade de câmeras do modelo indicado
+    q4_camera_fornecedor = Column(String(20))                    # quem fornece as câmeras: 'nortetel' ou 'cliente'
+    q4_nvr_dvr_modelo = Column(Text)                             # modelo do NVR ou DVR
 
     # Quantitativo 05 – Infraestrutura
-    q5_nova_eletrocalha = Column(Boolean)                        # nova eletrocalha
-    q5_novo_eletroduto = Column(Boolean)                         # novo eletroduto
-    q5_novo_rack = Column(Boolean)                               # novo rack
-    q5_instalacao_eletrica = Column(Boolean)                     # instalação elétrica
-    q5_nobreak = Column(Boolean)                                 # nobreak
-    q5_serralheria = Column(Boolean)                             # serralheria
+    q5_nova_eletrocalha = Column(Boolean)                        # indica se haverá nova eletrocalha
+    q5_novo_eletroduto = Column(Boolean)                         # indica se haverá novo eletroduto
+    q5_novo_rack = Column(Boolean)                               # indica se haverá novo rack
+    q5_instalacao_eletrica = Column(Boolean)                     # indica se haverá adequação/instalação elétrica
+    q5_nobreak = Column(Boolean)                                 # indica se haverá nobreak
+    q5_serralheria = Column(Boolean)                             # indica se haverá serviços de serralheria
+    q5_eletrocalha_modelo = Column(Text)                         # modelo/descrição da eletrocalha
+    q5_eletrocalha_qtd = Column(Integer)                         # quantidade de eletrocalhas
+    q5_eletroduto_modelo = Column(Text)                          # modelo/descrição do eletroduto
+    q5_eletroduto_qtd = Column(Integer)                          # quantidade de eletrodutos
+    q5_rack_modelo = Column(Text)                                # modelo/descrição do rack
+    q5_rack_qtd = Column(Integer)                                # quantidade de racks
+    q5_nobreak_modelo = Column(Text)                             # modelo/descrição do nobreak
+    q5_nobreak_qtd = Column(Integer)                             # quantidade de nobreaks
+    q5_serralheria_descricao = Column(Text)                      # descrição detalhada da serralheria necessária
+    q5_instalacao_eletrica_obs = Column(Text)                    # observações adicionais sobre a instalação elétrica
 
     # Localização / Referências
     localizacao_imagem1_url = Column(Text)                       # URL da primeira imagem
@@ -602,22 +632,35 @@ class AvaliacaoCreateSchema(AvaliacaoBaseSchema):  # Schema usado para criação
     servico_fora_montes_claros: Optional[bool] = None  # (sim/não) Indica se o serviço será fora de Montes Claros
     servico_intermediario: Optional[bool] = None  # (sim/não) Indica se haverá empresa intermediária/empreiteira
 
+    # ---------------- Quantitativo 01 - Patch Panel / Cabeamento UTP ----------------
     q1_categoria_cab: Optional[str] = None  # (texto / opções Cat5e, Cat6, Cat6a) Categoria de cabeamento estruturado
-    q1_blindado: Optional[bool] = None  # (sim/não) Se o cabeamento será blindado
+    q1_blindado: Optional[bool] = None  # (sim/não) Se o cabeamento UTP será blindado
     q1_novo_patch_panel: Optional[bool] = None  # (sim/não) Se será fornecido patch panel novo
     q1_incluir_guia: Optional[bool] = None  # (sim/não) Se deve incluir guia de passagem / duto auxiliar
     q1_qtd_pontos_rede: Optional[int] = None  # (número) Quantidade de pontos de rede (dados)
     q1_qtd_cabos: Optional[int] = None  # (número) Quantidade de cabos de rede necessários
     q1_qtd_portas_patch_panel: Optional[int] = None  # (número) Quantidade de portas no patch panel
     q1_qtd_patch_cords: Optional[int] = None  # (número) Quantidade de patch cords (cordões de rede)
+    q1_marca_cab: Optional[str] = None  # (texto) Marca do cabeamento UTP (ex.: Furukawa, Commscope, etc.)
+    q1_modelo_patch_panel: Optional[str] = None  # (texto) Modelo do patch panel (fabricante, número de portas, etc.)
+    q1_qtd_guias_cabos: Optional[int] = None  # (número) Quantidade de guias de cabos a instalar
+    q1_patch_cords_modelo: Optional[str] = None  # (texto) Modelo/descrição dos patch cords (comprimentos, categoria, etc.)
+    q1_patch_cords_cor: Optional[str] = None  # (texto) Cor ou cores dos patch cords utilizados
+    q1_patch_panel_existente_nome: Optional[str] = None  # (texto) Identificação do patch panel existente (quando não for novo)
 
+    # ---------------- Quantitativo 02 - Switch ----------------
     q2_novo_switch: Optional[bool] = None  # (sim/não) Se haverá fornecimento de switch novo
-    q2_switch_poe: Optional[bool] = None  # (sim/não) Se o switch deverá ter PoE
-    q2_rede_industrial: Optional[bool] = None  # (sim/não) Se trata de rede em ambiente industrial
-    q2_qtd_pontos_rede: Optional[int] = None  # (número) Quantidade de pontos de rede a serem atendidos pelo switch
-    q2_qtd_portas_switch: Optional[int] = None  # (número) Quantidade total de portas do switch
+    q2_switch_poe: Optional[bool] = None  # LEGADO - indica se o switch deveria ser PoE (não usado nos novos formulários)
+    q2_rede_industrial: Optional[bool] = None  # LEGADO - indica se a rede é industrial (não usado nos novos formulários)
+    q2_qtd_pontos_rede: Optional[int] = None  # LEGADO - quantidade de pontos de rede ligados ao switch (modelo antigo)
+    q2_qtd_portas_switch: Optional[int] = None  # LEGADO - quantidade total de portas do switch (modelo antigo)
+    q2_fornecedor_switch: Optional[str] = None  # (texto) Quem fornece o switch: 'nortetel' ou 'cliente'
+    q2_modelo_switch: Optional[str] = None  # (texto) Modelo do switch (novo ou existente)
+    q2_switch_foto_url: Optional[str] = None  # (texto) URL/caminho da foto do switch
+    q2_switch_existente_nome: Optional[str] = None  # (texto) Nome/identificação do switch existente (quando não for novo)
     q2_observacoes: Optional[str] = None  # (texto) Observações específicas sobre switches/rede de acesso
 
+    # ---------------- Quantitativo 03 – Cabeamento Óptico ----------------
     q3_tipo_fibra: Optional[str] = None  # (texto) Tipo de fibra (ex.: monomodo, multimodo)
     q3_qtd_fibras_por_cabo: Optional[int] = None  # (número) Quantidade de fibras por cabo óptico
     q3_tipo_conector: Optional[str] = None  # (texto) Tipo de conector (ex.: SC, LC)
@@ -630,21 +673,43 @@ class AvaliacaoCreateSchema(AvaliacaoBaseSchema):  # Schema usado para criação
     q3_qtd_fibras: Optional[int] = None  # (número) Quantidade total de fibras utilizadas
     q3_qtd_portas_dio: Optional[int] = None  # (número) Quantidade de portas no DIO
     q3_qtd_cordoes_opticos: Optional[int] = None  # (número) Quantidade de cordões ópticos
+    q3_marca_cab_optico: Optional[str] = None  # (texto) Marca do cabeamento óptico
+    q3_modelo_dio: Optional[str] = None  # (texto) Modelo do DIO utilizado/fornecido
+    q3_modelo_cordao_optico: Optional[str] = None  # (texto) Modelo/descrição dos cordões ópticos (comprimento, tipo de conector, etc.)
     q3_observacoes: Optional[str] = None  # (texto) Observações específicas da parte óptica
 
+    # ---------------- Quantitativo 04 – Equipamentos (Câmeras, NVR/DVR, conversor, GBIC) ----------------
     q4_camera: Optional[bool] = None  # (sim/não) Se o escopo inclui câmeras de CFTV
     q4_nvr_dvr: Optional[bool] = None  # (sim/não) Se inclui NVR/DVR
-    q4_access_point: Optional[bool] = None  # (sim/não) Se inclui access points Wi-Fi
+    q4_access_point: Optional[bool] = None  # LEGADO - indica se inclui Access Points Wi-Fi (não usado nos novos formulários)
     q4_conversor_midia: Optional[bool] = None  # (sim/não) Se inclui conversores de mídia
     q4_gbic: Optional[bool] = None  # (sim/não) Se inclui módulos GBIC/SFP
-    q4_switch: Optional[bool] = None  # (sim/não) Se inclui switches adicionais nessa seção
+    q4_switch: Optional[bool] = None  # LEGADO - indica se inclui switches adicionais (não usado nos novos formulários)
+    q4_conversor_midia_modelo: Optional[str] = None  # (texto) Modelo do conversor de mídia
+    q4_gbic_modelo: Optional[str] = None  # (texto) Modelo do GBIC
+    q4_camera_nova: Optional[bool] = None  # (sim/não) Indica se as câmeras são novas (caso contrário, realocação)
+    q4_camera_modelo: Optional[str] = None  # (texto) Modelo das câmeras
+    q4_camera_qtd: Optional[int] = None  # (número) Quantidade de câmeras do modelo indicado
+    q4_camera_fornecedor: Optional[str] = None  # (texto) Quem fornece as câmeras: 'nortetel' ou 'cliente'
+    q4_nvr_dvr_modelo: Optional[str] = None  # (texto) Modelo do NVR ou DVR
 
+    # ---------------- Quantitativo 05 – Infraestrutura ----------------
     q5_nova_eletrocalha: Optional[bool] = None  # (sim/não) Se será necessária nova eletrocalha
     q5_novo_eletroduto: Optional[bool] = None  # (sim/não) Se será necessário novo eletroduto
     q5_novo_rack: Optional[bool] = None  # (sim/não) Se haverá fornecimento de rack novo
     q5_instalacao_eletrica: Optional[bool] = None  # (sim/não) Se envolve instalação elétrica complementar
     q5_nobreak: Optional[bool] = None  # (sim/não) Se envolve fornecimento/instalação de nobreak
     q5_serralheria: Optional[bool] = None  # (sim/não) Se serão necessários serviços de serralheria/suportes especiais
+    q5_eletrocalha_modelo: Optional[str] = None  # (texto) Modelo/descrição da eletrocalha
+    q5_eletrocalha_qtd: Optional[int] = None  # (número) Quantidade de eletrocalhas
+    q5_eletroduto_modelo: Optional[str] = None  # (texto) Modelo/descrição do eletroduto
+    q5_eletroduto_qtd: Optional[int] = None  # (número) Quantidade de eletrodutos
+    q5_rack_modelo: Optional[str] = None  # (texto) Modelo/descrição do rack
+    q5_rack_qtd: Optional[int] = None  # (número) Quantidade de racks
+    q5_nobreak_modelo: Optional[str] = None  # (texto) Modelo/descrição do nobreak
+    q5_nobreak_qtd: Optional[int] = None  # (número) Quantidade de nobreaks
+    q5_serralheria_descricao: Optional[str] = None  # (texto) Descrição detalhada da serralheria necessária
+    q5_instalacao_eletrica_obs: Optional[str] = None  # (texto) Observações adicionais sobre instalação elétrica
 
     localizacao_imagem1_url: Optional[str] = None  # (texto) URL/caminho da primeira imagem de localização (planta/foto)
     localizacao_imagem2_url: Optional[str] = None  # (texto) URL/caminho da segunda imagem de localização (planta/foto)
@@ -741,11 +806,12 @@ class AvaliacaoUpdateSchema(BaseModel):  # schema usado para atualizar uma avali
         description="Serviço intermediário / empreiteira (True/False)"  # descrição do campo
     )
 
+    # ---------------- Quantitativo 01 - Patch Panel / Cabeamento UTP ----------------
     q1_categoria_cab: Optional[str] = Field(  # categoria de cabeamento estruturado
         None,  # None = não alterar
         description="Categoria do cabeamento (ex.: Cat5e, Cat6, Cat6a)"  # descrição do campo
     )
-    q1_blindado: Optional[bool] = Field(  # indica se o cabeamento será blindado
+    q1_blindado: Optional[bool] = Field(  # indica se o cabeamento UTP será blindado
         None,  # None = não alterar
         description="Cabeamento blindado (True/False)"  # descrição do campo
     )
@@ -773,32 +839,74 @@ class AvaliacaoUpdateSchema(BaseModel):  # schema usado para atualizar uma avali
         None,  # None = não alterar
         description="Quantidade de patch cords"  # descrição do campo
     )
+    q1_marca_cab: Optional[str] = Field(  # marca do cabeamento UTP
+        None,  # None = não alterar
+        description="Marca do cabeamento UTP (ex.: Furukawa, Commscope, etc.)"  # descrição do campo
+    )
+    q1_modelo_patch_panel: Optional[str] = Field(  # modelo do patch panel
+        None,  # None = não alterar
+        description="Modelo do patch panel (fabricante, número de portas, etc.)"  # descrição do campo
+    )
+    q1_qtd_guias_cabos: Optional[int] = Field(  # quantidade de guias de cabos
+        None,  # None = não alterar
+        description="Quantidade de guias de cabos a instalar"  # descrição do campo
+    )
+    q1_patch_cords_modelo: Optional[str] = Field(  # modelo dos patch cords
+        None,  # None = não alterar
+        description="Modelo/descrição dos patch cords (comprimentos, categoria, etc.)"  # descrição do campo
+    )
+    q1_patch_cords_cor: Optional[str] = Field(  # cor dos patch cords
+        None,  # None = não alterar
+        description="Cor ou cores dos patch cords"  # descrição do campo
+    )
+    q1_patch_panel_existente_nome: Optional[str] = Field(  # identificação do patch panel existente
+        None,  # None = não alterar
+        description="Identificação do patch panel existente (quando não houver novo fornecimento)"  # descrição do campo
+    )
 
+    # ---------------- Quantitativo 02 - Switch ----------------
     q2_novo_switch: Optional[bool] = Field(  # indica se haverá fornecimento de switch novo
         None,  # None = não alterar
         description="Fornecer switch novo (True/False)"  # descrição do campo
     )
-    q2_switch_poe: Optional[bool] = Field(  # indica se o switch deverá ter PoE
+    q2_switch_poe: Optional[bool] = Field(  # LEGADO - indicador de switch PoE
         None,  # None = não alterar
-        description="Switch com PoE (True/False)"  # descrição do campo
+        description="LEGADO - Switch com PoE (modelo antigo, não usado nos novos formulários)"  # descrição do campo
     )
-    q2_rede_industrial: Optional[bool] = Field(  # indica se trata de rede em ambiente industrial
+    q2_rede_industrial: Optional[bool] = Field(  # LEGADO - indicador de rede industrial
         None,  # None = não alterar
-        description="Rede em ambiente industrial (True/False)"  # descrição do campo
+        description="LEGADO - Rede em ambiente industrial (modelo antigo, não usado nos novos formulários)"  # descrição do campo
     )
-    q2_qtd_pontos_rede: Optional[int] = Field(  # quantidade de pontos de rede atendidos pelo switch
+    q2_qtd_pontos_rede: Optional[int] = Field(  # LEGADO - quantidade de pontos de rede
         None,  # None = não alterar
-        description="Quantidade de pontos de rede (switch)"  # descrição do campo
+        description="LEGADO - Quantidade de pontos de rede (dimensionamento antigo)"  # descrição do campo
     )
-    q2_qtd_portas_switch: Optional[int] = Field(  # quantidade total de portas do switch
+    q2_qtd_portas_switch: Optional[int] = Field(  # LEGADO - quantidade total de portas do switch
         None,  # None = não alterar
-        description="Quantidade de portas do switch"  # descrição do campo
+        description="LEGADO - Quantidade de portas do switch (dimensionamento antigo)"  # descrição do campo
+    )
+    q2_fornecedor_switch: Optional[str] = Field(  # quem fornece o switch
+        None,  # None = não alterar
+        description="Quem fornece o switch: 'nortetel' ou 'cliente'"  # descrição do campo
+    )
+    q2_modelo_switch: Optional[str] = Field(  # modelo do switch
+        None,  # None = não alterar
+        description="Modelo do switch (novo ou existente)"  # descrição do campo
+    )
+    q2_switch_foto_url: Optional[str] = Field(  # URL da foto do switch
+        None,  # None = não alterar
+        description="URL/caminho da foto do switch"  # descrição do campo
+    )
+    q2_switch_existente_nome: Optional[str] = Field(  # identificação do switch existente
+        None,  # None = não alterar
+        description="Nome/identificação do switch existente (quando não for novo)"  # descrição do campo
     )
     q2_observacoes: Optional[str] = Field(  # observações específicas sobre switches
         None,  # None = não alterar
         description="Observações sobre switches / rede de acesso"  # descrição do campo
     )
 
+    # ---------------- Quantitativo 03 – Cabeamento Óptico ----------------
     q3_tipo_fibra: Optional[str] = Field(  # tipo de fibra (SM, OM1, OM2, etc.)
         None,  # None = não alterar
         description="Tipo de fibra óptica (SM, OM, etc.)"  # descrição do campo
@@ -823,7 +931,7 @@ class AvaliacaoUpdateSchema(BaseModel):  # schema usado para atualizar uma avali
         None,  # None = não alterar
         description="Tipo de cabo óptico (externo, interno, dielétrico, etc.)"  # descrição do campo
     )
-    q3_caixa_emenda: Optional[bool] = Field(  # indica se haverá caixa de emenda
+    q3_caixa_emenda: Optional[bool] = Field(  # indica se haverá caixa de emenda óptica
         None,  # None = não alterar
         description="Caixa de emenda óptica (True/False)"  # descrição do campo
     )
@@ -847,11 +955,24 @@ class AvaliacaoUpdateSchema(BaseModel):  # schema usado para atualizar uma avali
         None,  # None = não alterar
         description="Quantidade de cordões ópticos"  # descrição do campo
     )
+    q3_marca_cab_optico: Optional[str] = Field(  # marca do cabo óptico
+        None,  # None = não alterar
+        description="Marca do cabeamento óptico"  # descrição do campo
+    )
+    q3_modelo_dio: Optional[str] = Field(  # modelo do DIO
+        None,  # None = não alterar
+        description="Modelo do DIO utilizado/fornecido"  # descrição do campo
+    )
+    q3_modelo_cordao_optico: Optional[str] = Field(  # modelo dos cordões
+        None,  # None = não alterar
+        description="Modelo/descrição dos cordões ópticos (comprimento, tipo de conector, etc.)"  # descrição do campo
+    )
     q3_observacoes: Optional[str] = Field(  # observações da parte óptica
         None,  # None = não alterar
         description="Observações sobre cabeamento óptico"  # descrição do campo
     )
 
+    # ---------------- Quantitativo 04 – Equipamentos (Câmeras, NVR/DVR, conversor, GBIC) ----------------
     q4_camera: Optional[bool] = Field(  # indica se o escopo inclui câmeras de CFTV
         None,  # None = não alterar
         description="Inclui câmeras de CFTV (True/False)"  # descrição do campo
@@ -860,9 +981,9 @@ class AvaliacaoUpdateSchema(BaseModel):  # schema usado para atualizar uma avali
         None,  # None = não alterar
         description="Inclui NVR/DVR (True/False)"  # descrição do campo
     )
-    q4_access_point: Optional[bool] = Field(  # indica se inclui access points Wi-Fi
+    q4_access_point: Optional[bool] = Field(  # LEGADO - indica se inclui access points Wi-Fi
         None,  # None = não alterar
-        description="Inclui Access Points Wi-Fi (True/False)"  # descrição do campo
+        description="LEGADO - Inclui Access Points Wi-Fi (modelo antigo, não usado nos novos formulários)"  # descrição do campo
     )
     q4_conversor_midia: Optional[bool] = Field(  # indica se inclui conversores de mídia
         None,  # None = não alterar
@@ -872,11 +993,40 @@ class AvaliacaoUpdateSchema(BaseModel):  # schema usado para atualizar uma avali
         None,  # None = não alterar
         description="Inclui módulos GBIC/SFP (True/False)"  # descrição do campo
     )
-    q4_switch: Optional[bool] = Field(  # indica se inclui switches adicionais
+    q4_switch: Optional[bool] = Field(  # LEGADO - indica se inclui switches adicionais
         None,  # None = não alterar
-        description="Inclui switches adicionais (True/False)"  # descrição do campo
+        description="LEGADO - Inclui switches adicionais (modelo antigo, não usado nos novos formulários)"  # descrição do campo
+    )
+    q4_conversor_midia_modelo: Optional[str] = Field(  # modelo do conversor de mídia
+        None,  # None = não alterar
+        description="Modelo do conversor de mídia"  # descrição do campo
+    )
+    q4_gbic_modelo: Optional[str] = Field(  # modelo do GBIC
+        None,  # None = não alterar
+        description="Modelo do GBIC"  # descrição do campo
+    )
+    q4_camera_nova: Optional[bool] = Field(  # indica se as câmeras são novas
+        None,  # None = não alterar
+        description="Câmeras novas (True) ou realocação (False)"  # descrição do campo
+    )
+    q4_camera_modelo: Optional[str] = Field(  # modelo das câmeras
+        None,  # None = não alterar
+        description="Modelo das câmeras de CFTV"  # descrição do campo
+    )
+    q4_camera_qtd: Optional[int] = Field(  # quantidade de câmeras
+        None,  # None = não alterar
+        description="Quantidade de câmeras do modelo indicado"  # descrição do campo
+    )
+    q4_camera_fornecedor: Optional[str] = Field(  # quem fornece as câmeras
+        None,  # None = não alterar
+        description="Quem fornece as câmeras: 'nortetel' ou 'cliente'"  # descrição do campo
+    )
+    q4_nvr_dvr_modelo: Optional[str] = Field(  # modelo do NVR/DVR
+        None,  # None = não alterar
+        description="Modelo do NVR ou DVR"  # descrição do campo
     )
 
+    # ---------------- Quantitativo 05 – Infraestrutura ----------------
     q5_nova_eletrocalha: Optional[bool] = Field(  # indica se será necessária nova eletrocalha
         None,  # None = não alterar
         description="Nova eletrocalha (True/False)"  # descrição do campo
@@ -900,6 +1050,46 @@ class AvaliacaoUpdateSchema(BaseModel):  # schema usado para atualizar uma avali
     q5_serralheria: Optional[bool] = Field(  # indica se serão necessários serviços de serralheria
         None,  # None = não alterar
         description="Serviços de serralheria / suportes (True/False)"  # descrição do campo
+    )
+    q5_eletrocalha_modelo: Optional[str] = Field(  # modelo da eletrocalha
+        None,  # None = não alterar
+        description="Modelo/descrição da eletrocalha"  # descrição do campo
+    )
+    q5_eletrocalha_qtd: Optional[int] = Field(  # quantidade de eletrocalhas
+        None,  # None = não alterar
+        description="Quantidade de eletrocalhas"  # descrição do campo
+    )
+    q5_eletroduto_modelo: Optional[str] = Field(  # modelo do eletroduto
+        None,  # None = não alterar
+        description="Modelo/descrição do eletroduto"  # descrição do campo
+    )
+    q5_eletroduto_qtd: Optional[int] = Field(  # quantidade de eletrodutos
+        None,  # None = não alterar
+        description="Quantidade de eletrodutos"  # descrição do campo
+    )
+    q5_rack_modelo: Optional[str] = Field(  # modelo do rack
+        None,  # None = não alterar
+        description="Modelo/descrição do rack"  # descrição do campo
+    )
+    q5_rack_qtd: Optional[int] = Field(  # quantidade de racks
+        None,  # None = não alterar
+        description="Quantidade de racks"  # descrição do campo
+    )
+    q5_nobreak_modelo: Optional[str] = Field(  # modelo do nobreak
+        None,  # None = não alterar
+        description="Modelo/descrição do nobreak"  # descrição do campo
+    )
+    q5_nobreak_qtd: Optional[int] = Field(  # quantidade de nobreaks
+        None,  # None = não alterar
+        description="Quantidade de nobreaks"  # descrição do campo
+    )
+    q5_serralheria_descricao: Optional[str] = Field(  # descrição da serralheria
+        None,  # None = não alterar
+        description="Descrição detalhada da serralheria necessária"  # descrição do campo
+    )
+    q5_instalacao_eletrica_obs: Optional[str] = Field(  # observações da instalação elétrica
+        None,  # None = não alterar
+        description="Observações adicionais sobre instalação elétrica"  # descrição do campo
     )
 
     localizacao_imagem1_url: Optional[str] = Field(  # URL/caminho da primeira imagem de localização
@@ -1036,7 +1226,7 @@ class AvaliacaoUpdateSchema(BaseModel):  # schema usado para atualizar uma avali
     class Config:  # configuração do Pydantic
         orm_mode = True  # permite converter diretamente a partir de objetos ORM do SQLAlchemy
 
-class AvaliacaoOutSchema(AvaliacaoBaseSchema):                      # schema de saída de avaliação, herdando os campos básicos (cliente_nome, data_avaliacao, local, objeto, status)
+class AvaliacaoOutSchema(AvaliacaoBaseSchema):                      # schema de saída de avaliação, herdando os campos básicos (cliente_nome, data_avaliacao, local, objeto, status, tipo_formulario)
     id: int = Field(...,                                            # id numérico da avaliação (chave primária no banco)
                     description="ID da avaliação")                  # descrição exibida na documentação/Swagger
 
@@ -1070,6 +1260,7 @@ class AvaliacaoOutSchema(AvaliacaoBaseSchema):                      # schema de 
         description="Serviço intermediário / empreiteira (True/False)"  # descrição do campo
     )
 
+    # ---------------- Quantitativo 01 - Patch Panel / Cabeamento UTP ----------------
     q1_categoria_cab: Optional[str] = Field(                        # categoria do cabeamento estruturado
         None,                                                       # opcional
         description="Categoria do cabeamento (ex.: Cat5e, Cat6, Cat6a)"  # descrição do campo
@@ -1102,7 +1293,32 @@ class AvaliacaoOutSchema(AvaliacaoBaseSchema):                      # schema de 
         None,                                                       # opcional
         description="Quantidade de patch cords"                     # descrição do campo
     )
+    q1_marca_cab: Optional[str] = Field(                            # marca do cabeamento UTP
+        None,                                                       # opcional
+        description="Marca do cabeamento UTP (ex.: Furukawa, Commscope, etc.)"  # descrição do campo
+    )
+    q1_modelo_patch_panel: Optional[str] = Field(                   # modelo do patch panel
+        None,                                                       # opcional
+        description="Modelo do patch panel (fabricante, número de portas, etc.)"  # descrição do campo
+    )
+    q1_qtd_guias_cabos: Optional[int] = Field(                      # quantidade de guias de cabos
+        None,                                                       # opcional
+        description="Quantidade de guias de cabos a instalar"       # descrição do campo
+    )
+    q1_patch_cords_modelo: Optional[str] = Field(                   # modelo/descrição dos patch cords
+        None,                                                       # opcional
+        description="Modelo/descrição dos patch cords (comprimentos, categoria, etc.)"  # descrição do campo
+    )
+    q1_patch_cords_cor: Optional[str] = Field(                      # cor ou cores dos patch cords
+        None,                                                       # opcional
+        description="Cor ou cores dos patch cords"                  # descrição do campo
+    )
+    q1_patch_panel_existente_nome: Optional[str] = Field(           # identificação do patch panel existente
+        None,                                                       # opcional
+        description="Identificação do patch panel existente (quando não houver novo fornecimento)"  # descrição do campo
+    )
 
+    # ---------------- Quantitativo 02 - Switch ----------------
     q2_novo_switch: Optional[bool] = Field(                         # indica se haverá fornecimento de switch novo
         None,                                                       # opcional
         description="Fornecer switch novo (True/False)"             # descrição do campo
@@ -1123,11 +1339,28 @@ class AvaliacaoOutSchema(AvaliacaoBaseSchema):                      # schema de 
         None,                                                       # opcional
         description="Quantidade de portas do switch"                # descrição do campo
     )
+    q2_fornecedor_switch: Optional[str] = Field(                    # quem fornece o switch
+        None,                                                       # opcional
+        description="Quem fornece o switch: 'nortetel' ou 'cliente'"  # descrição do campo
+    )
+    q2_modelo_switch: Optional[str] = Field(                        # modelo do switch
+        None,                                                       # opcional
+        description="Modelo do switch (novo ou existente)"          # descrição do campo
+    )
+    q2_switch_foto_url: Optional[str] = Field(                      # URL/caminho da foto do switch
+        None,                                                       # opcional
+        description="URL/caminho da foto do switch"                 # descrição do campo
+    )
+    q2_switch_existente_nome: Optional[str] = Field(                # identificação do switch existente
+        None,                                                       # opcional
+        description="Nome/identificação do switch existente (quando não for novo)"  # descrição do campo
+    )
     q2_observacoes: Optional[str] = Field(                          # observações específicas sobre switches
         None,                                                       # opcional
         description="Observações sobre switches / rede de acesso"   # descrição do campo
     )
 
+    # ---------------- Quantitativo 03 – Cabeamento Óptico ----------------
     q3_tipo_fibra: Optional[str] = Field(                           # tipo de fibra (SM, OM1, OM2, etc.)
         None,                                                       # opcional
         description="Tipo de fibra óptica (SM, OM, etc.)"           # descrição do campo
@@ -1176,11 +1409,24 @@ class AvaliacaoOutSchema(AvaliacaoBaseSchema):                      # schema de 
         None,                                                       # opcional
         description="Quantidade de cordões ópticos"                 # descrição do campo
     )
+    q3_marca_cab_optico: Optional[str] = Field(                     # marca do cabo óptico
+        None,                                                       # opcional
+        description="Marca do cabeamento óptico"                    # descrição do campo
+    )
+    q3_modelo_dio: Optional[str] = Field(                           # modelo do DIO
+        None,                                                       # opcional
+        description="Modelo do DIO utilizado/fornecido"             # descrição do campo
+    )
+    q3_modelo_cordao_optico: Optional[str] = Field(                 # modelo dos cordões ópticos
+        None,                                                       # opcional
+        description="Modelo/descrição dos cordões ópticos (comprimento, tipo de conector, etc.)"  # descrição do campo
+    )
     q3_observacoes: Optional[str] = Field(                          # observações gerais da parte óptica
         None,                                                       # opcional
         description="Observações sobre cabeamento óptico"           # descrição do campo
     )
 
+    # ---------------- Quantitativo 04 – Equipamentos (Câmeras, NVR/DVR, conversor, GBIC) ----------------
     q4_camera: Optional[bool] = Field(                              # indica se o escopo inclui câmeras de CFTV
         None,                                                       # opcional
         description="Inclui câmeras de CFTV (True/False)"           # descrição do campo
@@ -1205,7 +1451,36 @@ class AvaliacaoOutSchema(AvaliacaoBaseSchema):                      # schema de 
         None,                                                       # opcional
         description="Inclui switches adicionais (True/False)"       # descrição do campo
     )
+    q4_conversor_midia_modelo: Optional[str] = Field(               # modelo do conversor de mídia
+        None,                                                       # opcional
+        description="Modelo do conversor de mídia"                  # descrição do campo
+    )
+    q4_gbic_modelo: Optional[str] = Field(                          # modelo do GBIC
+        None,                                                       # opcional
+        description="Modelo do GBIC"                                # descrição do campo
+    )
+    q4_camera_nova: Optional[bool] = Field(                         # indica se as câmeras são novas
+        None,                                                       # opcional
+        description="Câmeras novas (True) ou realocação (False)"    # descrição do campo
+    )
+    q4_camera_modelo: Optional[str] = Field(                        # modelo das câmeras
+        None,                                                       # opcional
+        description="Modelo das câmeras de CFTV"                    # descrição do campo
+    )
+    q4_camera_qtd: Optional[int] = Field(                           # quantidade de câmeras
+        None,                                                       # opcional
+        description="Quantidade de câmeras do modelo indicado"      # descrição do campo
+    )
+    q4_camera_fornecedor: Optional[str] = Field(                    # quem fornece as câmeras
+        None,                                                       # opcional
+        description="Quem fornece as câmeras: 'nortetel' ou 'cliente'"  # descrição do campo
+    )
+    q4_nvr_dvr_modelo: Optional[str] = Field(                       # modelo do NVR/DVR
+        None,                                                       # opcional
+        description="Modelo do NVR ou DVR"                          # descrição do campo
+    )
 
+    # ---------------- Quantitativo 05 – Infraestrutura ----------------
     q5_nova_eletrocalha: Optional[bool] = Field(                    # indica se será necessária nova eletrocalha
         None,                                                       # opcional
         description="Nova eletrocalha (True/False)"                 # descrição do campo
@@ -1230,7 +1505,48 @@ class AvaliacaoOutSchema(AvaliacaoBaseSchema):                      # schema de 
         None,                                                       # opcional
         description="Serviços de serralheria / suportes (True/False)"  # descrição do campo
     )
+    q5_eletrocalha_modelo: Optional[str] = Field(                   # modelo/descrição da eletrocalha
+        None,                                                       # opcional
+        description="Modelo/descrição da eletrocalha"              # descrição do campo
+    )
+    q5_eletrocalha_qtd: Optional[int] = Field(                      # quantidade de eletrocalhas
+        None,                                                       # opcional
+        description="Quantidade de eletrocalhas"                   # descrição do campo
+    )
+    q5_eletroduto_modelo: Optional[str] = Field(                    # modelo/descrição do eletroduto
+        None,                                                       # opcional
+        description="Modelo/descrição do eletroduto"              # descrição do campo
+    )
+    q5_eletroduto_qtd: Optional[int] = Field(                       # quantidade de eletrodutos
+        None,                                                       # opcional
+        description="Quantidade de eletrodutos"                   # descrição do campo
+    )
+    q5_rack_modelo: Optional[str] = Field(                          # modelo/descrição do rack
+        None,                                                       # opcional
+        description="Modelo/descrição do rack"                    # descrição do campo
+    )
+    q5_rack_qtd: Optional[int] = Field(                             # quantidade de racks
+        None,                                                       # opcional
+        description="Quantidade de racks"                          # descrição do campo
+    )
+    q5_nobreak_modelo: Optional[str] = Field(                       # modelo/descrição do nobreak
+        None,                                                       # opcional
+        description="Modelo/descrição do nobreak"                 # descrição do campo
+    )
+    q5_nobreak_qtd: Optional[int] = Field(                          # quantidade de nobreaks
+        None,                                                       # opcional
+        description="Quantidade de nobreaks"                       # descrição do campo
+    )
+    q5_serralheria_descricao: Optional[str] = Field(                # descrição detalhada da serralheria necessária
+        None,                                                       # opcional
+        description="Descrição detalhada da serralheria necessária"  # descrição do campo
+    )
+    q5_instalacao_eletrica_obs: Optional[str] = Field(              # observações adicionais sobre instalação elétrica
+        None,                                                       # opcional
+        description="Observações adicionais sobre instalação elétrica"  # descrição do campo
+    )
 
+    # ---------------- Localização / Referências ----------------
     localizacao_imagem1_url: Optional[str] = Field(                 # URL ou caminho da primeira imagem de localização
         None,                                                       # opcional
         description="URL da primeira imagem de localização"         # descrição do campo
@@ -1240,6 +1556,7 @@ class AvaliacaoOutSchema(AvaliacaoBaseSchema):                      # schema de 
         description="URL da segunda imagem de localização"          # descrição do campo
     )
 
+    # ---------------- Pré-requisitos ----------------
     pre_trabalho_altura: Optional[bool] = Field(                    # indica se haverá trabalho em altura
         None,                                                       # opcional
         description="Trabalho em altura (True/False)"               # descrição do campo
@@ -1269,6 +1586,7 @@ class AvaliacaoOutSchema(AvaliacaoBaseSchema):                      # schema de 
         description="Necessidade de contêiner de materiais (True/False)"  # descrição do campo
     )
 
+    # ---------------- Horas trabalhadas (dias normais) ----------------
     encarregado_dias: Optional[int] = Field(                        # quantidade de dias de encarregado
         None,                                                       # opcional
         description="Quantidade de dias de encarregado"             # descrição do campo
@@ -1290,6 +1608,7 @@ class AvaliacaoOutSchema(AvaliacaoBaseSchema):                      # schema de 
         description="Quantidade de dias de técnico em segurança"    # descrição do campo
     )
 
+    # ---------------- Horas extras ----------------
     encarregado_hora_extra: Optional[int] = Field(                  # horas extras de encarregado
         None,                                                       # opcional
         description="Horas extras de encarregado"                   # descrição do campo
@@ -1311,27 +1630,29 @@ class AvaliacaoOutSchema(AvaliacaoBaseSchema):                      # schema de 
         description="Horas extras de técnico em segurança"          # descrição do campo
     )
 
-    encarregado_trabalho_domingo: Optional[int] = Field(            # domingos trabalhados pelo encarregado
+    # ---------------- Trabalho em domingos/feriados ----------------
+    encarregado_trabalho_domingo: Optional[int] = Field(            # domingos/feriados trabalhados pelo encarregado
         None,                                                       # opcional
-        description="Domingos trabalhados pelo encarregado"         # descrição do campo
+        description="Domingos/feriados trabalhados pelo encarregado"  # descrição do campo
     )
-    instalador_trabalho_domingo: Optional[int] = Field(             # domingos trabalhados pelo instalador
+    instalador_trabalho_domingo: Optional[int] = Field(             # domingos/feriados trabalhados pelo instalador
         None,                                                       # opcional
-        description="Domingos trabalhados pelo instalador"          # descrição do campo
+        description="Domingos/feriados trabalhados pelo instalador"  # descrição do campo
     )
-    auxiliar_trabalho_domingo: Optional[int] = Field(               # domingos trabalhados pelo auxiliar
+    auxiliar_trabalho_domingo: Optional[int] = Field(               # domingos/feriados trabalhados pelo auxiliar
         None,                                                       # opcional
-        description="Domingos trabalhados pelo auxiliar"            # descrição do campo
+        description="Domingos/feriados trabalhados pelo auxiliar"   # descrição do campo
     )
-    tecnico_de_instalacao_trabalho_domingo: Optional[int] = Field(  # domingos trabalhados pelo técnico de instalação
+    tecnico_de_instalacao_trabalho_domingo: Optional[int] = Field(  # domingos/feriados trabalhados pelo técnico de instalação
         None,                                                       # opcional
-        description="Domingos trabalhados pelo técnico de instalação"  # descrição do campo
+        description="Domingos/feriados trabalhados pelo técnico de instalação"  # descrição do campo
     )
-    tecnico_em_seguranca_trabalho_domingo: Optional[int] = Field(   # domingos trabalhados pelo técnico em segurança
+    tecnico_em_seguranca_trabalho_domingo: Optional[int] = Field(   # domingos/feriados trabalhados pelo técnico em segurança
         None,                                                       # opcional
-        description="Domingos trabalhados pelo técnico em segurança"  # descrição do campo
+        description="Domingos/feriados trabalhados pelo técnico em segurança"  # descrição do campo
     )
 
+    # ---------------- Alimentação ----------------
     almoco_qtd: Optional[int] = Field(                              # quantidade estimada de almoços
         None,                                                       # opcional
         description="Quantidade estimada de almoços"                # descrição do campo
@@ -1341,6 +1662,7 @@ class AvaliacaoOutSchema(AvaliacaoBaseSchema):                      # schema de 
         description="Quantidade estimada de lanches"                # descrição do campo
     )
 
+    # ---------------- Cronograma e prazos ----------------
     cronograma_execucao: Optional[bool] = Field(                    # indica se haverá cronograma formal de execução
         None,                                                       # opcional
         description="Cronograma formal de execução (True/False)"    # descrição do campo
@@ -1362,6 +1684,7 @@ class AvaliacaoOutSchema(AvaliacaoBaseSchema):                      # schema de 
         description="Emissão de ART (True/False)"                   # descrição do campo
     )
 
+    # ---------------- Metadados ----------------
     criado_em: Optional[datetime] = Field(                          # data/hora de criação do registro no banco
         None,                                                       # opcional (pode vir nulo em alguns contextos)
         description="Data/hora de criação da avaliação"             # descrição do campo
@@ -1373,7 +1696,6 @@ class AvaliacaoOutSchema(AvaliacaoBaseSchema):                      # schema de 
 
     class Config:                                                   # configuração interna do Pydantic
         orm_mode = True                                             # permite criar esse schema direto a partir de objetos ORM do SQLAlchemy
-
 
 class AvaliacaoAuditoriaOutSchema(BaseModel):                    # schema de saída para auditoria
     id: int                                                      # id do registro de auditoria
