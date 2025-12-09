@@ -57,6 +57,8 @@ const loginForm = document.getElementById("login-form"); // formulário de login
 const loginUsernameInput = document.getElementById("login-username"); // input de usuário
 const loginPasswordInput = document.getElementById("login-password"); // input de senha
 const loginErrorEl = document.getElementById("login-error"); // parágrafo para mostrar erros de login
+const loginSubmitButton =
+  loginForm ? loginForm.querySelector("button[type='submit']") : null; // obtém o botão de envio do formulário de login (pode ser null se o formulário não existir)
 
 // Elementos relacionados ao usuário logado no topo da aplicação.
 const userNameEl = document.getElementById("user-name"); // span com o nome do usuário
@@ -956,8 +958,49 @@ async function carregarAvaliacoes() {
       // Depois de injetar as linhas, registra um listener de clique em cada uma
     const linhasTabela = avaliacoesTbody.querySelectorAll("tr.avaliacao-row"); // seleciona todas as linhas de avaliação
 
-    linhasTabela.forEach((tr) => {
+    linhasTabela.forEach((tr) => { // percorre cada linha de avaliação já renderizada na tabela
         const id = tr.getAttribute("data-avaliacao-id"); // lê o id da avaliação gravado no atributo data
+        if (!id) { // se a linha não tiver um id válido
+          return; // não registra evento de clique nesta linha
+        }
+
+        tr.addEventListener("click", async () => { // adiciona um listener assíncrono para o clique na linha
+          if (salvarAvaliacaoButton) { // se o botão de salvar avaliação existir
+            salvarAvaliacaoButton.disabled = true; // desabilita o botão de salvar durante o carregamento da avaliação
+          }
+          if (novaAvaliacaoButton) { // se o botão de nova avaliação existir
+            novaAvaliacaoButton.disabled = true; // desabilita o botão de nova avaliação para evitar quebra de fluxo
+          }
+          if (recarregarButton) { // se o botão de recarregar existir
+            recarregarButton.disabled = true; // desabilita o botão de recarregar lista enquanto carrega a avaliação
+          }
+
+          const linhasTabelaInterno =
+            avaliacoesTbody.querySelectorAll("tr.avaliacao-row"); // seleciona novamente todas as linhas da tabela
+          linhasTabelaInterno.forEach((linha) => {
+            linha.classList.add("lista-avaliacoes-bloqueada"); // adiciona classe que bloqueia interação visualmente nas linhas
+          });
+
+          try { // garante que vamos tentar reabilitar a interface mesmo com erro
+            await carregarAvaliacaoParaEdicao(parseInt(id, 10)); // chama a função que carrega os dados da avaliação clicada para o formulário
+          } finally {
+            if (salvarAvaliacaoButton) { // se o botão de salvar ainda estiver disponível
+              salvarAvaliacaoButton.disabled = false; // reabilita o botão de salvar
+            }
+            if (novaAvaliacaoButton) { // se o botão de nova avaliação existir
+              novaAvaliacaoButton.disabled = false; // reabilita o botão de nova avaliação
+            }
+            if (recarregarButton) { // se o botão de recarregar existir
+              recarregarButton.disabled = false; // reabilita o botão de recarregar lista
+            }
+
+            const linhasTabelaLimpar =
+              avaliacoesTbody.querySelectorAll("tr.avaliacao-row"); // seleciona novamente todas as linhas para limpar o estado de bloqueio
+            linhasTabelaLimpar.forEach((linha) => {
+              linha.classList.remove("lista-avaliacoes-bloqueada"); // remove a classe de bloqueio, liberando os cliques novamente
+            });
+          }
+        });
 
         if (!id) {
         return; // se por algum motivo não houver id, não registra o clique
@@ -2721,40 +2764,63 @@ if (q1ModeloPatchPanel) {                                       // se o select d
   payload.art = selectSimNaoParaBoolean(artSelect);                                          // converte select de ART em boolean
 
   // Alimentação
-  payload.almoco_qtd = almocoQtdInput ? (almocoQtdInput.value || null) : null;               // quantidade de almoços
-  payload.lanche_qtd = lancheQtdInput ? (lancheQtdInput.value || null) : null;               // quantidade de lanches
+  payload.almoco_qtd = almocoQtdInput
+    ? almocoQtdInput.value || null
+    : null; // quantidade de almoços (mantém a mesma lógica, apenas ajustada em mais linhas)
+  payload.lanche_qtd = lancheQtdInput
+    ? lancheQtdInput.value || null
+    : null; // quantidade de lanches (idem)
+
+  if (salvarAvaliacaoButton) { // se o botão "Salvar avaliação" existir
+    salvarAvaliacaoButton.disabled = true; // desabilita o botão para evitar múltiplos envios simultâneos
+    salvarAvaliacaoButton.dataset.originalText =
+      salvarAvaliacaoButton.textContent; // salva o texto atual do botão em um data-atributo para poder restaurar depois
+    salvarAvaliacaoButton.textContent = "Salvando..."; // troca o texto do botão para indicar que o sistema está salvando
+  }
 
   try {
-    if (!avaliacaoEmEdicaoId) {
+    if (!avaliacaoEmEdicaoId) { // se não há avaliação em edição, vamos criar uma nova
       // Caso não haja id em edição, fazemos um POST (criação)
-      await apiPostJson("/avaliacoes", payload); // cria nova avaliação no backend
+      await apiPostJson("/avaliacoes", payload); // envia o payload para o backend criando um novo registro
 
-      avaliacaoFeedbackEl.textContent = "Avaliação salva com sucesso."; // mensagem de sucesso
-      avaliacaoFeedbackEl.classList.add("form-success"); // aplica estilo de sucesso
-    } else {
+      avaliacaoFeedbackEl.textContent =
+        "Avaliação salva com sucesso."; // define mensagem de sucesso para criação
+      avaliacaoFeedbackEl.classList.add("form-success"); // aplica classe de estilo de sucesso
+    } else { // se existe uma avaliação em edição
       // Se houver id em edição, fazemos um PUT (edição)
-      await apiPutJson(`/avaliacoes/${avaliacaoEmEdicaoId}`, payload); // atualiza a avaliação existente
+      await apiPutJson(
+        `/avaliacoes/${avaliacaoEmEdicaoId}`,
+        payload
+      ); // envia o payload para atualizar a avaliação existente
 
-      avaliacaoFeedbackEl.textContent = "Avaliação atualizada com sucesso."; // mensagem de sucesso para edição
-      avaliacaoFeedbackEl.classList.add("form-success"); // aplica estilo de sucesso
+      avaliacaoFeedbackEl.textContent =
+        "Avaliação atualizada com sucesso."; // define mensagem de sucesso específica para edição
+      avaliacaoFeedbackEl.classList.add("form-success"); // aplica classe de estilo de sucesso
     }
 
-    formAvaliacao.reset(); // limpa os campos do formulário após salvar
-    resetarFormularioParaNovaAvaliacao(); // volta o formulário para o modo "Nova Avaliação"
-    await carregarAvaliacoes(); // recarrega a lista para refletir o novo registro/edição
+    formAvaliacao.reset(); // limpa todos os campos do formulário após salvar
+    resetarFormularioParaNovaAvaliacao(); // volta o formulário para o modo "Nova Avaliação" (reseta estados internos)
+    await carregarAvaliacoes(); // recarrega a lista de avaliações para refletir o novo registro/edição
   } catch (err) {
-    console.error(err); // registra o erro no console para debug
+    console.error(err); // registra o erro no console para inspeção no navegador
 
     // Mensagens diferentes dependendo se era criação ou edição
-    if (!avaliacaoEmEdicaoId) {
+    if (!avaliacaoEmEdicaoId) { // se não havia id em edição, o erro foi ao criar
       avaliacaoFeedbackEl.textContent =
         "Erro ao salvar avaliação. Verifique os dados e tente novamente."; // mensagem de erro para criação
-    } else {
+    } else { // se havia id em edição, o erro foi ao atualizar
       avaliacaoFeedbackEl.textContent =
         "Erro ao atualizar avaliação. Verifique os dados e tente novamente."; // mensagem de erro para edição
     }
 
-    avaliacaoFeedbackEl.classList.add("form-error"); // aplica estilo de erro
+    avaliacaoFeedbackEl.classList.add("form-error"); // aplica classe de estilo de erro
+  } finally {
+    if (salvarAvaliacaoButton) { // garante que o botão será reabilitado após a tentativa de salvar
+      salvarAvaliacaoButton.disabled = false; // reabilita o botão de salvar para próximas interações
+      salvarAvaliacaoButton.textContent =
+        salvarAvaliacaoButton.dataset.originalText ||
+        "Salvar avaliação"; // restaura o texto original ou usa um texto padrão
+    }
   }
 }
 
@@ -2768,24 +2834,38 @@ if (q1ModeloPatchPanel) {                                       // se o select d
  */
 function registrarEventos() {
   // Evento de submit do formulário de login
-  if (loginForm) {
-    loginForm.addEventListener("submit", (event) => {
-      event.preventDefault(); // evita reload da página
+  if (loginForm) { // se o formulário de login existir na página
+      loginForm.addEventListener("submit", async (event) => { // registra um listener assíncrono para o envio do formulário
+        event.preventDefault(); // evita o recarregamento padrão da página
 
-      // Lê usuário e senha digitados
-      const username = loginUsernameInput.value.trim();
-      const password = loginPasswordInput.value.trim();
+        // Lê usuário e senha digitados
+        const username = loginUsernameInput.value.trim(); // obtém o texto do campo de usuário, removendo espaços extras nas pontas
+        const password = loginPasswordInput.value.trim(); // obtém o texto do campo de senha, também removendo espaços extras
 
-      // Validações simples
-      if (!username || !password) {
-        loginErrorEl.textContent = "Informe usuário e senha.";
-        return;
-      }
+        // Validações simples
+        if (!username || !password) { // se usuário ou senha estiverem vazios
+          loginErrorEl.textContent = "Informe usuário e senha."; // exibe mensagem de erro de validação na tela de login
+          return; // interrompe o fluxo sem chamar a API
+        }
 
-      // Chama a função de login
-      realizarLogin(username, password);
-    });
-  }
+        if (loginSubmitButton) { // se o botão de submit de login foi encontrado no DOM
+          loginSubmitButton.disabled = true; // desabilita o botão para evitar múltiplos cliques seguidos
+          loginSubmitButton.dataset.originalText =
+            loginSubmitButton.textContent; // guarda o texto original do botão em um data-atributo para restaurar depois
+          loginSubmitButton.textContent = "Entrando..."; // muda o texto do botão para indicar que o login está em processamento
+        }
+
+        try { // bloco try para garantir que o botão será reabilitado independente de sucesso ou erro
+          await realizarLogin(username, password); // chama a função que faz a requisição de login e aguarda a resposta
+        } finally { // sempre executado ao final da operação, com erro ou sucesso
+          if (loginSubmitButton) { // se o botão ainda existir
+            loginSubmitButton.disabled = false; // reabilita o botão de login
+            loginSubmitButton.textContent =
+              loginSubmitButton.dataset.originalText || "Entrar"; // restaura o texto original ou usa um texto padrão
+          }
+        }
+      });
+    }
 
   if (q2NovoSwitch) {                                              // se o select "Necessita novo switch?" existir
     atualizarVisibilidadeFornecedorSwitch();                       // aplica o estado inicial do campo "Fornecedor do switch"

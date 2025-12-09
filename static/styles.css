@@ -736,6 +736,11 @@ textarea:focus {
   cursor: pointer;                     /* mostra cursor de mão para indicar que a linha é clicável */
 }
 
+.table tbody tr.avaliacao-row.lista-avaliacoes-bloqueada { /* estado visual de bloqueio durante o carregamento da avaliação */
+  pointer-events: none;                /* impede cliques na linha enquanto estiver bloqueada */
+  opacity: 0.6;                        /* reduz a opacidade para indicar que está temporariamente indisponível */
+}
+
 /* Card de gestão de usuários (apenas administradores) */
 .card-users {                            /* card específico para a área de usuários */
   grid-column: 1 / -1;                   /* faz o card ocupar as duas colunas da grid (linha inteira) */
