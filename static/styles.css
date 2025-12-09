@@ -215,11 +215,39 @@ body {
   overflow: hidden;
 }
 
-/*
-.card-form {
-  
+.card-form {                                    /* card específico do formulário principal */
+  max-width: 820px;                             /* limita a largura para leitura mais confortável em telas grandes */
+  margin: 0 auto;                               /* centraliza o card dentro do main-layout */
 }
-*/
+
+.card-form #avaliacao-feedback {               /* mensagem de feedback no topo do card de formulário */
+  margin-bottom: 8px;                           /* espaço entre o texto de feedback e a barra de botões */
+}
+
+.card-form .form-actions {                      /* barra de botões "Nova avaliação" / "Salvar avaliação" do formulário */
+  justify-content: flex-start;                  /* alinha os botões à esquerda, perto do título e das abas */
+  margin-bottom: 4px;                           /* reduz o espaço logo abaixo dos botões para compactar o topo */
+}
+
+.card-form .form-actions .btn {                 /* botões principais do formulário */
+  font-size: 0.85rem;                           /* fonte um pouco menor para caber melhor mesmo com textos maiores */
+  padding-inline: 14px;                         /* ajusta o padding horizontal para ficar mais equilibrado */
+}
+
+.card-form .card-header {                       /* cabeçalho com título do formulário + texto explicativo */
+  background: #eef2ff;                          /* fundo azul clarinho para destacar essa área do resto do card */
+  border-radius: 12px;                          /* cantos arredondados, combinando com o estilo geral do app */
+  padding: 10px 12px;                           /* espaçamento interno para o título/subtítulo respirarem */
+  margin-top: 10px;                             /* respiro entre as abas e o cabeçalho */
+}
+
+.card-form .card-header h2 {                    /* título principal do formulário (objeto da avaliação) */
+  font-size: 1rem;                              /* um pouco menor para reduzir quebras de linha excessivas */
+}
+
+.card-form .card-header .card-subtitle {        /* texto explicativo ao lado do título */
+  max-width: 260px;                             /* limita a largura para não ficar esticado demais em telas largas */
+}
 
 /* Cabeçalho de cada cartão */
 .card-header {
@@ -361,6 +389,16 @@ body {
   flex: 1 0 100%;
 }
 
+.form-section-title {                           /* título de cada grande seção do formulário */
+  margin-top: 18px;                             /* espaço antes da seção para separá-la do bloco anterior */
+  margin-bottom: 6px;                           /* pequena distância até os campos da própria seção */
+  padding-top: 10px;                            /* respiro interno acima do texto */
+  border-top: 5px solid rgba(0, 106, 255, 0.7); /* linha tracejada separando visualmente as seções */
+  font-size: 0.9rem;                            /* um pouco maior que o label padrão */
+  font-weight: 600;                             /* deixa o texto mais forte para parecer um subtítulo */
+  color: var(--nt-primary-dark);                /* mesma cor dos títulos de card, para consistência */
+}
+
 label {
   font-size: 0.8rem;
   color: var(--nt-text-muted);
@@ -386,20 +424,35 @@ textarea:focus {
   background-color: #f0f6ff;
 }
 
-/* Área de feedback (erro/sucesso) abaixo do formulário */
-.form-feedback {
-  font-size: 0.8rem;
-  min-height: 18px;
+/* Área de feedback (erro/sucesso) abaixo dos formulários */
+.form-feedback {                                /* estilo base dos parágrafos usados para feedback */
+  font-size: 0.8rem;                            /* deixa o texto discreto, mas legível */
+  min-height: 18px;                             /* reserva espaço mesmo quando não há mensagem */
+  margin-bottom: 6px;                           /* afasta visualmente dos botões ou campos abaixo */
 }
 
-.form-error {
-  font-size: 0.8rem;
-  color: var(--nt-danger);
+.form-error {                                   /* classe genérica de erro (usada também em login, etc.) */
+  font-size: 0.8rem;                            /* mesma escala de texto */
+  color: var(--nt-danger);                      /* cor vermelha padrão para mensagens de erro */
 }
 
-.form-success {
-  font-size: 0.8rem;
-  color: var(--nt-success);
+.form-success {                                 /* classe genérica de sucesso */
+  font-size: 0.8rem;                            /* mesma escala de texto */
+  color: var(--nt-success);                     /* cor verde padrão para mensagens de sucesso */
+}
+
+.form-feedback.form-success {                   /* quando o feedback é de sucesso e está em um parágrafo de feedback */
+  background: #ecfdf3;                          /* fundo verde bem clarinho para destacar o aviso */
+  border-radius: 10px;                          /* cantos arredondados combinando com inputs/botões */
+  padding: 6px 10px;                            /* espaço interno ao redor do texto */
+  border: 1px solid rgba(22, 163, 74, 0.25);    /* borda sutil em tom de verde */
+}
+
+.form-feedback.form-error {                     /* quando o feedback é de erro nesse mesmo padrão */
+  background: #fef2f2;                          /* fundo vermelho bem clarinho */
+  border-radius: 10px;                          /* mesmos cantos arredondados */
+  padding: 6px 10px;                            /* mesmo espaçamento interno */
+  border: 1px solid rgba(220, 38, 38, 0.25);    /* borda sutil em tom de vermelho */
 }
 
 /* Rodapé de ações do formulário (botões) */
@@ -413,6 +466,17 @@ textarea:focus {
 
 .form-actions .btn {                     /* estilo aplicado a qualquer botão dentro da área .form-actions */
   min-width: 140px;                      /* largura mínima para ficar visível e confortável */
+}
+
+.avaliacao-form-title {                          /* contêiner do título "Selecione o tipo de formulário" */
+  margin-top: 14px;                              /* espaço entre os botões (Nova/Salvar) e o título */
+  margin-bottom: 6px;                            /* pequeno espaço entre o título e as abas azuis/cinzas */
+}
+
+.avaliacao-form-title h3 {                       /* estilo específico do texto do título acima das abas */
+  font-size: 1.1rem;                             /* deixa o título um pouco menor para não competir com h2 */
+  font-weight: 600;                              /* mantém destaque, mas sem parecer um título principal */
+  color: #111827;                                /* tom escuro neutro, combinando com o restante dos textos */
 }
 
 /* Abas de seleção de tipo de formulário (redes / infraestrutura) */
