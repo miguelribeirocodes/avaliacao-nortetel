@@ -86,7 +86,7 @@ const escopoTextarea = document.getElementById("escopo-texto");     // textarea 
 const tipoFormularioInput = document.getElementById("tipo-formulario");         // input hidden que armazena o tipo atual de formulário selecionado
 const tabButtons = document.querySelectorAll(".avaliacao-tab-btn");             // NodeList contendo todos os botões de aba de tipo de formulário
 const blocosTipoRedes = document.querySelectorAll(".tipo-redes-only");          // blocos exclusivos do formulário UTP/Fibra (legado "Redes")
-const blocosTipoInfra = document.querySelectorAll(".tipo-infra-only");          // blocos exclusivos do formulário de Câmeras (legado "Infraestrutura")
+const blocosTipoCamera = document.querySelectorAll(".tipo-camera-only");          // blocos exclusivos do formulário de Câmeras (legado "Infraestrutura")
 //tipo_formulario
 // ===================== CAMPOS NOVOS =====================
 
@@ -2226,8 +2226,8 @@ function aplicarVisibilidadeTipoFormulario(tipo) {                        // rec
     if (blocosTipoRedes) {                                                // e existirem blocos de UTP/Fibra
       blocosTipoRedes.forEach((bloco) => bloco.classList.remove("hidden"));// garante que todos apareçam
     }
-    if (blocosTipoInfra) {                                                // se existirem blocos de Câmeras/Infra
-      blocosTipoInfra.forEach((bloco) => bloco.classList.remove("hidden"));// também garante visibilidade
+    if (blocosTipoCamera) {                                                // se existirem blocos de Câmeras/Infra
+      blocosTipoCamera.forEach((bloco) => bloco.classList.remove("hidden"));// também garante visibilidade
     }
     return;                                                               // encerra a função porque não há mais nada a aplicar
   }
@@ -2244,8 +2244,8 @@ function aplicarVisibilidadeTipoFormulario(tipo) {                        // rec
   }
 
   // Exibe ou oculta blocos do tipo Câmeras (legado "Infraestrutura")
-  if (blocosTipoInfra) {                                                  // se a NodeList de blocos Câmeras existir
-    blocosTipoInfra.forEach((bloco) => {                                  // percorre cada bloco
+  if (blocosTipoCamera) {                                                  // se a NodeList de blocos Câmeras existir
+    blocosTipoCamera.forEach((bloco) => {                                  // percorre cada bloco
       if (ehCameras) {                                                    // se o tipo atual for Câmeras
         bloco.classList.remove("hidden");                                 // mostra os blocos de Câmeras
       } else {                                                            // se não for tipo Câmeras
