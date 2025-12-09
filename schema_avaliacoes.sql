@@ -42,16 +42,16 @@ CREATE TABLE avaliacoes (
     q1_categoria_cab VARCHAR(10),                -- categoria do cabeamento (ex.: CAT5E, CAT6)
     q1_blindado BOOLEAN,                         -- indica se o cabo é blindado
     q1_novo_patch_panel BOOLEAN,                 -- indica se será fornecido um novo patch panel
-    q1_incluir_guia BOOLEAN,                     -- indica se serão incluídas guias de cabos
+    q1_incluir_guia BOOLEAN,                          -- indica se devem ser incluídas guias de cabos (Sim/Não)
+    q1_qtd_guias_cabos INTEGER,                       -- quantidade de guias de cabos (preenchido apenas quando incluir_guia = true)
     q1_qtd_pontos_rede INTEGER,                  -- quantidade de pontos de rede
     q1_qtd_cabos INTEGER,                        -- quantidade de cabos UTP
     q1_qtd_portas_patch_panel INTEGER,           -- quantidade de portas do patch panel
     q1_qtd_patch_cords INTEGER,                  -- quantidade total de patch cords previstos
-    q1_marca_cab VARCHAR(50),                    -- marca do cabeamento UTP (Furukawa, Commscope, etc.)
-    q1_modelo_patch_panel TEXT,                  -- modelo do patch panel quando houver novo fornecimento (CommScope 24 portas, Furukawa 24 portas, Systimax 24 portas ou "Outro: <texto>")
+    q1_marca_cab VARCHAR(50),                    -- marca do cabeamento UTP (CommScope, Furukawa ou "Outro: <texto>")
     q1_qtd_guias_cabos INTEGER,                  -- quantidade de guias de cabos a instalar
-    q1_patch_cords_modelo TEXT,                  -- modelo/descrição dos patch cords (comprimentos, categoria, etc.)
-    q1_patch_cords_cor VARCHAR(50),              -- cor ou cores dos patch cords
+    q1_patch_cords_modelo TEXT,                     -- modelo dos patch cords (0,5 mt; 1,5 mt; 3,0 mt; 5mt; 10mt; 15mt ou valor legado)
+    q1_patch_cords_cor VARCHAR(50),                 -- cor dos patch cords (branco, amarelo, cinza, vermelho, azul ou valor legado)
     q1_patch_panel_existente_nome TEXT,          -- identificação do patch panel existente quando não houver novo fornecimento
 
     -- Quantitativo 02 - Switch

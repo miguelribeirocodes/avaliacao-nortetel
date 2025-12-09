@@ -18,19 +18,33 @@ Vamos implementar estas duas alterações:
 
 Sempre em pequenos patches para evitar sobrecarga e dividir em sub etapas se necessário.
 
-
+OK OK OK OK OK OK OK OK OK OK OK OK OK OK OK OK OK OK OK OK OK OK OK OK OK OK OK OK OK OK OK OK OK OK OK OK OK
 ----------------------------------------------------------------------------------
 Novo chato prompt)
 
-Vamos continuar este projeto em outro chat, portanto devemos ensinar ao chat o contexo e vamos precisar corrigir que algumas informações não estão sendo lidas corretamente quando carrega uma avaliação já salva (minha suspeita é que sejam os campos select). Por exemplo: precisa de serviço fora de montes claros não está pegando o valor "sim/não" e convertendo em "true/false", vem sempre false e na hora de ler uma avaliação já salva, ele não puxa o valor atual no campo do select. Vamos primeiro resumir o projeto e só depois fazer essa correção.
-
+Vamos continuar este projeto em outro chat, portanto devemos ensinar ao chat o contexto. e na sequência passarei o próximo prompt
 ----------------------------------------------------------------------------------
+
+OK OK OK OK OK OK OK OK OK OK OK OK OK OK OK OK OK OK OK OK OK OK OK OK OK OK OK OK OK OK OK OK OK OK OK OK OK
+
 2º Prompt)
 
 Ainda em patch panel:
 - Marca do cabeamento deverá ser um select com as seguintes opções: CommScope, Furukawa e outro (aparecendo então um input ao lado para digitar e sendo registrado no banco de dados como "Outro: " + "valor digitado".
 
 Já que criamos a função: atualizarVisibilidadeClienteOutro,vamos transformar ela em genérica pq utilizaremos ela em outras partes.
+
+Vamos implementar estas alterações:
+
+- Impacto no banco de dados
+- Impacto no front end
+- Impacto no back end
+
+Sempre em pequenos patches para evitar sobrecarga e dividir em sub etapas se necessário.
+
+OK OK OK OK OK OK OK OK OK OK OK OK OK OK OK OK OK OK OK OK OK OK OK OK OK OK OK OK OK OK OK OK OK OK OK OK OK
+
+2.5º Prompt)
 
 - "Incluir guia de cabos?": caso escolha "sim", aparece ao lado para digitar e criar uma nova coluna na tabela com a quantidade de guia de cabos, sendo o valor digitado.
 
@@ -41,6 +55,8 @@ Vamos implementar estas alterações:
 - Impacto no back end
 
 Sempre em pequenos patches para evitar sobrecarga e dividir em sub etapas se necessário.
+
+OK OK OK OK OK OK OK OK OK OK OK OK OK OK OK OK OK OK OK OK OK OK OK OK OK OK OK OK OK OK OK OK OK OK OK OK OK
 
 ----------------------------------------------------------------------------------
 3º Prompt)
@@ -58,6 +74,8 @@ Vamos implementar estas alterações:
 
 Sempre em pequenos patches para evitar sobrecarga e dividir em sub etapas se necessário.
 
+OK OK OK OK OK OK OK OK OK OK OK OK OK OK OK OK OK OK OK OK OK OK OK OK OK OK OK OK OK OK OK OK OK OK OK OK OK
+
 ----------------------------------------------------------------------------------
 4º Prompt)
 
@@ -67,7 +85,7 @@ Quantitativo 02 - Switch:
 
 - Manter o campo do modelo de switch
 
-- Esconder todos os outros campos do switch que não foram impactados neste patch.
+- Remover todos os outros campos do switch que não foram impactados neste patch.
 
 Vamos implementar estas alterações:
 

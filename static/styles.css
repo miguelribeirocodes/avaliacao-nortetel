@@ -56,6 +56,10 @@ body {
   display: none !important;
 }
 
+.invisible-keep-space{       /* nova classe para esconder o conteúdo mantendo o espaço reservado */
+  visibility: hidden;         /* o elemento fica invisível, mas continua ocupando seu espaço no layout */
+}
+
 /* ========================== TELA DE LOGIN ========================== */
 
 .login-wrapper {
