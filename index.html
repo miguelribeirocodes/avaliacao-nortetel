@@ -524,16 +524,6 @@
                     placeholder="Ex.: Novo Nordisk, Matriz, etc."
                   />
                 </div>
-
-                <div class="form-group">
-                  <label for="objeto">Objeto</label>
-                  <input
-                    type="text"
-                    id="objeto"
-                    placeholder="Resumo do objeto da avaliação"
-                    required
-                  />
-                </div>
               </div>
 
               <!-- Linha: status + equipe responsável -->
@@ -547,9 +537,13 @@
                     <option value="reprovado">Reprovado</option>
                   </select>
                 </div>
+              </div>
+
+              <!-- Linha: responsável + contato -->
+              <div class="form-row">
 
                 <div class="form-group">
-                  <label for="equipe">Equipe responsável</label>
+                  <label for="equipe">Equipe responsável pela execução</label>
                   <select id="equipe">
                     <option value="">Selecione...</option>
                     <option value="Automação">Automação</option>
@@ -559,10 +553,7 @@
                     <option value="Comercial">Comercial</option>
                   </select>
                 </div>
-              </div>
 
-              <!-- Linha: responsável + contato -->
-              <div class="form-row">
                 <div class="form-group">
                   <label for="responsavel-avaliacao"
                     >Responsável pela avaliação</label
@@ -573,27 +564,37 @@
                     placeholder="Nome do responsável técnico"
                   />
                 </div>
-
-                <div class="form-group">
-                  <label for="contato-cliente">Contato do cliente</label>
-                  <input
-                    type="tel"
-                    id="contato-cliente"
-                    placeholder="(99) 9 9999-9999"
-                    pattern="^\([0-9]{2}\) [0-9] [0-9]{4}-[0-9]{4}$"
-                    maxlength="17"
-                  />
-                </div>
               </div>
 
               <!-- Linha: e-mail -->
               <div class="form-row">
-                <div class="form-group full-width">
+                <div class="form-group">
+                  <label for="contato-cliente">Nome do solicitante</label>
+                  <input
+                    type="text"
+                    id="contato-cliente"
+                    placeholder="Nome/sobrenome"
+                  />
+                </div>
+
+                <div class="form-group">
                   <label for="email-cliente">E-mail do cliente</label>
                   <input
                     type="email"
                     id="email-cliente"
                     placeholder="cliente@empresa.com"
+                  />
+                </div>
+              </div>
+              
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="objeto">Objeto</label>
+                  <input
+                    type="text"
+                    id="objeto"
+                    placeholder="Resumo do objeto da avaliação"
+                    required
                   />
                 </div>
               </div>
@@ -708,27 +709,6 @@
                     />
                   </div>
 
-                  <div class="form-group"><!-- quantidade de pontos de rede -->
-                    <label for="q1-qtd-pontos-rede">Qtd. de pontos de rede</label>
-                    <input
-                      type="number"
-                      id="q1-qtd-pontos-rede"
-                      min="0"
-                      step="1"
-                      placeholder="Ex.: 24"
-                    />
-                  </div>
-
-                  <div class="form-group"><!-- quantidade de cabos -->
-                    <label for="q1-qtd-cabos">Qtd. de cabos</label>
-                    <input
-                      type="number"
-                      id="q1-qtd-cabos"
-                      min="0"
-                      step="1"
-                      placeholder="Ex.: 24"
-                    />
-                  </div>
                 </div>
 
                 <div class="form-row"><!-- linha com portas de patch panel e patch cords -->
@@ -748,6 +728,28 @@
                     <input
                       type="number"
                       id="q1-qtd-patch-cords"
+                      min="0"
+                      step="1"
+                      placeholder="Ex.: 24"
+                    />
+                  </div>
+
+                  <div class="form-group"><!-- quantidade de pontos de rede -->
+                    <label for="q1-qtd-pontos-rede">Qtd. de pontos de rede</label>
+                    <input
+                      type="number"
+                      id="q1-qtd-pontos-rede"
+                      min="0"
+                      step="1"
+                      placeholder="Ex.: 24"
+                    />
+                  </div>
+
+                  <div class="form-group"><!-- quantidade de cabos -->
+                    <label for="q1-qtd-cabos">Qtd. de cabos</label>
+                    <input
+                      type="number"
+                      id="q1-qtd-cabos"
                       min="0"
                       step="1"
                       placeholder="Ex.: 24"
@@ -1514,6 +1516,18 @@
                   </select>
                 </div>
 
+                <div class="form-group invisible-keep-space"><!-- modelo da plataforma -->
+                  <label for="pre-plataforma-modelo">Modelo da plataforma</label>
+                  <input
+                    type="text"
+                    id="pre-plataforma-modelo"
+                    placeholder="Ex.: Tesoura, articulada, etc."
+                  />
+                </div>
+              </div>
+
+              <div class="form-row"><!-- linha com modelo/dias de plataforma e veículo Nortetel -->
+
                 <div class="form-group"><!-- flag: fora do horário comercial -->
                   <label for="pre-fora-horario-comercial">Fora do horário comercial?</label>
                   <select id="pre-fora-horario-comercial">
@@ -1521,17 +1535,6 @@
                     <option value="sim">Sim</option>
                     <option value="nao">Não</option>
                   </select>
-                </div>
-              </div>
-
-              <div class="form-row"><!-- linha com modelo/dias de plataforma e veículo Nortetel -->
-                <div class="form-group"><!-- modelo da plataforma -->
-                  <label for="pre-plataforma-modelo">Modelo da plataforma</label>
-                  <input
-                    type="text"
-                    id="pre-plataforma-modelo"
-                    placeholder="Ex.: Tesoura, articulada, etc."
-                  />
                 </div>
 
                 <div class="form-group"><!-- dias de uso da plataforma -->

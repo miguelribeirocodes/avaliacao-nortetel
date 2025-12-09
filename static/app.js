@@ -292,33 +292,6 @@ const btnAuditoria = document.getElementById("btnAuditoria"); // pega o botão d
 const equipeInput = document.getElementById("equipe-responsavel");       // input da equipe responsável
 const escopoTextoInput = document.getElementById("escopo-texto");        // textarea do escopo da avaliação
 
-// ============================
-// Máscara para telefone (contato do cliente)
-// ============================
-function formatarTelefoneBrasil(valorDigitado) {                    // função que recebe o texto digitado no input
-  const apenasNumeros = valorDigitado.replace(/\D/g, "");          // remove tudo que não for dígito (letras, espaços, etc.)
-  const numerosLimitados = apenasNumeros.slice(0, 11);             // garante no máximo 11 dígitos (DDD + 9 + 8 números)
-  let formatado = "";                                              // string que vai receber o valor já formatado
-
-  if (numerosLimitados.length > 0) {                               // se já existe pelo menos 1 dígito
-    formatado = "(" + numerosLimitados.substring(0, 2);            // abre parênteses e coloca o DDD (2 primeiros dígitos)
-
-    if (numerosLimitados.length >= 3) {                            // se temos pelo menos 3 dígitos (DDD + primeiro do número)
-      formatado += ") " + numerosLimitados.substring(2, 3);        // fecha parênteses, espaço e primeiro dígito do número
-    }
-
-    if (numerosLimitados.length >= 4) {                            // se temos de 4 a 7 dígitos (parte central do número)
-      formatado += " " + numerosLimitados.substring(3, 7);         // adiciona espaço + dígitos centrais (posição 3 a 6)
-    }
-
-    if (numerosLimitados.length >= 8) {                            // se temos 8 dígitos ou mais
-      formatado += "-" + numerosLimitados.substring(7, 11);        // adiciona traço + últimos dígitos (posição 7 a 10)
-    }
-  }
-
-  return formatado;                                                // devolve o telefone no formato (99) 9 9999-9999
-}
-
 if (btnAuditoria) { // se o botão existir
   btnAuditoria.addEventListener("click", () => { // adiciona listener para o clique
     // aqui você chama a função que mostra a section correta
@@ -1291,8 +1264,19 @@ async function carregarAvaliacaoParaEdicao(avaliacaoId) {
     emailClienteInput.value = dados.email_cliente || ""; // e-mail do cliente
     escopoTextarea.value = dados.escopo_texto || ""; // escopo / observações
     // Flags gerais
-    if (servicoForaMC) servicoForaMC.checked = dados.servico_fora_montes_claros ?? false; // só marca se o checkbox existir
-    if (servicoIntermediario) servicoIntermediario.checked = dados.servico_intermediario ?? false; // idem para intermediário
+    // Flags gerais
+    if (servicoForaMC) {                                                    // verifica se o <select> de serviço fora de Montes Claros existe
+      booleanParaSelectSimNao(                                              // usa helper para preencher o <select> baseado em um booleano
+        servicoForaMC,                                                      // referência ao <select id="servico-fora-montes-claros">
+        dados.servico_fora_montes_claros                                    // valor booleano vindo da API (true/false ou null)
+      );
+    }
+    if (servicoIntermediario) {                                             // verifica se o <select> de serviço intermediário/empreiteira existe
+      booleanParaSelectSimNao(                                              // usa helper para preencher o <select> baseado em um booleano
+        servicoIntermediario,                                               // referência ao <select id="servico-intermediario">
+        dados.servico_intermediario                                         // valor booleano vindo da API (true/false ou null)
+      );
+    }
 
     // Quantitativo 01 – Patch Panel / Cabeamento
     if (q1Categoria) {
@@ -1498,7 +1482,7 @@ async function carregarAvaliacaoParaEdicao(avaliacaoId) {
     }
 
     if (q3NovoDio) {                                                                 // se o select "Necessário novo DIO?" existir
-      q3NovoDio.value = dados.q3_modelo_dio ? "sim" : "";                           // se houver modelo informado, assume "Sim"; caso contrário, deixa em branco
+      booleanParaSelectSimNao(q3NovoDio, dados.q3_novo_dio);                         // usa diretamente o booleano q3_novo_dio do backend para marcar "sim" ou "nao" no select
     }
 
     atualizarVisibilidadeModeloDio();                                                // ajusta a visibilidade do modelo conforme o valor carregado
@@ -1680,13 +1664,43 @@ async function carregarAvaliacaoParaEdicao(avaliacaoId) {
     }
 
     // Pré-requisitos
-    preTrabalhoAltura.checked = dados.pre_trabalho_altura ?? false;
-    prePlataforma.checked = dados.pre_plataforma ?? false;
+    if (preTrabalhoAltura) {                                                    // verifica se o <select> de serviço fora de Montes Claros existe
+      booleanParaSelectSimNao(                                              // usa helper para preencher o <select> baseado em um booleano
+        preTrabalhoAltura,                                                      // referência ao <select id="servico-fora-montes-claros">
+        dados.pre_trabalho_altura                                    // valor booleano vindo da API (true/false ou null)
+      );
+    }
+    prePlataforma.value = "";
+    if (prePlataforma) {                                                    // verifica se o <select> de serviço fora de Montes Claros existe
+      booleanParaSelectSimNao(                                              // usa helper para preencher o <select> baseado em um booleano
+        prePlataforma,                                                      // referência ao <select id="servico-fora-montes-claros">
+        dados.pre_plataforma                                    // valor booleano vindo da API (true/false ou null)
+      );
+    }
     prePlataformaModelo.value = dados.pre_plataforma_modelo || "";
     prePlataformaDias.value = dados.pre_plataforma_dias || "";
+    atualizarVisibilidadeModeloPlataforma();
     preForaHorario.checked = dados.pre_fora_horario_comercial ?? false;
+    if (preForaHorario) {                                                    // verifica se o <select> de serviço fora de Montes Claros existe
+      booleanParaSelectSimNao(                                              // usa helper para preencher o <select> baseado em um booleano
+        preForaHorario,                                                      // referência ao <select id="servico-fora-montes-claros">
+        dados.pre_fora_horario_comercial                                    // valor booleano vindo da API (true/false ou null)
+      );
+    }
     preVeiculoNortetel.checked = dados.pre_veiculo_nortetel ?? false;
+    if (preVeiculoNortetel) {                                                    // verifica se o <select> de serviço fora de Montes Claros existe
+      booleanParaSelectSimNao(                                              // usa helper para preencher o <select> baseado em um booleano
+        preVeiculoNortetel,                                                      // referência ao <select id="servico-fora-montes-claros">
+        dados.pre_veiculo_nortetel                                    // valor booleano vindo da API (true/false ou null)
+      );
+    }
     preContainer.checked = dados.pre_container_materiais ?? false;
+    if (preContainer) {                                                    // verifica se o <select> de serviço fora de Montes Claros existe
+      booleanParaSelectSimNao(                                              // usa helper para preencher o <select> baseado em um booleano
+        preContainer,                                                      // referência ao <select id="servico-fora-montes-claros">
+        dados.pre_container_materiais                                    // valor booleano vindo da API (true/false ou null)
+      );
+    }
 
     // Horas - dias normais (Tabela 4)
     if (encarregadoDiasInput) encarregadoDiasInput.value = dados.encarregado_dias ?? "";                       // preenche dias de encarregado vindos da API
@@ -1750,8 +1764,8 @@ function resetarFormularioParaNovaAvaliacao() {
   }
 
   // Flags gerais
-  if (servicoForaMC) servicoForaMC.checked = false;             // desmarca a opção "serviço fora de Montes Claros"
-  if (servicoIntermediario) servicoIntermediario.checked = false; // desmarca a opção de serviço intermediário
+  if (servicoForaMC) servicoForaMC.value = "";             // desmarca a opção "serviço fora de Montes Claros"
+  if (servicoIntermediario) servicoIntermediario.value = ""; // desmarca a opção de serviço intermediário
 
   // Campo de cliente (select + "Outro")
   if (clienteNomeInput) {                                       // se o select de cliente existir
@@ -1872,13 +1886,15 @@ function resetarFormularioParaNovaAvaliacao() {
   if (imgRef2) imgRef2.value = "";
 
   // Pré-requisitos
-  if (preTrabalhoAltura) preTrabalhoAltura.checked = false;
-  if (prePlataforma) prePlataforma.checked = false;
-  if (prePlataformaModelo) prePlataformaModelo.value = "";
+  if (preTrabalhoAltura) preTrabalhoAltura.value = "";
+  if (prePlataforma) prePlataforma.value = "";
+  if (prePlataformaModelo) {
+    prePlataformaModelo.classList.add("invisible-keep-space");
+  }
   if (prePlataformaDias) prePlataformaDias.value = "";
-  if (preForaHorario) preForaHorario.checked = false;
-  if (preVeiculoNortetel) preVeiculoNortetel.checked = false;
-  if (preContainer) preContainer.checked = false;
+  if (preForaHorario) preForaHorario.value = "";
+  if (preVeiculoNortetel) preVeiculoNortetel.value = "";
+  if (preContainer) preContainer.value = "";
 
   // Horas - dias normais (Tabela 4)
   if (encarregadoDiasInput) encarregadoDiasInput.value = "";                 // limpa dias de encarregado
@@ -2073,6 +2089,19 @@ function atualizarVisibilidadeModeloPatchPanel() {               // declara a fu
     }
   }
 }                                                                // fim da função atualizarVisibilidadeModeloPatchPanel
+
+function atualizarVisibilidadeModeloPlataforma() {
+  if (!prePlataforma || !prePlataformaModelo) return;
+
+  const valor = prePlataforma.value;                       
+
+  if (valor === "sim") {                                 
+    prePlataformaModelo.classList.remove("invisible-keep-space");
+  } else {                                                      
+    prePlataformaModelo.classList.add("invisible-keep-space");
+    if (prePlataformaModelo) prePlataformaModelo.value = "";       
+  }
+}    
 
 // Atualiza a visibilidade do campo "Outro" do modelo de patch panel
 function atualizarVisibilidadeModeloPatchPanelOutro() {          // declara a função responsável por mostrar/esconder o campo "Outro" do modelo
@@ -2343,11 +2372,11 @@ async function salvarAvaliacao(event) {
     //tipo_formulario
   };
   // Flags gerais
-  payload.servico_fora_montes_claros =                     // campo booleano indicando se o serviço é fora de Montes Claros
-    servicoForaMC ? servicoForaMC.checked : false;         // se o elemento existir, usa o .checked; se não, assume false
+  payload.servico_fora_montes_claros =                                           // campo booleano indicando se o serviço é fora de Montes Claros
+    servicoForaMC ? selectSimNaoParaBoolean(servicoForaMC) : null;              // converte o valor "sim"/"nao" do <select> para booleano (ou null se não houver seleção)
 
-  payload.servico_intermediario =                          // campo booleano indicando se o serviço é para intermediário
-    servicoIntermediario ? servicoIntermediario.checked : false; // mesma lógica: só acessa .checked se o elemento existir
+  payload.servico_intermediario =                                                // campo booleano indicando se o serviço é para intermediário/empreiteira
+    servicoIntermediario ? selectSimNaoParaBoolean(servicoIntermediario) : null; // converte o valor "sim"/"nao" do <select> para booleano (ou null se não houver seleção)
 
   // Quantitativo 01 – Patch Panel / Cabeamento
   payload.q1_categoria_cab =
@@ -2655,13 +2684,13 @@ if (q1ModeloPatchPanel) {                                       // se o select d
   payload.localizacao_imagem2_url = imgRef2 ? imgRef2.value || null : null; // segunda imagem (pode ser null)
 
   // Pré-requisitos
-  payload.pre_trabalho_altura = preTrabalhoAltura.checked;
-  payload.pre_plataforma = prePlataforma.checked;
+  payload.pre_trabalho_altura = preTrabalhoAltura ? selectSimNaoParaBoolean(preTrabalhoAltura) : null;
+  payload.pre_plataforma = prePlataforma ? selectSimNaoParaBoolean(prePlataforma) : null;
   payload.pre_plataforma_modelo = prePlataformaModelo.value;
   payload.pre_plataforma_dias = intOrNullFromInput(prePlataformaDias); // converte dias de uso da plataforma para número ou null
-  payload.pre_fora_horario_comercial = preForaHorario.checked;
-  payload.pre_veiculo_nortetel = preVeiculoNortetel.checked;
-  payload.pre_container_materiais = preContainer.checked;
+  payload.pre_fora_horario_comercial = preForaHorario ? selectSimNaoParaBoolean(preForaHorario) : null;
+  payload.pre_veiculo_nortetel = preVeiculoNortetel ? selectSimNaoParaBoolean(preVeiculoNortetel) : null;
+  payload.pre_container_materiais = preContainer ? selectSimNaoParaBoolean(preContainer) : null;
 
   // Horas - dias normais (Tabela 4)
   payload.encarregado_dias = encarregadoDiasInput ? (encarregadoDiasInput.value || null) : null;                 // dias de encarregado
