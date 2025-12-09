@@ -246,69 +246,63 @@ body {
 
 .table-wrapper {
   flex: 1;
-  overflow: auto;
+  overflow-x: auto;
+  overflow-y: auto;
   border-radius: 14px;
   border: 1px solid var(--nt-border-soft);
   background: #f9fafb;
 }
 
 .table {
-  width: 100%;
+  width: max-content;
+  min-width: 100%;
   border-collapse: collapse;
   font-size: 0.85rem;
-  table-layout: fixed; /* garante que as larguras definidas abaixo sejam respeitadas */
-  overflow-x: auto;
+  table-layout: auto; /* garante que as larguras definidas abaixo sejam respeitadas */
 }
 
 .table th,
 .table td {                                /* aplica às células (cabeçalho e corpo) da tabela de usuários */
-  white-space: normal;                          /* não deixa o texto quebrar em várias linhas dentro da mesma célula */
-  /* overflow: hidden;
-  text-overflow: auto; */
-  /* overflow-x: auto; */
+  white-space: nowrap;
+  padding: 10px 12px;
+  text-align: left;
 }
 
 /* Largura fixa das colunas da tabela de avaliações:
    1: ID, 2: Objeto, 3: Cliente, 4: Data, 5: Local, 6: Status */
 .table th:nth-child(1),
 .table td:nth-child(1) {
-  /* width: 6%;             ID bem estreito */
   width: auto;
   text-align: center;
 }
 
 .table th:nth-child(2),
 .table td:nth-child(2) {
-  /* width: 39%;            Objeto ganha a maior parte do espaço */
   width: auto;
   text-align: center;
 }
 
 .table th:nth-child(3),
 .table td:nth-child(3) {
-  /* width: 16%;            Cliente */
   width: auto;
   text-align: center;
 }
 
 .table th:nth-child(4),
 .table td:nth-child(4) {
-  /* width: 16%;            Data */
   width: auto;
   text-align: center;
-  word-break: break-word; /*quebra de linha pelo @ do email*/
+  /* word-break: break-word; quebra de linha pelo @ do email */
 }
 
 .table th:nth-child(5),
 .table td:nth-child(5) {
-  /* width: 13%;            Local */
   width: auto;
   text-align: center;
 }
 
 .table th:nth-child(6),
 .table td:nth-child(6) {
-  /* width: 10%;            Status */
   width: auto;
   text-align: center;
 }
@@ -758,7 +752,8 @@ textarea:focus {
 
 /* contêiner com rolagem para tabelas de auditoria */
 .table-wrapper {              /* classe usada para envolver as tabelas permitindo rolagem */
-  max-height: 260px;          /* altura máxima fixa do bloco de tabela (ajuste conforme preferir) */
+  /* max-height: 260px;          altura máxima fixa do bloco de tabela (ajuste conforme preferir) */
+  height: auto;
   overflow-y: auto;           /* habilita rolagem vertical se o conteúdo ultrapassar a altura definida */
   overflow-x: auto;           /* habilita rolagem horizontal caso haja muitas colunas */
 }
