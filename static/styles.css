@@ -374,11 +374,13 @@ body {
 }
 
 .form-row {
-  display: flex;                            /* coloca os form-group lado a lado         */
-  gap: 12px;                                /* espaço ENTRE os form-group               */
-  border: 1px dashed rgb(52, 164, 255);     /* borda tracejada ao redor da linha        */
-  padding: 8px 10px;                        /* espaço entre a borda e os campos dentro  */
-  border-radius: 10px;                      /* opcional: deixa a borda arredondada      */
+  display: flex;                               /* mantém os campos lado a lado */
+  flex-wrap: wrap;                             /* permite que quebrem para a linha de baixo */
+  gap: 12px;                                   /* espaço entre os .form-group */
+  border: 1px dashed rgb(52, 164, 255);        /* sua borda tracejada */
+  padding: 8px 10px;                           /* “gap” entre a borda e os campos */
+  border-radius: 10px;                         /* opcional: cantos arredondados */
+  box-sizing: border-box;                      /* inclui padding dentro da largura total */
 }
 
 /* espaço vertical entre uma linha de campos e outra */
@@ -389,7 +391,7 @@ body {
 .form-group {
   display: flex;
   flex-direction: column;
-  flex: 1;
+  flex: 1 1 180px;
   gap: 4px;
 }
 
@@ -545,7 +547,7 @@ textarea:focus {
 }
 
 .btn-secondary {
-  background: rgba(15, 23, 42, 0.15);
+  background: rgba(48, 97, 211, 0.15);
   color: #f9fafb;
 }
 
