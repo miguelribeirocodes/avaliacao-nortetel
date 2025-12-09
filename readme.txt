@@ -1,13 +1,13 @@
-Como iniciar localmente:
-
-uvicorn main:app --reload
-
 Como iniciar o venv:
 
 Set-ExecutionPolicy -Scope Process -ExecutionPolicy RemoteSigned
 Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
+
+Como iniciar localmente:
+
+uvicorn main:app --reload
 
 Requirements:
 

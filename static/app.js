@@ -167,12 +167,15 @@ const q4AccessPoint = document.getElementById("q4-access-point");         // sel
 const q4Conversor = document.getElementById("q4-conversor-midia");        // select Sim/Não para conversor de mídia
 const q4Gbic = document.getElementById("q4-gbic");                        // select Sim/Não para GBIC
 const q4Switch = document.getElementById("q4-switch");                    // select Sim/Não para switch (LEGADO)
-
 const q4CameraNova = document.getElementById("q4-camera-nova");           // select Sim/Não: indica se a câmera é nova/realocação
+const q4CameraNovaWrapper = document.getElementById("q4-camera-nova-wrapper");
 const q4CameraFornecedor = document.getElementById("q4-camera-fornecedor"); // select: fornecedor da câmera (nortetel/cliente)
 const q4CameraModelo = document.getElementById("q4-camera-modelo");       // input texto: modelo da câmera
+const q4CameraModeloWrapper = document.getElementById("q4-camera-modelo-wrapper");
 const q4CameraQtd = document.getElementById("q4-camera-qtd");             // input numérico: quantidade de câmeras
+const q4CameraQtdWrapper = document.getElementById("q4-camera-qtd-wrapper");
 const q4NvrDvrModelo = document.getElementById("q4-nvr-dvr-modelo");      // input texto: modelo do NVR/DVR
+const q4NvrDvrModeloWrapper = document.getElementById("q4-nvr-dvr-modelo-wrapper");
 const q4ConversorMidiaModelo = document.getElementById(                   // input texto: modelo do conversor de mídia
   "q4-conversor-midia-modelo"
 );
@@ -1594,6 +1597,7 @@ async function carregarAvaliacaoParaEdicao(avaliacaoId) {
 
     if (q4CameraNova) {
       booleanParaSelectSimNao(q4CameraNova, dados.q4_camera_nova);             // preenche select "Câmera nova/realocação?"
+      q4CameraNova.value = "";
     }
     if (q4CameraFornecedor) {
       q4CameraFornecedor.value = dados.q4_camera_fornecedor || "";             // fornecedor da câmera
@@ -1607,6 +1611,8 @@ async function carregarAvaliacaoParaEdicao(avaliacaoId) {
     if (q4NvrDvrModelo) {
       q4NvrDvrModelo.value = dados.q4_nvr_dvr_modelo || "";                    // modelo do NVR/DVR
     }
+    atualizarVisibilidadeCamera();
+    atualizarVisibilidadeNvrdvr();
     if (q4ConversorMidiaModelo) {
       q4ConversorMidiaModelo.value = dados.q4_conversor_midia_modelo || "";    // modelo do conversor de mídia
     }
@@ -1831,10 +1837,14 @@ function resetarFormularioParaNovaAvaliacao() {
   if (q4Switch) q4Switch.value = "";                                     // reseta select de switch (LEGADO)
 
   if (q4CameraNova) q4CameraNova.value = "";                             // reseta select "Câmera nova/realocação?"
+  if (q4CameraNovaWrapper) q4CameraNovaWrapper.classList.add("invisible-keep-space");
   if (q4CameraFornecedor) q4CameraFornecedor.value = "";                 // reseta fornecedor da câmera
   if (q4CameraModelo) q4CameraModelo.value = "";                         // limpa modelo da câmera
+  if (q4CameraModeloWrapper) q4CameraModeloWrapper.classList.add("invisible-keep-space");
   if (q4CameraQtd) q4CameraQtd.value = "";                               // limpa quantidade de câmeras
+  if (q4CameraQtdWrapper) q4CameraQtdWrapper.classList.add("invisible-keep-space");
   if (q4NvrDvrModelo) q4NvrDvrModelo.value = "";                         // limpa modelo do NVR/DVR
+  if(q4NvrDvrModeloWrapper) q4NvrDvrModeloWrapper.classList.add("invisible-keep-space");
   if (q4ConversorMidiaModelo) q4ConversorMidiaModelo.value = "";         // limpa modelo do conversor de mídia
   if (q4GbicModelo) q4GbicModelo.value = "";                             // limpa modelo do GBIC
 
@@ -1948,7 +1958,49 @@ function atualizarVisibilidadeCampoOutro(                                  // de
   }                                                                        // fim do if/else de valorSelecionado
 }                                                                          // fim da função atualizarVisibilidadeCampoOutro
 
-// Atualiza a visibilidade do campo "Fornecedor do switch"                   // explica a finalidade da função
+// Atualiza a visibilidade do campo
+function atualizarVisibilidadeNvrdvr() {                           // declara a função que controla o campo de fornecedor
+  if (!q4NvrDvr || !q4NvrDvrModeloWrapper) return;                   // se não houver o select de novo switch ou o wrapper, sai sem fazer nada
+
+  const valor = q4NvrDvr.value;                                // lê o valor atual do select "Necessita novo switch?"
+
+  if (valor === "sim") {                                           // se o usuário marcou "Sim"
+    q4NvrDvrModeloWrapper.classList.remove("invisible-keep-space");                    // mostra o campo "Fornecedor do switch"
+  } else {                                                                   // se marcou "Não" ou deixou vazio
+    q4NvrDvrModeloWrapper.classList.add("invisible-keep-space");                       // esconde o campo "Fornecedor do switch"
+    if (q4NvrDvrModelo) {                                                // se o select de fornecedor existir
+      q4NvrDvrModelo.value = "";                                         // limpa a seleção de fornecedor ao esconder o campo
+    }
+  }
+}
+
+function atualizarVisibilidadeCamera(){
+
+  if (!q4Camera || !q4CameraNovaWrapper || !q4CameraModeloWrapper || !q4CameraQtdWrapper) return;                   // se não houver o select de novo switch ou o wrapper, sai sem fazer nada
+
+  const valor = q4Camera.value;                                // lê o valor atual do select "Necessita novo switch?"
+
+  if (valor === "sim") {                                           // se o usuário marcou "Sim"
+    q4CameraModeloWrapper.classList.remove("invisible-keep-space");                    // mostra o campo "Fornecedor do switch"
+    q4CameraQtdWrapper.classList.remove("invisible-keep-space");                    // mostra o campo "Fornecedor do switch"
+    q4CameraNovaWrapper.classList.add("invisible-keep-space")
+    if (q4CameraNova){
+      q4CameraNova.value = "";
+    }
+  } else {                                                                   // se marcou "Não" ou deixou vazio
+    q4CameraNovaWrapper.classList.remove("invisible-keep-space")
+    q4CameraModeloWrapper.classList.add("invisible-keep-space");                       // esconde o campo "Fornecedor do switch"
+    q4CameraQtdWrapper.classList.add("invisible-keep-space");
+    if (q4CameraModeloWrapper) {                                                // se o select de fornecedor existir
+      q4CameraModelo.value = "";                                         // limpa a seleção de fornecedor ao esconder o campo
+    }
+    if (q4CameraQtdWrapper) {                                                // se o select de fornecedor existir
+      q4CameraQtd.value = "";                                         // limpa a seleção de fornecedor ao esconder o campo
+    }
+        
+  }
+}
+
 function atualizarVisibilidadeFornecedorSwitch() {                           // declara a função que controla o campo de fornecedor
   if (!q2NovoSwitch || !q2FornecedorSwitchWrapper) return;                   // se não houver o select de novo switch ou o wrapper, sai sem fazer nada
 
@@ -2710,6 +2762,20 @@ function registrarEventos() {
     atualizarVisibilidadeFornecedorSwitch();                       // aplica o estado inicial do campo "Fornecedor do switch"
     q2NovoSwitch.addEventListener("change", () => {                // registra um listener para quando o usuário mudar o valor
       atualizarVisibilidadeFornecedorSwitch();                     // a cada mudança, atualiza a visibilidade do campo de fornecedor
+    });
+  }
+
+  if(q4Camera){
+    atualizarVisibilidadeCamera();
+    q4Camera.addEventListener("change", () =>{
+      atualizarVisibilidadeCamera();
+    });
+  }
+
+  if(q4NvrDvr){
+    atualizarVisibilidadeNvrdvr();
+    q4NvrDvr.addEventListener("change", () =>{
+      atualizarVisibilidadeNvrdvr();
     });
   }
   
