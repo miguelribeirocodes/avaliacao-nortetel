@@ -374,8 +374,16 @@ body {
 }
 
 .form-row {
-  display: flex;
-  gap: 12px;
+  display: flex;                            /* coloca os form-group lado a lado         */
+  gap: 12px;                                /* espaço ENTRE os form-group               */
+  border: 1px dashed rgb(52, 164, 255);     /* borda tracejada ao redor da linha        */
+  padding: 8px 10px;                        /* espaço entre a borda e os campos dentro  */
+  border-radius: 10px;                      /* opcional: deixa a borda arredondada      */
+}
+
+/* espaço vertical entre uma linha de campos e outra */
+.form-row + .form-row {
+  margin-top: 10px;                         /* “gap” entre as caixas com borda          */
 }
 
 .form-group {
