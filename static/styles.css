@@ -856,3 +856,81 @@ textarea:focus {
     grid-template-columns: minmax(0, 1fr);/* empilha os dois cards, um abaixo do outro */
   }
 }
+
+/* ==========================
+   Tabela "Lista de materiais (Infraestrutura)"
+   ========================== */
+
+#infra-lista-materiais-tabela {                      /* tabela específica da lista de materiais de infraestrutura */
+  width: 100%;                                       /* faz a tabela ocupar toda a largura do wrapper */
+  table-layout: fixed;                               /* distribui as colunas de forma mais uniforme e previsível */
+  font-size: 0.8rem;                                 /* deixa a fonte um pouco menor para caber mais conteúdo */
+}
+
+#infra-lista-materiais-tabela th,
+#infra-lista-materiais-tabela td {                   /* células de cabeçalho e corpo dessa tabela específica */
+  white-space: normal;                               /* permite quebra de linha em títulos/textos longos */
+  word-break: break-word;                            /* quebra palavras grandes para não estourar a coluna */
+  padding: 6px 8px;                                  /* reduz o espaçamento interno para uma aparência mais compacta */
+}
+
+#infra-lista-materiais-tabela th:nth-child(1),
+#infra-lista-materiais-tabela td:nth-child(1) {      /* coluna "Equipamento / material" */
+  width: 40%;                                        /* fica com a maior fatia, pois tem textos mais longos */
+}
+
+#infra-lista-materiais-tabela th:nth-child(2),
+#infra-lista-materiais-tabela td:nth-child(2) {      /* coluna "Modelo" */
+  width: 26%;                                        /* largura intermediária para descrição de modelo */
+}
+
+#infra-lista-materiais-tabela th:nth-child(3),
+#infra-lista-materiais-tabela td:nth-child(3) {      /* coluna "Quantidade" */
+  width: 12%;                                        /* bem estreita, suficiente para números pequenos */
+  text-align: center;                                /* centraliza os valores numéricos para leitura rápida */
+}
+
+#infra-lista-materiais-tabela th:nth-child(4),
+#infra-lista-materiais-tabela td:nth-child(4) {      /* coluna "Fabricante" */
+  width: 22%;                                        /* usa o espaço restante para o fabricante */
+}
+
+#infra-lista-materiais-tabela input {                /* campos de texto/número dentro da tabela */
+  width: 100%;                                       /* input acompanha toda a largura da célula */
+  font-size: 0.8rem;                                 /* mantém a fonte consistente com a tabela */
+  padding-block: 6px;                                /* um pouco menos de altura que os inputs padrão */
+}
+
+/* Área de ações logo abaixo da tabela */
+
+.lista-materiais-acoes {                             /* contêiner do botão "Nova linha" */
+  margin-top: 8px;                                   /* respiro entre a tabela e o botão */
+  display: flex;                                     /* usa flexbox para controlar alinhamento interno */
+  justify-content: flex-end;                         /* alinha o botão à direita em telas grandes */
+}
+
+.lista-materiais-acoes .btn {                        /* botão "Nova linha" em si */
+  min-width: 120px;                                  /* largura mínima confortável para clique/toque */
+}
+
+/* Ajustes extras para telas menores */
+
+@media (max-width: 768px) {                          /* regras específicas para tablets e celulares */
+  #infra-lista-materiais-tabela {                    /* tabela em telas pequenas */
+    font-size: 0.75rem;                              /* reduz um pouco mais a fonte */
+  }
+
+  #infra-lista-materiais-tabela th,
+  #infra-lista-materiais-tabela td {                 /* células da tabela em telas pequenas */
+    padding: 4px 6px;                                /* padding menor para caber melhor na horizontal */
+  }
+
+  #infra-lista-materiais-tabela input {              /* inputs da tabela em telas pequenas */
+    font-size: 0.75rem;                              /* acompanha a redução da fonte da tabela */
+    padding-block: 4px;                              /* inputs mais baixinhos para diminuir a altura das linhas */
+  }
+
+  .lista-materiais-acoes {                           /* área do botão no mobile */
+    justify-content: center;                         /* centraliza o botão (mais amigável para o polegar) */
+  }
+}

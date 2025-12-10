@@ -1533,20 +1533,89 @@
                   </div>
                 </div>
 
-                <!-- linha com observações da instalação elétrica -->
-                <div class="form-row">
-                  <div class="form-group full-width"><!-- observações sobre instalação elétrica -->
-                    <label for="q5-instalacao-eletrica-obs">Observações de instalação elétrica</label>
+                <!-- linha com observações da instalação elétrica --> <!-- comentário identificando a linha de observações de instalação elétrica -->
+                <div class="form-row"> <!-- linha de formulário que agrupa o campo de observações de instalação elétrica -->
+                  <div class="form-group full-width"><!-- grupo em largura total para o campo de observações sobre instalação elétrica -->
+                    <label for="q5-instalacao-eletrica-obs">Observações de instalação elétrica</label> <!-- rótulo do campo de observações de instalação elétrica -->
                     <textarea
                       id="q5-instalacao-eletrica-obs"
                       rows="2"
                       placeholder="Observações específicas de quadros, circuitos, disjuntores, cabeamento de força, etc."
-                    ></textarea>
-                  </div>
-                </div>
+                    ></textarea> <!-- área de texto onde o usuário descreve observações da instalação elétrica -->
+                  </div> <!-- fim do grupo full-width para o campo de observações -->
+                </div> <!-- fim da linha de formulário das observações de instalação elétrica -->
 
-              <!-- Seção: Localização / Imagens -->
-              <h3 class="form-section-title">Localização / Imagens</h3>
+                <!-- NOVO BLOCO: Lista de materiais de infraestrutura --> <!-- comentário indicando o início da nova seção de lista de materiais -->
+                <div class="form-row"> <!-- linha de formulário que conterá a tabela de lista de materiais -->
+                  <div class="form-group full-width"> <!-- grupo em largura total para que a tabela ocupe toda a largura do formulário -->
+                    <label>Lista de materiais (Infraestrutura)</label> <!-- título/legenda para a tabela de materiais de infraestrutura -->
+
+                    <div class="table-wrapper"> <!-- contêiner com rolagem para aplicar o estilo padrão de tabelas (bordas e scroll) -->
+                      <table
+                        class="table"
+                        id="infra-lista-materiais-tabela"
+                      > <!-- abertura da tabela de lista de materiais -->
+                        <thead> <!-- cabeçalho da tabela com os títulos das colunas -->
+                          <tr> <!-- linha de cabeçalho contendo os nomes das colunas -->
+                            <th>Equipamento / material</th> <!-- coluna para o nome do equipamento ou material -->
+                            <th>Modelo</th> <!-- coluna para o modelo, referência ou descrição adicional do material -->
+                            <th>Quantidade</th> <!-- coluna para a quantidade de unidades do material -->
+                            <th>Fabricante</th> <!-- coluna para o nome do fabricante do material -->
+                          </tr> <!-- fim da linha de cabeçalho -->
+                        </thead> <!-- fim do cabeçalho da tabela -->
+                        <tbody
+                          id="infra-lista-materiais-tbody"
+                        > <!-- abertura do corpo da tabela de materiais -->
+                          <tr class="infra-lista-materiais-linha"> <!-- linha inicial padrão da lista de materiais; servirá como primeira linha editável e como molde para novas linhas -->
+                            <td> <!-- célula da linha dedicada ao campo de equipamento/material -->
+                              <input
+                                type="text"
+                                class="infra-lista-materiais-equipamento"
+                                placeholder="Ex.: Eletrocalha, Rack, Nobreak..."
+                              /> <!-- fim do input de equipamento/material -->
+                            </td> <!-- fim da célula de equipamento/material -->
+                            <td> <!-- célula da linha dedicada ao campo de modelo -->
+                              <input
+                                type="text"
+                                class="infra-lista-materiais-modelo"
+                                placeholder="Ex.: Marca / modelo / especificação"
+                              /> <!-- fim do input de modelo -->
+                            </td> <!-- fim da célula de modelo -->
+                            <td> <!-- célula da linha dedicada ao campo de quantidade -->
+                              <input
+                                type="number"
+                                class="infra-lista-materiais-quantidade"
+                                min="0"
+                                step="1"
+                                placeholder="Ex.: 1"
+                              /> <!-- fim do input numérico de quantidade -->
+                            </td> <!-- fim da célula de quantidade -->
+                            <td> <!-- célula da linha dedicada ao campo de fabricante -->
+                              <input
+                                type="text"
+                                class="infra-lista-materiais-fabricante"
+                                placeholder="Ex.: Fabricante principal do material"
+                              /> <!-- fim do input de fabricante -->
+                            </td> <!-- fim da célula de fabricante -->
+                          </tr> <!-- fim da linha inicial da lista de materiais -->
+                        </tbody> <!-- fim do corpo da tabela de materiais -->
+                      </table> <!-- fim da tabela de lista de materiais -->
+                    </div> <!-- fim do wrapper de tabela que fornece rolagem e bordas padronizadas -->
+
+                    <div class="lista-materiais-acoes"> <!-- contêiner para os botões de ação relacionados à lista de materiais -->
+                      <button
+                        type="button"
+                        id="btn-infra-adicionar-linha"
+                        class="btn btn-primary btn-small"
+                      >
+                        Nova linha <!-- texto exibido no botão para o usuário -->
+                      </button> <!-- fim do botão que adiciona uma nova linha de material -->
+                    </div> <!-- fim da área de ações da lista de materiais -->
+                  </div> <!-- fim do grupo full-width que envolve a tabela e o botão -->
+                </div> <!-- fim da linha de formulário que contém toda a lista de materiais -->
+
+              <!-- Seção: Localização / Imagens --> <!-- comentário que marca o início da seção de localização / imagens (já existente) -->
+              <h3 class="form-section-title">Localização / Imagens</h3> <!-- título visual da seção de localização / imagens -->
 
               <div class="form-row"><!-- linha com URLs de imagens -->
                 <div class="form-group full-width"><!-- primeira imagem -->

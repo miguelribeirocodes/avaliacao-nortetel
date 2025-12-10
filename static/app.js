@@ -330,6 +330,14 @@ const q5NobreakQtd = document.getElementById("q5-nobreak-qtd");                 
 const q5SerralheriaDescricao = document.getElementById("q5-serralheria-descricao"); // textarea: descrição da serralheria
 const q5InstalacaoEletricaObs = document.getElementById("q5-instalacao-eletrica-obs"); // textarea: observações da instalação elétrica
 
+// ----------------------------- // bloco de constantes específico da lista de materiais de infraestrutura
+// Lista de materiais – Infraestrutura
+// ----------------------------- // comentário visual separando a seção de lista de materiais das demais constantes
+
+const infraListaMateriaisTabela = document.getElementById("infra-lista-materiais-tabela"); // obtém a referência para a tabela da lista de materiais de infraestrutura
+const infraListaMateriaisTbody = document.getElementById("infra-lista-materiais-tbody");   // obtém o corpo da tabela onde as linhas de materiais serão inseridas/removidas
+const infraAdicionarLinhaButton = document.getElementById("btn-infra-adicionar-linha");    // obtém o botão responsável por adicionar uma nova linha na lista de materiais
+
 // Imagens
 const imgRef1 = document.getElementById("localizacao-imagem1-url");
 const imgRef2 = document.getElementById("localizacao-imagem2-url");
@@ -3755,6 +3763,7 @@ async function inicializarApp() {
 document.addEventListener("DOMContentLoaded", () => {
   inicializarApp();
 });
+
 
 // ================== INÍCIO: SUPORTE DE AUDITORIA NO FRONT ==================
 

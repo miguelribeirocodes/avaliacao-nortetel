@@ -2,3 +2,4 @@ Deploy netlify/*
 .venv/*
 __pycache__/*
 change_log.txt
+Próximos passos.txt
