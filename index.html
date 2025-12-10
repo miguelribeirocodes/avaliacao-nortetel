@@ -1561,6 +1561,7 @@
                             <th>Modelo</th> <!-- coluna para o modelo, referência ou descrição adicional do material -->
                             <th>Quantidade</th> <!-- coluna para a quantidade de unidades do material -->
                             <th>Fabricante</th> <!-- coluna para o nome do fabricante do material -->
+                            <th class="infra-lista-materiais-acoes-header"></th> <!-- cabeçalho vazio reservado para a coluna de ações (ícone de lixeira) -->
                           </tr> <!-- fim da linha de cabeçalho -->
                         </thead> <!-- fim do cabeçalho da tabela -->
                         <tbody
@@ -1597,6 +1598,16 @@
                                 placeholder="Ex.: Fabricante principal do material"
                               /> <!-- fim do input de fabricante -->
                             </td> <!-- fim da célula de fabricante -->
+                            <td class="infra-lista-materiais-acoes"> <!-- célula dedicada às ações da linha (por enquanto, apenas remover) -->
+                              <button
+                                type="button"
+                                class="infra-remover-linha"
+                                title="Remover linha"
+                              >
+                                🗑️ <!-- ícone visual de lixeira representando a ação de excluir/remover a linha -->
+                              </button> <!-- fim do botão de remoção da linha -->
+                            </td> <!-- fim da célula de ações da linha -->
+
                           </tr> <!-- fim da linha inicial da lista de materiais -->
                         </tbody> <!-- fim do corpo da tabela de materiais -->
                       </table> <!-- fim da tabela de lista de materiais -->

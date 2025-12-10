@@ -4055,8 +4055,9 @@ async function inicializarApp() {
 }
 
 /**
- * Registra eventos de teclado para a lista de materiais de infraestrutura.
- * Objetivo principal: ao pressionar Enter na última linha, criar uma nova linha automaticamente.
+ * Registra eventos para a lista de materiais de infraestrutura.
+ * - Teclado: ao pressionar Enter na última linha, cria uma nova linha automaticamente.
+ * - Clique: ao clicar na lixeira, remove a linha correspondente.
  */
 function registrarEventosListaMateriaisInfra() {
   if (!infraListaMateriaisTbody) {                                       // verifica se o corpo da tabela de materiais existe no DOM
@@ -4090,8 +4091,30 @@ function registrarEventosListaMateriaisInfra() {
 
     if (linhaAtual === ultimaLinha) {                                    // se a linha em que o usuário está é a última linha da tabela
       event.preventDefault();                                            // impede o comportamento padrão do Enter (como submit do formulário)
-      criarLinhaListaMateriaisInfra();                                   // chama a função que cria e adiciona uma nova linha à tabela
+      criarLinhaListaMateriaisInfra();                                   // chama a função que cria e adiciona uma nova linha à tabela (com foco no primeiro campo)
     }                                                                    // se não for a última linha, nada é feito (deixa o Enter ter efeito padrão, se houver)
+  });
+
+  infraListaMateriaisTbody.addEventListener("click", (event) => {        // adiciona um listener de clique no corpo da tabela (event delegation para os botões de lixeira)
+    const alvo = event.target;                                           // captura o elemento exato em que o usuário clicou
+
+    if (!alvo) {                                                         // se por algum motivo não houver alvo
+      return;                                                            // encerra o handler sem fazer nada
+    }
+
+    const botaoRemover = alvo.closest(".infra-remover-linha");           // procura o ancestral mais próximo que tenha a classe do botão de remover linha
+    if (!botaoRemover) {                                                 // se o clique não tiver ocorrido em um botão de remoção (ou dentro dele)
+      return;                                                            // não faz nada e encerra o handler
+    }
+
+    event.preventDefault();                                              // evita qualquer comportamento padrão associado ao botão
+
+    const linha = botaoRemover.closest(".infra-lista-materiais-linha");  // obtém a linha da tabela (tr) associada ao botão clicado
+    if (!linha) {                                                        // se não foi possível encontrar a linha
+      return;                                                            // encerra sem tentar remover
+    }
+
+    removerLinhaListaMateriaisInfra(linha);                              // chama o helper que trata a remoção (ou limpeza) da linha na tabela
   });
 }
 
@@ -4311,6 +4334,30 @@ function preencherListaMateriaisInfraAPartirDeDados(lista) {
       inputFabricante.value = item && item.fabricante ? item.fabricante : ""; // escreve o fabricante ou deixa o campo em branco
     }
   });
+}
+
+/**
+ * Remove uma linha específica da lista de materiais de infraestrutura.
+ * Se for a única linha existente, apenas limpa os campos ao invés de remover.
+ */
+function removerLinhaListaMateriaisInfra(linha) {
+  if (!infraListaMateriaisTbody || !linha) {               // verifica se o corpo da tabela e a linha alvo existem
+    return;                                                // se algum deles não existir, não há o que fazer
+  }
+
+  const linhas = infraListaMateriaisTbody.querySelectorAll(
+    ".infra-lista-materiais-linha"
+  );                                                       // obtém todas as linhas da tabela de materiais
+
+  if (!linhas || linhas.length <= 1) {                     // se há zero ou apenas uma linha na tabela
+    const inputs = linha.querySelectorAll("input");        // seleciona todos os inputs existentes nessa linha
+    inputs.forEach((input) => {                            // percorre cada input da linha
+      input.value = "";                                    // limpa o valor de cada campo, mantendo a linha vazia
+    });
+    return;                                                // encerra a função sem remover a linha do DOM
+  }
+
+  infraListaMateriaisTbody.removeChild(linha);             // se houver mais de uma linha, remove a linha alvo do corpo da tabela
 }
 
 // ================== INÍCIO: SUPORTE DE AUDITORIA NO FRONT ==================
