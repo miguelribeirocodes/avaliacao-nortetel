@@ -1373,7 +1373,6 @@ async function carregarAvaliacaoParaEdicao(avaliacaoId) {
       formTituloEl.textContent = `${dados.objeto}`;          // ex.: "Editar Avaliação #3"
     }
 
-
     if (formSubtituloEl) {
       formSubtituloEl.textContent =
         "Altere os dados necessários e clique em “Salvar avaliação” para gravar as mudanças."; // instrução de edição
@@ -2481,6 +2480,7 @@ function coletarEstadoFormularioComoRascunho() {
     }
 
     valores[campo.id] = campo.value; // para inputs de texto, selects e textareas, salva o valor textual do campo
+    //window.alert(campo.id + " : " + campo.value);
   });
 
   const tipoFormularioAtual = tipoFormularioInput // pega o input hidden que guarda o tipo de formulário
@@ -2532,7 +2532,7 @@ function salvarRascunhoAtual() {
     if (avaliacaoFeedbackEl) { // garante que o elemento de feedback exista antes de usar
       avaliacaoFeedbackEl.textContent =
         "Não foi possível salvar o rascunho no momento."; // mensagem genérica informando a falha no salvamento
-      avaliacaoFeedbackEl.className = "form-feedback form-error"; // aplica estilo de erro na área de feedback
+      avaliacaoFeedbackEl.className = "form-feedback form-error"; // aplica estilo de erro na área de feedbackfunction salvarRascunhoAtual() {
     }
     return; // encerra a função, pois não há rascunho válido
   }
@@ -2694,15 +2694,7 @@ function carregarRascunhoNoFormularioPorId(idRascunho) {
   }
 
   const todos = lerRascunhosDoStorage(); // lê todos os rascunhos salvos no navegador
-
-  console.log("DEBUG rascunhos:", todos, "id clicado:", idRascunho); // debug opcional para inspecionar ids no console do navegador
-
-  const encontrado = todos.find((item) => {
-    // compara como string para evitar problemas de tipo (número vs texto, draft-123 vs 123, etc.)
-    return String(item.id) === String(idRascunho); // garante comparação sempre em formato de texto
-  }); // procura o rascunho com o id correspondente no array vindo do localStorage
-
-
+  const encontrado = todos.find((item) => item.id === idRascunho); // procura o rascunho com o id correspondente
 
   if (!encontrado) { // se não encontrar o rascunho
     if (avaliacaoFeedbackEl) { // se a área de feedback existir
@@ -2768,11 +2760,8 @@ function renderizarListaRascunhos() {
     botaoCarregar.type = "button"; // define o tipo como botão simples
     botaoCarregar.className = "btn btn-ghost btn-small"; // aplica estilos de botão leve e tamanho pequeno
     botaoCarregar.textContent = "Carregar"; // texto exibido no botão
-    //botaoCarregar.dataset.action = "carregar-rascunho"; // data-atributo indicando a ação que o botão representa
-    //botaoCarregar.dataset.rascunhoId = rascunho.id; // data-atributo com o id do rascunho correspondente
-    botaoCarregar.addEventListener("click", () => { // registra um listener de clique diretamente neste botão
-      carregarRascunhoNoFormulario(rascunho); // ao clicar, carrega este rascunho (objeto desta linha) no formulário
-    }); // não usamos data-attributes aqui para evitar qualquer ambiguidade de id
+    botaoCarregar.dataset.action = "carregar-rascunho"; // data-atributo indicando a ação que o botão representa
+    botaoCarregar.dataset.rascunhoId = rascunho.id; // data-atributo com o id do rascunho correspondente
 
     const botaoExcluir = document.createElement("button"); // cria o botão "Excluir"
     botaoExcluir.type = "button"; // define o tipo como botão simples
@@ -3405,24 +3394,26 @@ function registrarEventos() {
   if (rascunhosTbody) {                                           // garante que o corpo da tabela de rascunhos exista
     rascunhosTbody.addEventListener("click", (event) => {         // registra um único listener de clique (delegado) para a tabela
       const botao = event.target.closest("button[data-rascunho-id]"); // tenta encontrar o botão mais próximo com o data-rascunho-id
-      if (!botao) {                                               // se o clique não ocorreu em um botão com esse atributo
+      if (!botao) {                                               // se o clique não ocorreu em um botão de ação de rascunho
         return;                                                   // não faz nada e encerra o handler
       }
 
       const idRascunho = botao.dataset.rascunhoId;                // lê o id do rascunho a partir do data-atributo do botão
-      const acao = botao.dataset.action;                          // lê a ação solicitada (no momento, usamos apenas "excluir-rascunho")
+      const acao = botao.dataset.action;                          // lê a ação solicitada ("carregar-rascunho" ou "excluir-rascunho")
 
-      if (!idRascunho || acao !== "excluir-rascunho") {           // se não houver id válido ou a ação não for de exclusão
-        return;                                                   // não executa nenhuma ação para este clique
+      if (!idRascunho) {                                          // se não houver id válido
+        return;                                                   // não tenta executar nenhuma ação
       }
 
-      excluirRascunhoLocalPorId(idRascunho);                      // remove o rascunho do armazenamento local
-
-      if (rascunhoEmEdicaoId === idRascunho) {                    // se o rascunho excluído era o que estava vinculado ao formulário
-        rascunhoEmEdicaoId = null;                                // zera o vínculo de rascunho atual
+      if (acao === "carregar-rascunho") {                         // se a ação for carregar o rascunho no formulário
+        carregarRascunhoNoFormularioPorId(idRascunho);            // chama a função que recupera o rascunho e preenche o formulário
+      } else if (acao === "excluir-rascunho") {                   // se a ação for excluir o rascunho
+        excluirRascunhoLocalPorId(idRascunho);                    // remove o rascunho do armazenamento local
+        if (rascunhoEmEdicaoId === idRascunho) {                  // se o rascunho excluído era o que estava vinculado ao formulário
+          rascunhoEmEdicaoId = null;                              // zera o vínculo de rascunho atual
+        }
+        renderizarListaRascunhos();                               // redesenha a lista de rascunhos para refletir a exclusão
       }
-
-      renderizarListaRascunhos();                                 // redesenha a lista de rascunhos para refletir a exclusão
     });
   }
 

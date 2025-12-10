@@ -469,6 +469,7 @@ textarea:focus {
 .form-actions {                          /* contêiner dos botões na base do formulário */
   margin-top: 4px;                       /* pequeno espaçamento acima da área de botões */
   display: flex;                         /* usa flexbox para alinhar os botões em linha */
+  flex-wrap: wrap;
   gap: 10px;                             /* espaço horizontal entre os botões */
   /* justify-content: flex-end; */       /* linha original que alinharia à direita (mantida comentada) */
   justify-content: center;               /* mantém os botões centralizados no formulário */
