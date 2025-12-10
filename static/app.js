@@ -42,7 +42,127 @@ let currentUser = null;
 
 // Variável global para controlar se estamos editando uma avaliação existente (id diferente de null)
 // ou criando uma nova (valor null).
-let avaliacaoEmEdicaoId = null;
+let avaliacaoEmEdicaoId = null; // mantém o id da avaliação que está sendo editada (null significa "nova avaliação")
+
+// Constante com a chave usada no localStorage para guardar a lista de rascunhos de avaliações.
+const DRAFTS_STORAGE_KEY = "nortetel_avaliacoes_rascunhos_v1"; // chave única no localStorage para armazenar todos os rascunhos do sistema
+
+// Variável global para manter o id do rascunho atualmente associado ao formulário em edição.
+let rascunhoEmEdicaoId = null; // guarda o identificador do rascunho local vinculado ao formulário (null quando não há rascunho carregado)
+
+/**
+ * Lê do localStorage a lista bruta de rascunhos salvos.
+ * O retorno é sempre um array; em caso de erro, cai para [].
+ */
+function lerRascunhosDoStorage() {
+  const valorBruto = window.localStorage.getItem(DRAFTS_STORAGE_KEY); // lê a string JSON armazenada sob a chave de rascunhos
+  if (!valorBruto) { // se não existir nada salvo ainda
+    return []; // devolve lista vazia para simplificar o uso pelos chamadores
+  }
+  try {
+    const lista = JSON.parse(valorBruto); // tenta converter a string JSON em objeto JavaScript
+    if (Array.isArray(lista)) { // garante que o valor seja de fato um array
+      return lista; // retorna a lista de rascunhos lida do storage
+    }
+    return []; // se o formato não for um array, devolve lista vazia para evitar erros de execução
+  } catch (error) {
+    console.error("Erro ao ler rascunhos do localStorage:", error); // registra o erro no console para debug
+    return []; // em caso de falha no parse, devolve uma lista vazia e segue o fluxo
+  }
+}
+
+/**
+ * Salva no localStorage a lista completa de rascunhos.
+ */
+function gravarRascunhosNoStorage(listaRascunhos) {
+  try {
+    const texto = JSON.stringify(listaRascunhos); // converte o array de rascunhos em string JSON
+    window.localStorage.setItem(DRAFTS_STORAGE_KEY, texto); // grava a string JSON no localStorage na chave configurada
+  } catch (error) {
+    console.error("Erro ao salvar rascunhos no localStorage:", error); // registra o erro se algo impedir a gravação (ex.: cota cheia)
+  }
+}
+
+/**
+ * Retorna apenas os rascunhos associados ao usuário atualmente logado.
+ * Caso não haja usuário válido, retorna rascunhos sem user_id definido.
+ */
+function obterRascunhosDoUsuarioAtual() {
+  const todos = lerRascunhosDoStorage(); // carrega todos os rascunhos existentes no storage
+  if (!currentUser || typeof currentUser.id !== "number") { // se ainda não houver usuário logado com id numérico
+    return todos.filter((r) => !r.user_id); // retorna apenas rascunhos que não possuem user_id associado
+  }
+  const idUsuario = currentUser.id; // guarda o id do usuário logado
+  return todos.filter((r) => r.user_id === idUsuario); // devolve apenas os rascunhos cujo user_id bate com o usuário atual
+}
+
+/**
+ * Cria ou atualiza um rascunho local no navegador.
+ * - Se rascunhoParcial.id existir e estiver na lista, atualiza aquele rascunho.
+ * - Caso contrário, cria um novo com id gerado automaticamente.
+ *
+ * Retorna sempre o rascunho completo (com id, timestamps e user_id).
+ */
+function salvarOuAtualizarRascunhoLocal(rascunhoParcial) {
+  const todos = lerRascunhosDoStorage(); // busca todos os rascunhos já salvos
+  const agora = new Date().toISOString(); // gera timestamp ISO para marcação de criação/atualização
+  let idUsuario = null; // inicializa o id do usuário associado ao rascunho
+
+  if (currentUser && typeof currentUser.id === "number") { // se tivermos um usuário logado com id definido
+    idUsuario = currentUser.id; // usa o id retornado pelo backend como dono do rascunho
+  }
+
+  let rascunhoExistente = null; // variável para armazenar eventual rascunho já existente com o mesmo id
+  if (rascunhoParcial && rascunhoParcial.id) { // se o objeto parcial possuir um campo id
+    rascunhoExistente = todos.find((item) => item.id === rascunhoParcial.id); // procura na lista um rascunho com esse mesmo id
+  }
+
+  if (!rascunhoExistente) { // se nenhum rascunho foi encontrado (novo rascunho)
+    const novoId =
+      (rascunhoParcial && rascunhoParcial.id) || "draft-" + Date.now(); // gera um id simples baseado no horário atual, se não vier um explícito
+
+    const novoRascunho = {
+      id: novoId, // identificador único do rascunho
+      user_id: idUsuario, // id do usuário dono do rascunho (pode ser null se ainda não houver login)
+      criado_em: agora, // data/hora de criação no formato ISO
+      atualizado_em: agora, // data/hora de última atualização no formato ISO
+      ...rascunhoParcial, // espalha os demais campos específicos do rascunho (ex.: dados do formulário, rótulos)
+    };
+
+    todos.push(novoRascunho); // adiciona o novo rascunho à lista total
+    gravarRascunhosNoStorage(todos); // persiste a lista atualizada no localStorage
+    return novoRascunho; // devolve o rascunho completo (já com id e timestamps)
+  }
+
+  const rascunhosAtualizados = todos.map((item) => {
+    // percorre todos os rascunhos existentes
+    if (item.id !== rascunhoExistente.id) {
+      // se o id não for o que queremos atualizar
+      return item; // mantém o rascunho inalterado
+    }
+    return {
+      ...item, // reaproveita todos os campos atuais do rascunho
+      ...rascunhoParcial, // substitui/insere os campos vindos no objeto parcial
+      user_id: idUsuario, // garante que o rascunho permaneça associado ao usuário atual
+      atualizado_em: agora, // atualiza o timestamp de última modificação
+    }; // retorna o rascunho já atualizado
+  });
+
+  gravarRascunhosNoStorage(rascunhosAtualizados); // grava a nova lista com o rascunho atualizado
+
+  return rascunhosAtualizados.find(
+    (item) => item.id === (rascunhoParcial && rascunhoParcial.id)
+  ); // retorna o rascunho atualizado encontrado na lista
+}
+
+/**
+ * Remove definitivamente um rascunho local a partir do seu id.
+ */
+function excluirRascunhoLocalPorId(idRascunho) {
+  const todos = lerRascunhosDoStorage(); // lê a lista de todos os rascunhos do storage
+  const filtrados = todos.filter((item) => item.id !== idRascunho); // filtra removendo o item cujo id foi informado
+  gravarRascunhosNoStorage(filtrados); // persiste a nova lista sem o rascunho excluído
+}
 
 // ------------------------------
 // Seletores de elementos de tela
@@ -249,8 +369,13 @@ const lancheQtdInput = document.getElementById("lanche-qtd");   // input com qua
 
 const avaliacaoFeedbackEl = document.getElementById("avaliacao-feedback"); // parágrafo para mensagens de feedback
 const salvarAvaliacaoButton = document.getElementById("btn-salvar-avaliacao"); // referência ao botão "Salvar Avaliação"
+const salvarRascunhoButton = document.getElementById("btn-salvar-rascunho"); // referência ao botão "Salvar rascunho" (salvamento local)
 // Botão para limpar o formulário e voltar explicitamente ao modo "Nova Avaliação".
 const novaAvaliacaoButton = document.getElementById("btn-nova-avaliacao"); // referência ao botão "Nova avaliação"
+
+const rascunhosTbody = document.getElementById("rascunhos-tbody"); // corpo da tabela que exibirá os rascunhos locais
+const recarregarRascunhosButton = document.getElementById("btn-recarregar-rascunhos"); // botão que força o recarregamento da lista de rascunhos
+
 // Elementos do título e do subtítulo do formulário de avaliação, usados para indicar "Nova" ou "Editar".
 const formTituloEl = document.getElementById("form-avaliacao-titulo"); // h2 acima do formulário de avaliação
 const formSubtituloEl = document.getElementById("form-avaliacao-subtitulo"); // texto pequeno logo abaixo do título
@@ -756,6 +881,9 @@ async function realizarLogin(username, password) {
 
     // Por fim, carregamos a lista de avaliações
     await carregarAvaliacoes();
+
+    resetarFormularioParaNovaAvaliacao(); // garante que o formulário comece como "Nova Avaliação" após o login
+    renderizarListaRascunhos(); // carrega também a tabela de rascunhos locais para o usuário logado
 
     resetarFormularioParaNovaAvaliacao(); // garante que o formulário comece como "Nova Avaliação" após o login
 
@@ -1796,6 +1924,7 @@ async function carregarAvaliacaoParaEdicao(avaliacaoId) {
  */
 function resetarFormularioParaNovaAvaliacao() {
   avaliacaoEmEdicaoId = null; // zera o id em edição: próximo submit será um POST (criação)
+  rascunhoEmEdicaoId = null;  // zera também o id do rascunho vinculado, iniciando uma nova avaliação "do zero"
 
   if (formTituloEl) {
     formTituloEl.textContent = "Nova Avaliação"; // título padrão exibido na tela
@@ -2328,12 +2457,301 @@ function aplicarVisibilidadeTipoFormulario(tipo) {                        // rec
 }
 
 //tipo_formulario
+
+/**
+ * Coleta o estado atual do formulário de avaliação e monta um objeto de rascunho.
+ * O objetivo é conseguir restaurar depois exatamente o que o usuário digitou.
+ */
+function coletarEstadoFormularioComoRascunho() {
+  if (!formAvaliacao) { // se o formulário não existir na página
+    return null; // não há o que coletar, devolve null
+  }
+
+  const campos = formAvaliacao.querySelectorAll("input, select, textarea"); // seleciona todos os campos de entrada do formulário
+  const valores = {}; // objeto que guardará os valores indexados pelo id de cada campo
+
+  campos.forEach((campo) => { // percorre cada campo encontrado na NodeList
+    if (!campo.id) { // se o campo não tiver um id definido
+      return; // ignora este campo, pois não teremos como mapeá-lo depois
+    }
+
+    if (campo.type === "checkbox") { // se o campo for um checkbox
+      valores[campo.id] = campo.checked; // armazena um booleano indicando se o checkbox está marcado
+      return; // segue para o próximo campo da lista
+    }
+
+    valores[campo.id] = campo.value; // para inputs de texto, selects e textareas, salva o valor textual do campo
+  });
+
+  const tipoFormularioAtual = tipoFormularioInput // pega o input hidden que guarda o tipo de formulário
+    ? (tipoFormularioInput.value || "utp_fibra") // usa o valor atual ou "utp_fibra" como padrão se estiver vazio
+    : "utp_fibra"; // se por algum motivo o hidden não existir, assume "utp_fibra" como valor padrão
+
+  let rotuloCliente = "Cliente não informado"; // rótulo padrão caso nenhum cliente esteja preenchido
+
+  if (clienteNomeInput) { // se o select de cliente existir
+    const valorSelect = clienteNomeInput.value || ""; // lê o valor selecionado no combo de cliente
+
+    if (valorSelect === "outro") { // se o usuário escolheu a opção "Outro"
+      const textoOutro =
+        clienteNomeOutroInput && clienteNomeOutroInput.value // verifica se o input de "Outro" existe e tem valor
+          ? clienteNomeOutroInput.value.trim() // remove espaços extras do texto digitado
+          : ""; // caso não tenha valor, usa string vazia
+
+      if (textoOutro) { // se o usuário realmente digitou algo no campo "Outro"
+        rotuloCliente = textoOutro; // usa o texto digitado como rótulo amigável do rascunho
+      }
+    } else if (valorSelect) { // se alguma opção fixa foi selecionada no combo
+      rotuloCliente = valorSelect; // usa diretamente o valor do select como rótulo
+    }
+  }
+
+  const base = {
+    id: rascunhoEmEdicaoId, // reaproveita o id do rascunho atual, se já estivermos editando um rascunho
+    tipo_formulario: tipoFormularioAtual, // salva o tipo de formulário (UTP/Fibra ou Câmeras) para futura restauração
+    rotulo: rotuloCliente, // rótulo amigável para exibir na lista de rascunhos
+    form_values: valores, // objeto contendo todos os valores dos campos do formulário
+    avaliacao_id: avaliacaoEmEdicaoId, // se estivermos editando uma avaliação existente, associa o id da avaliação
+  }; // fecha o objeto base de rascunho
+
+  return base; // devolve o objeto de rascunho montado
+}
+
+/**
+ * Salva o estado atual do formulário como rascunho local no navegador.
+ * Usa os helpers de localStorage criados na Etapa 1.
+ */
+function salvarRascunhoAtual() {
+  if (!formAvaliacao) { // se o formulário não existir na tela
+    return; // não há rascunho a ser salvo, encerra a função
+  }
+
+  const base = coletarEstadoFormularioComoRascunho(); // monta o objeto de rascunho a partir dos campos atuais
+
+  if (!base) { // se por algum motivo não foi possível montar o rascunho
+    if (avaliacaoFeedbackEl) { // garante que o elemento de feedback exista antes de usar
+      avaliacaoFeedbackEl.textContent =
+        "Não foi possível salvar o rascunho no momento."; // mensagem genérica informando a falha no salvamento
+      avaliacaoFeedbackEl.className = "form-feedback form-error"; // aplica estilo de erro na área de feedback
+    }
+    return; // encerra a função, pois não há rascunho válido
+  }
+
+  try {
+    const rascunhoSalvo = salvarOuAtualizarRascunhoLocal(base); // chama o helper que cria/atualiza o rascunho no localStorage
+
+    rascunhoEmEdicaoId = rascunhoSalvo.id; // atualiza a variável global com o id do rascunho recém-salvo
+
+    if (avaliacaoFeedbackEl) { // se o elemento de feedback estiver disponível
+      avaliacaoFeedbackEl.textContent =
+        "Rascunho salvo localmente neste dispositivo."; // mensagem de sucesso para o usuário
+      avaliacaoFeedbackEl.className = "form-feedback form-success"; // aplica o estilo de sucesso na área de feedback
+    }
+  } catch (error) {
+    console.error("Erro ao salvar rascunho local:", error); // registra o erro no console para facilitar debug
+
+    if (avaliacaoFeedbackEl) { // se o elemento de feedback existir
+      avaliacaoFeedbackEl.textContent =
+        "Erro ao salvar rascunho local. Verifique o espaço disponível no navegador."; // mensagem mais específica de erro de salvamento
+      avaliacaoFeedbackEl.className = "form-feedback form-error"; // aplica estilo de erro na área de feedback
+    }
+  }
+}
+
+/**
+ * Formata uma string de data ISO (ex.: "2025-12-09T13:45:00Z")
+ * para o formato curto "dd/mm/aaaa HH:MM".
+ */
+function formatarDataHoraCurta(isoString) {
+  if (!isoString) { // se não houver valor informado
+    return "-"; // devolve um traço, indicando ausência de informação
+  }
+
+  const data = new Date(isoString); // tenta criar um objeto Date a partir da string ISO
+
+  if (Number.isNaN(data.getTime())) { // se a data não for válida
+    return isoString; // devolve o texto original para não perder a informação
+  }
+
+  const dia = String(data.getDate()).padStart(2, "0"); // extrai o dia do mês e preenche com zero à esquerda
+  const mes = String(data.getMonth() + 1).padStart(2, "0"); // extrai o mês (0-11), soma 1 e preenche com zero à esquerda
+  const ano = data.getFullYear(); // extrai o ano com 4 dígitos
+  const hora = String(data.getHours()).padStart(2, "0"); // extrai a hora (0-23) e preenche com zero à esquerda
+  const minuto = String(data.getMinutes()).padStart(2, "0"); // extrai os minutos e preenche com zero à esquerda
+
+  return `${dia}/${mes}/${ano} ${hora}:${minuto}`; // monta a string final no formato desejado
+}
+
+/**
+ * Preenche o formulário de avaliação a partir de um objeto de rascunho já carregado.
+ * Este rascunho contém:
+ *  - tipo_formulario
+ *  - rotulo
+ *  - form_values: mapa id-do-campo => valor (value/checked) capturado na Etapa 2
+ *  - avaliacao_id (opcional)
+ */
+function carregarRascunhoNoFormulario(rascunho) {
+  if (!formAvaliacao || !rascunho) { // se o formulário não existir ou o rascunho for inválido
+    return; // não há nada a fazer
+  }
+
+  // Limpamos o formulário para evitar lixo de uma edição anterior
+  resetarFormularioParaNovaAvaliacao(); // usa a função existente para voltar ao estado "Nova Avaliação"
+
+  // Vincula o formulário ao rascunho atual
+  rascunhoEmEdicaoId = rascunho.id || null; // guarda o id do rascunho atualmente carregado
+  avaliacaoEmEdicaoId = rascunho.avaliacao_id || null; // se este rascunho estiver associado a uma avaliação específica, guarda o id
+
+  const tipo = rascunho.tipo_formulario || "utp_fibra"; // garante um tipo de formulário válido (UTP/Fibra como padrão)
+
+  if (tipoFormularioInput) { // se o input hidden de tipo existir
+    tipoFormularioInput.value = tipo; // atualiza o valor armazenado no hidden
+  }
+
+  aplicarVisibilidadeTipoFormulario(tipo); // atualiza abas e blocos do formulário (UTP/Fibra x Câmeras)
+
+  // Ajusta título e subtítulo para deixar claro que é um rascunho
+  if (formTituloEl) { // se o título do formulário estiver disponível
+    if (avaliacaoEmEdicaoId) { // se existir um id de avaliação associado
+      formTituloEl.textContent = "Edição de avaliação (rascunho local)"; // título indicando edição com rascunho
+    } else {
+      formTituloEl.textContent = "Nova Avaliação (rascunho local)"; // título indicando nova avaliação a partir de rascunho
+    }
+  }
+
+  if (formSubtituloEl) { // se o subtítulo do formulário existir
+    formSubtituloEl.textContent =
+      "Este rascunho está salvo apenas neste dispositivo e ainda não foi enviado ao servidor."; // texto explicando a natureza local do rascunho
+  }
+
+  const valores = rascunho.form_values || {}; // obtém o mapa de valores dos campos (id => valor) salvo no rascunho
+
+  Object.keys(valores).forEach((campoId) => { // percorre cada id de campo salvo no rascunho
+    const campo = document.getElementById(campoId); // tenta localizar o elemento correspondente no DOM
+    if (!campo) { // se o elemento não existir (campo removido ou renomeado)
+      return; // simplesmente ignora esse campo
+    }
+
+    const valor = valores[campoId]; // obtém o valor salvo para este campo
+
+    if (campo.type === "checkbox") { // se o campo for um checkbox
+      campo.checked = !!valor; // marca ou desmarca o checkbox com base em um booleano
+    } else {
+      campo.value = valor != null ? valor : ""; // para outros tipos de campo, define o value (ou string vazia se null/undefined)
+    }
+  });
+
+  if (avaliacaoFeedbackEl) { // se a área de feedback do formulário existir
+    avaliacaoFeedbackEl.textContent =
+      "Rascunho carregado no formulário (ainda não salvo no servidor)."; // mensagem informativa para o usuário
+    avaliacaoFeedbackEl.className = "form-feedback form-success"; // usa estilo de sucesso para destacar a ação concluída
+  }
+}
+
+/**
+ * Localiza um rascunho pelo id no localStorage e chama `carregarRascunhoNoFormulario`.
+ */
+function carregarRascunhoNoFormularioPorId(idRascunho) {
+  if (!idRascunho) { // se não for passado um id válido
+    return; // não tenta carregar nada
+  }
+
+  const todos = lerRascunhosDoStorage(); // lê todos os rascunhos salvos no navegador
+  const encontrado = todos.find((item) => item.id === idRascunho); // procura o rascunho com o id correspondente
+
+  if (!encontrado) { // se não encontrar o rascunho
+    if (avaliacaoFeedbackEl) { // se a área de feedback existir
+      avaliacaoFeedbackEl.textContent =
+        "Rascunho não encontrado. Ele pode ter sido excluído."; // mensagem explicando o problema
+      avaliacaoFeedbackEl.className = "form-feedback form-error"; // estilo de erro para chamar atenção
+    }
+    return; // encerra a função
+  }
+
+  carregarRascunhoNoFormulario(encontrado); // delega o preenchimento do formulário para a função específica
+}
+
+/**
+ * Renderiza na tabela HTML a lista de rascunhos locais do usuário atual.
+ */
+function renderizarListaRascunhos() {
+  if (!rascunhosTbody) { // se a tabela de rascunhos não existir no DOM
+    return; // não há onde desenhar a lista
+  }
+
+  const rascunhos = obterRascunhosDoUsuarioAtual(); // obtém todos os rascunhos associados ao usuário atual (ou sem user_id)
+  rascunhosTbody.innerHTML = ""; // limpa o conteúdo atual da tabela para redesenhar do zero
+
+  if (!rascunhos || rascunhos.length === 0) { // se não houver nenhum rascunho para exibir
+    const linhaVazia = document.createElement("tr"); // cria uma nova linha de tabela
+    const celula = document.createElement("td"); // cria uma célula única
+    celula.colSpan = 4; // faz a célula ocupar todas as colunas da tabela
+    celula.className = "table-empty"; // aplica a classe de estilo de linha vazia
+    celula.textContent = "Nenhum rascunho salvo neste dispositivo."; // mensagem informando que não há rascunhos
+    linhaVazia.appendChild(celula); // adiciona a célula à linha
+    rascunhosTbody.appendChild(linhaVazia); // adiciona a linha à tabela
+    return; // encerra a função, pois já tratamos o caso sem rascunhos
+  }
+
+  const ordenados = [...rascunhos].sort((a, b) => { // cria uma cópia da lista e ordena por data de atualização
+    const aTime = Date.parse(a.atualizado_em || a.criado_em || "") || 0; // tenta converter o timestamp do rascunho A em número
+    const bTime = Date.parse(b.atualizado_em || b.criado_em || "") || 0; // tenta converter o timestamp do rascunho B em número
+    return bTime - aTime; // ordena do mais recente para o mais antigo
+  });
+
+  ordenados.forEach((rascunho) => { // percorre cada rascunho já ordenado
+    const linha = document.createElement("tr"); // cria uma nova linha de tabela para o rascunho atual
+
+    const celulaRotulo = document.createElement("td"); // célula que exibirá o cliente/rótulo
+    celulaRotulo.textContent = rascunho.rotulo || "Rascunho sem rótulo"; // usa o rótulo salvo ou um texto padrão
+
+    const celulaTipo = document.createElement("td"); // célula que exibirá o tipo de formulário
+    const tipo = (rascunho.tipo_formulario || "utp_fibra").toString().toLowerCase(); // normaliza o tipo em minúsculas
+    celulaTipo.textContent =
+      tipo === "cameras" || tipo === "câmeras" // verifica se o tipo corresponde a Câmeras
+        ? "Câmeras" // texto exibido para rascunho de câmeras
+        : "UTP / Fibra"; // texto exibido para rascunho de UTP/Fibra (padrão)
+
+    const celulaData = document.createElement("td"); // célula que exibirá a data de atualização
+    celulaData.textContent = formatarDataHoraCurta(
+      rascunho.atualizado_em || rascunho.criado_em
+    ); // formata o timestamp para exibição amigável
+
+    const celulaAcoes = document.createElement("td"); // célula que conterá os botões de ação
+
+    const botaoCarregar = document.createElement("button"); // cria o botão "Carregar"
+    botaoCarregar.type = "button"; // define o tipo como botão simples
+    botaoCarregar.className = "btn btn-ghost btn-small"; // aplica estilos de botão leve e tamanho pequeno
+    botaoCarregar.textContent = "Carregar"; // texto exibido no botão
+    botaoCarregar.dataset.action = "carregar-rascunho"; // data-atributo indicando a ação que o botão representa
+    botaoCarregar.dataset.rascunhoId = rascunho.id; // data-atributo com o id do rascunho correspondente
+
+    const botaoExcluir = document.createElement("button"); // cria o botão "Excluir"
+    botaoExcluir.type = "button"; // define o tipo como botão simples
+    botaoExcluir.className = "btn btn-secondary btn-small"; // aplica estilos de botão secundário e pequeno
+    botaoExcluir.textContent = "Excluir"; // texto exibido no botão
+    botaoExcluir.dataset.action = "excluir-rascunho"; // data-atributo indicando que a ação é excluir o rascunho
+    botaoExcluir.dataset.rascunhoId = rascunho.id; // associa o mesmo id de rascunho ao botão
+
+    celulaAcoes.appendChild(botaoCarregar); // adiciona o botão "Carregar" à célula de ações
+    celulaAcoes.appendChild(botaoExcluir); // adiciona o botão "Excluir" à célula de ações
+
+    linha.appendChild(celulaRotulo); // adiciona a célula de rótulo à linha
+    linha.appendChild(celulaTipo); // adiciona a célula de tipo à linha
+    linha.appendChild(celulaData); // adiciona a célula de data à linha
+    linha.appendChild(celulaAcoes); // adiciona a célula de ações à linha
+
+    rascunhosTbody.appendChild(linha); // finalmente adiciona a linha completa à tabela de rascunhos
+  });
+}
+
 /**
  * Lê os dados do formulário de avaliação e envia para o backend.
  * - Se não houver avaliacaoEmEdicaoId, faz POST /avaliacoes (criação).
  * - Se houver avaliacaoEmEdicaoId, faz PUT /avaliacoes/{id} (edição).
  */
 async function salvarAvaliacao(event) {
+
   event.preventDefault(); // evita o reload padrão da página
 
   avaliacaoFeedbackEl.textContent = ""; // limpa textos de feedback anteriores
@@ -2922,13 +3340,54 @@ function registrarEventos() {
   }
 
   if (salvarAvaliacaoButton) {                                    // verifica se o botão de salvar avaliação existe
-    salvarAvaliacaoButton.addEventListener("click", (event) => {  // registra o handler de clique no botão
+    salvarAvaliacaoButton.addEventListener("click", (event) => {  // registra o handler de clique no botão "Salvar avaliação"
       event.preventDefault();                                     // evita o comportamento padrão de submit do formulário
       salvarAvaliacao(event);                                     // chama a função de salvar avaliação manualmente
     });
   }
 
+  if (salvarRascunhoButton) {                                     // verifica se o botão de salvar rascunho existe no DOM
+    salvarRascunhoButton.addEventListener("click", (event) => {   // registra o handler de clique no botão "Salvar rascunho"
+      event.preventDefault();                                     // impede que o clique dispare um submit do formulário
+      salvarRascunhoAtual();                                      // chama a função que salva o formulário como rascunho local
+      renderizarListaRascunhos();                                 // atualiza a tabela de rascunhos após o salvamento
+    });
+  }
+
+  if (rascunhosTbody) {                                           // garante que o corpo da tabela de rascunhos exista
+    rascunhosTbody.addEventListener("click", (event) => {         // registra um único listener de clique (delegado) para a tabela
+      const botao = event.target.closest("button[data-rascunho-id]"); // tenta encontrar o botão mais próximo com o data-rascunho-id
+      if (!botao) {                                               // se o clique não ocorreu em um botão de ação de rascunho
+        return;                                                   // não faz nada e encerra o handler
+      }
+
+      const idRascunho = botao.dataset.rascunhoId;                // lê o id do rascunho a partir do data-atributo do botão
+      const acao = botao.dataset.action;                          // lê a ação solicitada ("carregar-rascunho" ou "excluir-rascunho")
+
+      if (!idRascunho) {                                          // se não houver id válido
+        return;                                                   // não tenta executar nenhuma ação
+      }
+
+      if (acao === "carregar-rascunho") {                         // se a ação for carregar o rascunho no formulário
+        carregarRascunhoNoFormularioPorId(idRascunho);            // chama a função que recupera o rascunho e preenche o formulário
+      } else if (acao === "excluir-rascunho") {                   // se a ação for excluir o rascunho
+        excluirRascunhoLocalPorId(idRascunho);                    // remove o rascunho do armazenamento local
+        if (rascunhoEmEdicaoId === idRascunho) {                  // se o rascunho excluído era o que estava vinculado ao formulário
+          rascunhoEmEdicaoId = null;                              // zera o vínculo de rascunho atual
+        }
+        renderizarListaRascunhos();                               // redesenha a lista de rascunhos para refletir a exclusão
+      }
+    });
+  }
+
+  if (recarregarRascunhosButton) {                                // se o botão de recarregar rascunhos existir
+    recarregarRascunhosButton.addEventListener("click", () => {   // registra o handler de clique nesse botão
+      renderizarListaRascunhos();                                 // simplesmente re-renderiza a lista de rascunhos a partir do storage
+    });
+  }
+
   if (clienteNomeInput) {                                         // se o select de cliente existir
+
     atualizarVisibilidadeClienteOutro();                          // aplica o estado inicial da visibilidade do campo "Outro"
     clienteNomeInput.addEventListener("change", () => {           // registra evento de mudança no select de cliente
       atualizarVisibilidadeClienteOutro();                        // ao mudar o valor, atualiza a visibilidade do campo "Outro"
@@ -3070,6 +3529,7 @@ async function inicializarApp() {
     atualizarVisibilidadeGestaoUsuarios();                     // ajusta a área de gestão de usuários ao restaurar a sessão
 
     resetarFormularioParaNovaAvaliacao(); // ajusta título/subtítulo e estado ao restaurar sessão com token salvo
+    renderizarListaRascunhos(); // carrega também os rascunhos locais salvos para o usuário atual
 
     // Caso o usuário ainda precise trocar a senha, abrimos o modal
     if (currentUser && currentUser.precisa_trocar_senha) {

@@ -424,6 +424,43 @@
           </section>
           <!-- Card de gestão de usuários - visível apenas para administradores -->
 
+          <section class="card card-list"> <!-- card de listagem de rascunhos locais salvos no navegador -->
+            <div class="card-header"> <!-- cabeçalho do card de rascunhos -->
+              <div> <!-- contêiner para título e subtítulo -->
+                <h2>Rascunhos locais</h2> <!-- título do card de rascunhos -->
+                <p class="card-title">
+                  Rascunhos salvos apenas neste dispositivo e navegador, sem enviar nada para o servidor.
+                  <!-- texto explicando que os rascunhos são locais -->
+                </p>
+              </div>
+              <button
+                id="btn-recarregar-rascunhos"
+                class="btn btn-ghost btn-small"
+              >
+                Recarregar
+              </button> <!-- botão para recarregar a lista de rascunhos a partir do storage local -->
+            </div>
+            <div class="table-wrapper"> <!-- wrapper de tabela para aplicar rolagem e bordas consistentes -->
+              <table class="table"> <!-- tabela reutilizando o mesmo estilo das outras listas -->
+                <thead> <!-- cabeçalho da tabela de rascunhos -->
+                  <tr>
+                    <th>Cliente / Rótulo</th> <!-- coluna com o nome do cliente ou rótulo amigável -->
+                    <th>Tipo</th> <!-- coluna indicando se é UTP/Fibra ou Câmeras -->
+                    <th>Atualizado em</th> <!-- coluna com data e hora da última atualização -->
+                    <th>Ações</th> <!-- coluna para os botões de ação (carregar / excluir) -->
+                  </tr>
+                </thead>
+                <tbody id="rascunhos-tbody"> <!-- corpo da tabela que será preenchido via JavaScript -->
+                  <tr>
+                    <td colspan="4" class="table-empty">
+                      Nenhum rascunho salvo neste dispositivo.
+                    </td> <!-- mensagem padrão quando não há rascunhos -->
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+
           <!-- Coluna direita: formulário de nova avaliação -->
           <section class="card card-form">
                           <!-- Área de mensagens de erro/sucesso -->
@@ -440,6 +477,14 @@
                 >
                     Nova avaliação
                 </button> <!-- botão que limpa o formulário e volta para o modo "Nova Avaliação" -->
+
+                <button
+                    type="button"
+                    id="btn-salvar-rascunho"
+                    class="btn btn-primary"
+                >
+                    Salvar rascunho
+                </button> <!-- botão que salva localmente um rascunho da avaliação no navegador -->
 
                 <button
                     type="submit"

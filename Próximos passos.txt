@@ -1,12 +1,11 @@
-1º Prompt)
-
-- Vamos incluir coisas para tornar o app mais user friendly. Na página de login, desabilitar o botão de login enquanto o carregamento está sendo feito.
-- Vamos fazer  mesmo para o botão salvar e para quando alguém clicar em uma avaliação para editar (no caso, desabilitaria clique em outras avaliações e cliques nos botões.
-
-2º Prompt)
+1º prompt)
 
 - Vamos incluir um opção de "Salvar rascunho". Isso é extremamente importante pq o app será usado bastante pelo celular, e as vezes a pessoa muda de página e pode perder os dados que ele acabou de editar, caso não tenha salvo. Então vamos incluir recurso de rascunho com criação automática de rascunho e uma tela para recarregar os rascunhos. O salvamento desses rascunhos será local, como podemos fazer isso pra funcionar tanto no celular quanto no navegador? Essa opção pode ser útil também caso a pessoa esteja com conexão ruim de internet e queira salvar oq está fazendo e não perder.
 
 Melhorias futuras:
 
 - implementação do audit trail
+
+2º prompt)
+
+- Logout automático e refresh automático pra evitar problemas no celular principalmente

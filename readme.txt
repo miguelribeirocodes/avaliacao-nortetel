@@ -25,3 +25,4 @@ Quando realizar alterações no código:
 - Subir html, js e css no netlify.
 
 Funciona no link: https://avaliacao-nortetel.netlify.app/
+
