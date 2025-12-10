@@ -946,10 +946,11 @@ async function carregarDadosUsuario() {
  */
 function realizarLogout() {
   // Limpa token e dados do usuário
-  setAuthToken(null);
-  currentUser = null;
+  setAuthToken(null); // remove o token JWT armazenado (localStorage) e em memória
+  currentUser = null; // limpa o objeto com dados do usuário logado
 
   avaliacaoEmEdicaoId = null; // garante que não mantenha nenhuma avaliação em edição após sair
+  rascunhoEmEdicaoId = null;  // garante que nenhum rascunho continue marcado como "em edição" após o logout
 
   if (formAvaliacao) {
     formAvaliacao.reset(); // limpa o formulário ao fazer logout
@@ -1342,6 +1343,7 @@ async function resetarSenhaUsuario(usuarioId) {                         // reset
       usersFeedbackEl.textContent =
         `Senha temporária gerada: ${senhaTemporaria}`;                 // exibe a senha temporária para o administrador
       usersFeedbackEl.className = "form-feedback form-success";        // aplica estilo de sucesso
+      window.alert("Senha temporária gerada: " + senhaTemporaria);
     } else {                                                           // se por algum motivo a senha não veio no payload
       usersFeedbackEl.textContent =
         "Senha temporária gerada, mas não foi possível exibi-la.";     // mensagem neutra informando sucesso parcial
@@ -2621,6 +2623,7 @@ function salvarRascunhoAtual() {
         "Rascunho salvo localmente neste dispositivo."; // mensagem de sucesso para o usuário
       avaliacaoFeedbackEl.className = "form-feedback form-success"; // aplica o estilo de sucesso na área de feedback
     }
+    //formAvaliacao.reset();
   } catch (error) {
     console.error("Erro ao salvar rascunho local:", error); // registra o erro no console para facilitar debug
 
@@ -3385,7 +3388,7 @@ if (q1ModeloPatchPanel) {                                       // se o select d
 
   try {
     if (!avaliacaoEmEdicaoId) { // se não há avaliação em edição, vamos criar uma nova
-      // Caso não haja id em edição, fazemos um POST (criação)
+
       await apiPostJson("/avaliacoes", payload); // envia o payload para o backend criando um novo registro
 
       avaliacaoFeedbackEl.textContent =
@@ -3403,9 +3406,16 @@ if (q1ModeloPatchPanel) {                                       // se o select d
       avaliacaoFeedbackEl.classList.add("form-success"); // aplica classe de estilo de sucesso
     }
 
+    if (rascunhoEmEdicaoId) { // se existe um rascunho vinculado ao formulário atual
+      excluirRascunhoLocalPorId(rascunhoEmEdicaoId); // remove do localStorage o rascunho correspondente
+      rascunhoEmEdicaoId = null; // zera a referência global ao rascunho em edição, pois os dados já foram salvos no servidor
+      renderizarListaRascunhos(); // atualiza a tabela de "Rascunhos locais" para refletir a remoção
+    }
+
     formAvaliacao.reset(); // limpa todos os campos do formulário após salvar
     resetarFormularioParaNovaAvaliacao(); // volta o formulário para o modo "Nova Avaliação" (reseta estados internos)
     await carregarAvaliacoes(); // recarrega a lista de avaliações para refletir o novo registro/edição
+
   } catch (err) {
     console.error(err); // registra o erro no console para inspeção no navegador
 

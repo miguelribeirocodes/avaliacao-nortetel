@@ -2022,7 +2022,8 @@ async def resetar_senha_usuario(                                # função assí
             detail="Usuário não encontrado."                    # mensagem explicando o problema
         )
 
-    senha_temporaria = gerar_senha_temporaria(10)               # gera uma nova senha temporária com 10 caracteres
+    #senha_temporaria = gerar_senha_temporaria(10)               # gera uma nova senha temporária com 10 caracteres
+    senha_temporaria = "123456"
     usuario.senha_hash = gerar_hash_senha(senha_temporaria)     # atualiza o hash de senha com a nova senha temporária
     usuario.precisa_trocar_senha = True                         # força o usuário a trocar a senha no próximo login
     usuario.ativo = True                                        # garante que o usuário esteja ativo após o reset de senha
