@@ -2641,6 +2641,43 @@ function carregarRascunhoNoFormulario(rascunho) {
     }
   });
 
+  // Depois de aplicar os valores brutos nos campos,
+  // reaplicamos as lógicas de visibilidade que normalmente são disparadas
+  // pelos eventos "change" dos selects/inputs.
+  if (typeof atualizarVisibilidadeClienteOutro === "function") { // se a função específica do cliente existir
+    atualizarVisibilidadeClienteOutro(); // garante que o campo "Cliente (Outro)" apareça/esconda conforme o valor atual do select
+  }
+  if (typeof atualizarVisibilidadeMarcaCabOutro === "function") { // se a função de marca de cabeamento UTP existir
+    atualizarVisibilidadeMarcaCabOutro(); // ajusta visibilidade do campo "Outro" de marca de cabeamento UTP
+  }
+  if (typeof atualizarVisibilidadeMarcaCaboOpticoOutro === "function") { // se a função de marca de cabo óptico existir
+    atualizarVisibilidadeMarcaCaboOpticoOutro(); // ajusta visibilidade do campo "Outro" de marca de cabo óptico
+  }
+  if (typeof atualizarVisibilidadeModeloPatchPanel === "function") { // se a função de modelo de patch panel existir
+    atualizarVisibilidadeModeloPatchPanel(); // atualiza a visibilidade/estado relacionado ao modelo de patch panel
+  }
+  if (typeof atualizarVisibilidadeModeloPatchPanelOutro === "function") { // se a função de "modelo patch panel - Outro" existir
+    atualizarVisibilidadeModeloPatchPanelOutro(); // atualiza a visibilidade do campo "Outro" para modelo de patch panel
+  }
+  if (typeof atualizarVisibilidadeModeloDio === "function") { // se a função de modelo de DIO existir
+    atualizarVisibilidadeModeloDio(); // ajusta visibilidade do modelo de DIO conforme seleção atual
+  }
+  if (typeof atualizarVisibilidadeCamera === "function") { // se a função de visibilidade de câmera existir
+    atualizarVisibilidadeCamera(); // ajusta visibilidades na seção de câmeras (novo x realocação, etc.)
+  }
+  if (typeof atualizarVisibilidadeNvrdvr === "function") { // se a função de visibilidade de NVR/DVR existir
+    atualizarVisibilidadeNvrdvr(); // ajusta campos de NVR/DVR de acordo com o estado atual
+  }
+  if (typeof atualizarVisibilidadeFornecedorSwitch === "function") { // se a função de fornecedor de switch existir
+    atualizarVisibilidadeFornecedorSwitch(); // ajusta campos relacionados ao fornecedor/modelo de switch
+  }
+  if (typeof atualizarVisibilidadeModeloPlataforma === "function") { // se a função de modelo de plataforma existir
+    atualizarVisibilidadeModeloPlataforma(); // reaplica visibilidade nas opções de plataforma de pré-requisitos
+  }
+  if (typeof atualizarVisibilidadeQtdGuiasCabos === "function") { // se a função de quantidade de guias/cabos existir
+    atualizarVisibilidadeQtdGuiasCabos(); // recalcula visibilidade de campos dependentes de quantidade de guias/cabos
+  }
+
   if (avaliacaoFeedbackEl) { // se a área de feedback do formulário existir
     avaliacaoFeedbackEl.textContent =
       "Rascunho carregado no formulário (ainda não salvo no servidor)."; // mensagem informativa para o usuário
@@ -2657,7 +2694,15 @@ function carregarRascunhoNoFormularioPorId(idRascunho) {
   }
 
   const todos = lerRascunhosDoStorage(); // lê todos os rascunhos salvos no navegador
-  const encontrado = todos.find((item) => item.id === idRascunho); // procura o rascunho com o id correspondente
+
+  console.log("DEBUG rascunhos:", todos, "id clicado:", idRascunho); // debug opcional para inspecionar ids no console do navegador
+
+  const encontrado = todos.find((item) => {
+    // compara como string para evitar problemas de tipo (número vs texto, draft-123 vs 123, etc.)
+    return String(item.id) === String(idRascunho); // garante comparação sempre em formato de texto
+  }); // procura o rascunho com o id correspondente no array vindo do localStorage
+
+
 
   if (!encontrado) { // se não encontrar o rascunho
     if (avaliacaoFeedbackEl) { // se a área de feedback existir
@@ -2723,8 +2768,11 @@ function renderizarListaRascunhos() {
     botaoCarregar.type = "button"; // define o tipo como botão simples
     botaoCarregar.className = "btn btn-ghost btn-small"; // aplica estilos de botão leve e tamanho pequeno
     botaoCarregar.textContent = "Carregar"; // texto exibido no botão
-    botaoCarregar.dataset.action = "carregar-rascunho"; // data-atributo indicando a ação que o botão representa
-    botaoCarregar.dataset.rascunhoId = rascunho.id; // data-atributo com o id do rascunho correspondente
+    //botaoCarregar.dataset.action = "carregar-rascunho"; // data-atributo indicando a ação que o botão representa
+    //botaoCarregar.dataset.rascunhoId = rascunho.id; // data-atributo com o id do rascunho correspondente
+    botaoCarregar.addEventListener("click", () => { // registra um listener de clique diretamente neste botão
+      carregarRascunhoNoFormulario(rascunho); // ao clicar, carrega este rascunho (objeto desta linha) no formulário
+    }); // não usamos data-attributes aqui para evitar qualquer ambiguidade de id
 
     const botaoExcluir = document.createElement("button"); // cria o botão "Excluir"
     botaoExcluir.type = "button"; // define o tipo como botão simples
@@ -3357,26 +3405,24 @@ function registrarEventos() {
   if (rascunhosTbody) {                                           // garante que o corpo da tabela de rascunhos exista
     rascunhosTbody.addEventListener("click", (event) => {         // registra um único listener de clique (delegado) para a tabela
       const botao = event.target.closest("button[data-rascunho-id]"); // tenta encontrar o botão mais próximo com o data-rascunho-id
-      if (!botao) {                                               // se o clique não ocorreu em um botão de ação de rascunho
+      if (!botao) {                                               // se o clique não ocorreu em um botão com esse atributo
         return;                                                   // não faz nada e encerra o handler
       }
 
       const idRascunho = botao.dataset.rascunhoId;                // lê o id do rascunho a partir do data-atributo do botão
-      const acao = botao.dataset.action;                          // lê a ação solicitada ("carregar-rascunho" ou "excluir-rascunho")
+      const acao = botao.dataset.action;                          // lê a ação solicitada (no momento, usamos apenas "excluir-rascunho")
 
-      if (!idRascunho) {                                          // se não houver id válido
-        return;                                                   // não tenta executar nenhuma ação
+      if (!idRascunho || acao !== "excluir-rascunho") {           // se não houver id válido ou a ação não for de exclusão
+        return;                                                   // não executa nenhuma ação para este clique
       }
 
-      if (acao === "carregar-rascunho") {                         // se a ação for carregar o rascunho no formulário
-        carregarRascunhoNoFormularioPorId(idRascunho);            // chama a função que recupera o rascunho e preenche o formulário
-      } else if (acao === "excluir-rascunho") {                   // se a ação for excluir o rascunho
-        excluirRascunhoLocalPorId(idRascunho);                    // remove o rascunho do armazenamento local
-        if (rascunhoEmEdicaoId === idRascunho) {                  // se o rascunho excluído era o que estava vinculado ao formulário
-          rascunhoEmEdicaoId = null;                              // zera o vínculo de rascunho atual
-        }
-        renderizarListaRascunhos();                               // redesenha a lista de rascunhos para refletir a exclusão
+      excluirRascunhoLocalPorId(idRascunho);                      // remove o rascunho do armazenamento local
+
+      if (rascunhoEmEdicaoId === idRascunho) {                    // se o rascunho excluído era o que estava vinculado ao formulário
+        rascunhoEmEdicaoId = null;                                // zera o vínculo de rascunho atual
       }
+
+      renderizarListaRascunhos();                                 // redesenha a lista de rascunhos para refletir a exclusão
     });
   }
 
