@@ -62,6 +62,7 @@ let autoSaveTimeoutId = null; // permite cancelar o salvamento automático anter
  */
 function lerRascunhosDoStorage() {
   const valorBruto = window.localStorage.getItem(DRAFTS_STORAGE_KEY); // lê a string JSON armazenada sob a chave de rascunhos
+  //window.localStorage.clear(); //limpar para debug
   if (!valorBruto) { // se não existir nada salvo ainda
     return []; // devolve lista vazia para simplificar o uso pelos chamadores
   }
@@ -198,6 +199,7 @@ const avaliacoesTbody = document.getElementById("avaliacoes-tbody"); // corpo da
 // Elementos do formulário de avaliação.
 // Elementos do formulário de avaliação.
 const formAvaliacao = document.getElementById("form-avaliacao"); // formulário de nova avaliação
+const rascunhoIdInput = document.getElementById("rascunho-id"); // input oculto que armazena o id do rascunho vinculado ao formulário
 const clienteNomeInput = document.getElementById("cliente-nome"); // select com nome do cliente (lista fixa + opção "Outro")
 const clienteNomeOutroInput = document.getElementById("cliente-nome-outro"); // input de texto para o caso "Outro"
 const clienteOutroWrapper = document.getElementById("cliente-outro-wrapper"); // wrapper usado para mostrar/ocultar o campo "Outro"
@@ -1931,6 +1933,10 @@ function resetarFormularioParaNovaAvaliacao() {
   avaliacaoEmEdicaoId = null; // zera o id em edição: próximo submit será um POST (criação)
   rascunhoEmEdicaoId = null;  // zera também o id do rascunho vinculado, iniciando uma nova avaliação "do zero"
 
+  if (rascunhoIdInput) { // se o campo oculto existir
+    rascunhoIdInput.value = ""; // limpa o id de rascunho ao iniciar uma nova avaliação
+  }
+
   if (formTituloEl) {
     formTituloEl.textContent = "Nova Avaliação"; // título padrão exibido na tela
   }
@@ -2486,7 +2492,7 @@ function coletarEstadoFormularioComoRascunho() {
     }
 
     valores[campo.id] = campo.value; // para inputs de texto, selects e textareas, salva o valor textual do campo
-    //window.alert(campo.id + " : " + campo.value);
+
   });
 
   const tipoFormularioAtual = tipoFormularioInput // pega o input hidden que guarda o tipo de formulário
@@ -2512,8 +2518,62 @@ function coletarEstadoFormularioComoRascunho() {
     }
   }
 
+  // window.alert("id: " + rascunhoEmEdicaoId + " ; " 
+  //   + "tipo_formulario: " + tipoFormularioAtual + " ; "
+  //   + "rotulo: " + rotuloCliente + " ; "
+  //   + "form_values: " + valores + " ; "
+  //   + "avaliacao_id: " + avaliacaoEmEdicaoId + " ; ");
+  // Descobre qual id de rascunho deve ser usado.
+  // Primeiro tentamos usar a variável global rascunhoEmEdicaoId.
+  // Se por algum motivo ela estiver vazia, usamos o dataset do formulário,
+  // que é atualizado sempre que um rascunho é carregado ou salvo.
+  // let idRascunhoAtual = rascunhoEmEdicaoId || null; // usa o valor atual da variável global, se existir
+
+  // if ((!idRascunhoAtual || idRascunhoAtual === "null") && formAvaliacao && formAvaliacao.dataset) { // se não houver id válido na variável global, tenta buscar no dataset do formulário
+  //   const idDoDataset = formAvaliacao.dataset.rascunhoId || ""; // lê o atributo data-rascunho-id armazenado no formulário
+  //   if (idDoDataset) { // se existir algum valor preenchido no dataset
+  //     idRascunhoAtual = idDoDataset; // passa a usar este valor como id do rascunho atual
+  //   }
+  // }
+
+  // Descobre o id do rascunho atual.
+  // 1) Tenta ler do input hidden rascunho-id (fonte principal).
+  // 2) Se estiver vazio, cai para a variável global rascunhoEmEdicaoId.
+  // 3) Se ainda assim não houver id, gera um novo id "draft-<timestamp>".
+  let idRascunhoAtual = null; // começa sem id definido
+
+  if (rascunhoIdInput && rascunhoIdInput.value) { // se o input hidden existir e tiver algum valor
+    idRascunhoAtual = rascunhoIdInput.value; // usa o valor do campo oculto como id do rascunho
+  } else if (rascunhoEmEdicaoId) { // caso contrário, se a variável global tiver algum valor
+    idRascunhoAtual = rascunhoEmEdicaoId; // usa o valor global como fallback
+  }
+
+  // Se ainda não houver um id definido, significa que este é um rascunho novo.
+  // Nesse caso, geramos um id estável agora, para que a partir deste salvamento em diante
+  // o mesmo id seja reaproveitado (tanto no storage quanto no formulário).
+  if (!idRascunhoAtual) { // se ainda não temos id (primeiro salvamento do rascunho)
+    idRascunhoAtual = "draft-" + Date.now(); // cria um id simples e único baseado no timestamp atual
+
+    // Atualiza também as fontes de verdade para os próximos salvamentos:
+    rascunhoEmEdicaoId = idRascunhoAtual; // guarda o id na variável global
+    if (rascunhoIdInput) { // se o input hidden existir na página
+      rascunhoIdInput.value = idRascunhoAtual; // grava o id recém-gerado no campo oculto
+    }
+    if (formAvaliacao && formAvaliacao.dataset) { // se o formulário suportar dataset
+      formAvaliacao.dataset.rascunhoId = idRascunhoAtual; // sincroniza também no dataset, se você estiver usando
+    }
+  }
+
+  // (opcional, pra debug) — aqui você pode ver o id REAL que vai ser usado:
+  // window.alert(
+  //   "idRascunhoAtual: " +
+  //     idRascunhoAtual +
+  //     " ; rascunhoEmEdicaoId: " +
+  //     rascunhoEmEdicaoId
+  // ); // alerta para ajudar no debug da origem do id
+
   const base = {
-    id: rascunhoEmEdicaoId, // reaproveita o id do rascunho atual, se já estivermos editando um rascunho
+    id: idRascunhoAtual, // usa o id descoberto (hidden ou global) para o rascunho
     tipo_formulario: tipoFormularioAtual, // salva o tipo de formulário (UTP/Fibra ou Câmeras) para futura restauração
     rotulo: rotuloCliente, // rótulo amigável para exibir na lista de rascunhos
     form_values: valores, // objeto contendo todos os valores dos campos do formulário
@@ -2545,8 +2605,16 @@ function salvarRascunhoAtual() {
 
   try {
     const rascunhoSalvo = salvarOuAtualizarRascunhoLocal(base); // chama o helper que cria/atualiza o rascunho no localStorage
-
+    
     rascunhoEmEdicaoId = rascunhoSalvo.id; // atualiza a variável global com o id do rascunho recém-salvo
+
+    if (rascunhoIdInput) { // se o input hidden existir
+      rascunhoIdInput.value = rascunhoSalvo.id; // grava o id do rascunho salvo no campo oculto
+    }
+    
+    if (formAvaliacao && formAvaliacao.dataset) { // se o formulário existir e suportar dataset
+      formAvaliacao.dataset.rascunhoId = rascunhoSalvo.id; // sincroniza o id do rascunho atual no dataset do formulário
+    }
 
     if (avaliacaoFeedbackEl) { // se o elemento de feedback estiver disponível
       avaliacaoFeedbackEl.textContent =
@@ -2584,6 +2652,14 @@ function salvarRascunhoAutomatico() {
     const rascunhoSalvo = salvarOuAtualizarRascunhoLocal(base); // chama o helper que cria/atualiza o rascunho no localStorage
 
     rascunhoEmEdicaoId = rascunhoSalvo.id; // garante que a variável global mantenha o id do rascunho mais recente
+
+    if (rascunhoIdInput) { // se o input hidden existir
+      rascunhoIdInput.value = rascunhoSalvo.id; // mantém o id sincronizado no campo oculto
+    }
+
+    if (formAvaliacao && formAvaliacao.dataset) { // se o formulário existir na página
+      formAvaliacao.dataset.rascunhoId = rascunhoSalvo.id; // atualiza também o dataset com o id do rascunho salvo automaticamente
+    }    
 
     // Nesta função não mostramos nenhuma mensagem na tela,
     // pois ela pode ser chamada com muita frequência (autosave).
@@ -2656,6 +2732,14 @@ function carregarRascunhoNoFormulario(rascunho) {
   // Vincula o formulário ao rascunho atual
   rascunhoEmEdicaoId = rascunho.id || null; // guarda o id do rascunho atualmente carregado
   avaliacaoEmEdicaoId = rascunho.avaliacao_id || null; // se este rascunho estiver associado a uma avaliação específica, guarda o id
+
+  if (rascunhoIdInput) { // se o campo oculto existir
+    rascunhoIdInput.value = rascunho.id || ""; // grava o id do rascunho carregado no campo hidden
+  }
+
+  if (formAvaliacao && formAvaliacao.dataset) { // se o formulário de avaliação existir
+    formAvaliacao.dataset.rascunhoId = rascunho.id || ""; // grava o id do rascunho carregado no dataset do formulário
+  }
 
   const tipo = rascunho.tipo_formulario || "utp_fibra"; // garante um tipo de formulário válido (UTP/Fibra como padrão)
 
