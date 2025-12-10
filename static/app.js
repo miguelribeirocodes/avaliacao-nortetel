@@ -50,6 +50,12 @@ const DRAFTS_STORAGE_KEY = "nortetel_avaliacoes_rascunhos_v1"; // chave única n
 // Variável global para manter o id do rascunho atualmente associado ao formulário em edição.
 let rascunhoEmEdicaoId = null; // guarda o identificador do rascunho local vinculado ao formulário (null quando não há rascunho carregado)
 
+// Intervalo de tempo (em milissegundos) usado para o salvamento automático de rascunhos.
+const AUTO_SAVE_DELAY_MS = 2000; // define um atraso de 2 segundos após a última digitação antes de salvar automaticamente
+
+// Variável para armazenar o identificador do timer de autosave (retornado por setTimeout).
+let autoSaveTimeoutId = null; // permite cancelar o salvamento automático anterior antes de agendar um novo
+
 /**
  * Lê do localStorage a lista bruta de rascunhos salvos.
  * O retorno é sempre um array; em caso de erro, cai para [].
@@ -2559,6 +2565,55 @@ function salvarRascunhoAtual() {
 }
 
 /**
+ * Salva o formulário como rascunho local de forma silenciosa,
+ * sem alterar mensagens de feedback na interface.
+ * Esta função é usada pelo salvamento automático (autosave).
+ */
+function salvarRascunhoAutomatico() {
+  if (!formAvaliacao) { // se o formulário não existir no DOM
+    return; // não há o que salvar, encerra a função imediatamente
+  }
+
+  const base = coletarEstadoFormularioComoRascunho(); // monta o objeto de rascunho com os valores atuais dos campos
+
+  if (!base) { // se por algum motivo não foi possível montar o objeto de rascunho
+    return; // não tenta salvar nada e apenas encerra
+  }
+
+  try {
+    const rascunhoSalvo = salvarOuAtualizarRascunhoLocal(base); // chama o helper que cria/atualiza o rascunho no localStorage
+
+    rascunhoEmEdicaoId = rascunhoSalvo.id; // garante que a variável global mantenha o id do rascunho mais recente
+
+    // Nesta função não mostramos nenhuma mensagem na tela,
+    // pois ela pode ser chamada com muita frequência (autosave).
+  } catch (error) {
+    console.error("Erro ao salvar rascunho automático:", error); // registra o erro no console para facilitar debug, mas não altera o UI
+  }
+}
+
+/**
+ * Agenda o salvamento automático do rascunho alguns milissegundos após a última digitação.
+ * Usa um "debounce" simples: sempre cancela o timer anterior antes de criar um novo.
+ */
+function agendarAutoSalvarRascunho() {
+  if (!formAvaliacao) { // se o formulário não existir
+    return; // não há o que salvar automaticamente
+  }
+
+  if (autoSaveTimeoutId !== null) { // se já existir um timer de autosave pendente
+    clearTimeout(autoSaveTimeoutId); // cancela o timer anterior para evitar múltiplos salvamentos desnecessários
+    autoSaveTimeoutId = null; // reseta a referência do timer
+  }
+
+  autoSaveTimeoutId = window.setTimeout(() => { // cria um novo timer para o salvamento automático
+    salvarRascunhoAutomatico(); // quando o tempo expirar, salva o rascunho de forma silenciosa
+    // Opcionalmente, poderíamos atualizar a lista de rascunhos aqui:
+    // renderizarListaRascunhos();
+  }, AUTO_SAVE_DELAY_MS); // usa o atraso configurado em AUTO_SAVE_DELAY_MS (por padrão, 2 segundos)
+}
+
+/**
  * Formata uma string de data ISO (ex.: "2025-12-09T13:45:00Z")
  * para o formato curto "dd/mm/aaaa HH:MM".
  */
@@ -3385,6 +3440,10 @@ function registrarEventos() {
   // Evento de submit do formulário de avaliação
   if (formAvaliacao) {                                            // verifica se o formulário de avaliação existe
     formAvaliacao.addEventListener("submit", salvarAvaliacao);    // registra o handler de submit para salvar a avaliação
+
+    formAvaliacao.addEventListener("input", () => {               // registra um listener genérico para qualquer alteração nos campos do formulário
+      agendarAutoSalvarRascunho();                                // sempre que o usuário digitar ou alterar algo, agenda o salvamento automático do rascunho
+    });
   }
 
   if (salvarAvaliacaoButton) {                                    // verifica se o botão de salvar avaliação existe
@@ -3431,6 +3490,16 @@ function registrarEventos() {
       renderizarListaRascunhos();                                 // simplesmente re-renderiza a lista de rascunhos a partir do storage
     });
   }
+
+  // Salvamento automático silencioso quando o usuário tenta sair da página
+  window.addEventListener("beforeunload", () => {                 // registra um listener para o evento de saída/recarga da página
+    try {
+      salvarRascunhoAutomatico();                                 // tenta salvar o estado atual do formulário como rascunho local
+    } catch (error) {
+      // Em caso de erro, apenas registra no console; não deve bloquear a saída da página.
+      console.error("Erro no salvamento automático de rascunho ao sair da página:", error); // loga o erro para diagnóstico
+    }
+  });
 
   if (clienteNomeInput) {                                         // se o select de cliente existir
 
