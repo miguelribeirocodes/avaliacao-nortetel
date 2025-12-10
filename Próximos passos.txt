@@ -1,6 +1,7 @@
 Melhorias futuras:
 
 - implementação de tabela com lista de materiais: equipamento/material, modelo quantidade e fabricante
+- evitar criar rascunho vazio
 - implementação da foto
 - resolver problema do login que aparece "Usuario" ao invés do "Nome"
 - implementação do audit trail

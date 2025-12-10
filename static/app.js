@@ -836,6 +836,193 @@ async function apiPutJson(path, data) {
   }
 }
 
+async function apiDelete(path) {
+  try {
+    const url = API_BASE_URL + path; // monta a URL final juntando a base da API com o caminho recebido
+
+    const response = await fetch(url, {
+      method: "DELETE", // método HTTP específico para remoção de recursos
+      headers: {
+        Accept: "application/json", // indica que esperamos receber JSON na resposta
+        Authorization: authToken ? `Bearer ${authToken}` : "", // envia o token JWT, se existir, para autenticação
+      },
+    });
+
+    if (response.status === 401 || response.status === 403) {
+      // se o backend indicar problema de autenticação/autorização
+      handleAuthError(); // delega o tratamento de autenticação (logout, redirecionamento, etc.)
+      throw new Error("Não autorizado"); // interrompe o fluxo com um erro específico
+    }
+
+    if (!response.ok) {
+      // se qualquer outro erro HTTP acontecer
+      const text = await response.text().catch(() => ""); // tenta ler o corpo como texto para detalhar o erro
+      throw new Error("Erro na requisição DELETE: " + text); // lança erro com a mensagem detalhada
+    }
+
+    try {
+      const data = await response.json(); // tenta interpretar a resposta como JSON
+      return data; // retorna o JSON parseado se houver corpo de resposta
+    } catch (_err) {
+      return null; // se não houver corpo JSON, apenas retorna null (caso comum em DELETE)
+    }
+  } catch (err) {
+    console.error(err); // registra o erro no console para auxiliar em debug
+    throw err; // propaga o erro para quem chamou a função
+  }
+}
+
+/**
+ * Sincroniza a lista de materiais de infraestrutura de uma avaliação com o backend.
+ * Estratégia: apagar todos os registros atuais da avaliação e recriar a partir da lista enviada.
+ */
+async function salvarListaMateriaisInfraNoBackend(
+  avaliacaoId,
+  listaMateriaisInfra
+) {
+  if (!avaliacaoId) {
+    // se não houver id de avaliação, não há como associar materiais
+    return; // encerra a função silenciosamente
+  }
+
+  const listaNormalizada = Array.isArray(listaMateriaisInfra)
+    ? listaMateriaisInfra
+    : []; // garante que sempre trabalharemos com um array (mesmo que venha indefinido)
+
+  try {
+    const existentes = await apiGet(
+      `/avaliacoes/${avaliacaoId}/equipamentos`
+    ); // busca no backend todos os materiais já vinculados a esta avaliação
+
+    if (Array.isArray(existentes)) {
+      // se a resposta do backend for uma lista válida
+      for (const itemExistente of existentes) {
+        // percorre cada material já cadastrado
+        if (
+          itemExistente &&
+          typeof itemExistente.id === "number"
+        ) {
+          // garante que o registro possua um id numérico válido
+          await apiDelete(
+            `/equipamentos/${itemExistente.id}`
+          ); // chama a API para excluir o registro de material pelo id
+        }
+      }
+    }
+
+    for (const item of listaNormalizada) {
+      // percorre cada item da lista que queremos persistir
+      const equipamento =
+        item && item.equipamento
+          ? item.equipamento.toString().trim()
+          : ""; // normaliza o texto de equipamento/material
+
+      const modelo =
+        item && item.modelo
+          ? item.modelo.toString().trim()
+          : ""; // normaliza o texto de modelo, se existir
+
+      let quantidadeInt = null; // inicializa variável numérica de quantidade
+      if (
+        item &&
+        item.quantidade !== undefined &&
+        item.quantidade !== null
+      ) {
+        // verifica se há algum valor de quantidade no item
+        const parsed = parseInt(item.quantidade, 10); // tenta converter o valor da quantidade em inteiro
+        if (!Number.isNaN(parsed) && parsed > 0) {
+          // se a conversão for bem-sucedida e maior que zero
+          quantidadeInt = parsed; // guarda o valor convertido
+        }
+      }
+
+      const fabricante =
+        item && item.fabricante
+          ? item.fabricante.toString().trim()
+          : ""; // normaliza o texto de fabricante, se existir
+
+      if (!equipamento || quantidadeInt === null) {
+        // se o item estiver sem equipamento ou sem quantidade válida
+        continue; // ignora este item silenciosamente (supõe-se que já validamos antes no front)
+      }
+
+      const payloadEquipamento = {
+        equipamento: equipamento, // nome do equipamento/material
+        modelo: modelo || null, // modelo ou null se estiver em branco
+        quantidade: quantidadeInt, // quantidade em formato inteiro validado
+        fabricante: fabricante || null, // fabricante ou null se não informado
+      }; // objeto que será enviado ao endpoint de criação de equipamentos
+
+      await apiPostJson(
+        `/avaliacoes/${avaliacaoId}/equipamentos`,
+        payloadEquipamento
+      ); // cria o registro de material no backend vinculado à avaliação
+    }
+  } catch (err) {
+    console.error(
+      "Erro ao sincronizar a lista de materiais de infraestrutura com o backend:",
+      err
+    ); // registra no console um erro detalhado da sincronização
+    throw err; // propaga o erro para que o fluxo de salvamento da avaliação possa tratar
+  }
+}
+
+/**
+ * Carrega a lista de materiais de infraestrutura do backend
+ * e preenche a tabela da interface com esses dados.
+ */
+async function carregarListaMateriaisInfraDoBackend(avaliacaoId) {
+  if (!infraListaMateriaisTbody) {
+    // se a tabela de materiais não estiver presente no DOM
+    return; // encerra a função sem fazer nada
+  }
+
+  limparTabelaMateriaisInfra(); // limpa a tabela atual para não misturar dados de avaliações diferentes
+
+  if (!avaliacaoId) {
+    // se nenhum id de avaliação foi informado
+    return; // não tenta chamar o backend sem saber qual avaliação carregar
+  }
+
+  try {
+    const itens = await apiGet(
+      `/avaliacoes/${avaliacaoId}/equipamentos`
+    ); // busca no backend todos os materiais vinculados à avaliação
+
+    if (!Array.isArray(itens) || itens.length === 0) {
+      // se não vier lista válida ou se estiver vazia
+      return; // mantém a tabela apenas com a linha vazia padrão
+    }
+
+    const listaParaPreencher = itens.map((item) => {
+      // converte cada item retornado pela API para o formato esperado pelos helpers de UI
+      return {
+        equipamento:
+          item && item.equipamento ? item.equipamento : "", // preserva o nome do equipamento/material
+        modelo: item && item.modelo ? item.modelo : "", // preserva o modelo, se houver
+        quantidade:
+          item && typeof item.quantidade === "number"
+            ? String(item.quantidade) // se vier como número, converte para string
+            : item && item.quantidade
+            ? String(item.quantidade) // se vier como string, garante que seja string
+            : "", // caso contrário, deixa o campo de quantidade vazio
+        fabricante:
+          item && item.fabricante ? item.fabricante : "", // preserva o fabricante, se houver
+      }; // objeto compatível com o formato usado pelo helper de preenchimento da tabela
+    }); // fim do map sobre os itens retornados pelo backend
+
+    preencherListaMateriaisInfraAPartirDeDados(
+      listaParaPreencher
+    ); // recria as linhas da tabela de materiais com base na lista carregada
+  } catch (err) {
+    console.error(
+      "Erro ao carregar a lista de materiais de infraestrutura do backend:",
+      err
+    ); // registra no console um erro detalhado de carregamento
+    // Em caso de erro, deixamos a avaliação carregar normalmente, apenas sem lista de materiais
+  }
+}
+
 // ----------------------------------------------------------------------
 // Fluxo de login e carregamento inicial
 // ----------------------------------------------------------------------
@@ -1922,6 +2109,10 @@ async function carregarAvaliacaoParaEdicao(avaliacaoId) {
     if (almocoQtdInput) almocoQtdInput.value = dados.almoco_qtd ?? "";   // preenche quantidade de almoços
     if (lancheQtdInput) lancheQtdInput.value = dados.lanche_qtd ?? "";   // preenche quantidade de lanches
     
+    await carregarListaMateriaisInfraDoBackend(
+      avaliacaoId
+    ); // busca no backend a lista de materiais de infraestrutura da avaliação e preenche a tabela dinâmica correspondente
+
     // Feedback visual informando que estamos em modo edição
     avaliacaoFeedbackEl.textContent =
       "Você está editando uma avaliação existente. Após alterar os campos, clique em “Salvar avaliação”."; // aviso de edição
@@ -2074,6 +2265,10 @@ function resetarFormularioParaNovaAvaliacao() {
   if (q5SerralheriaDescricao) q5SerralheriaDescricao.value = "";      // limpa descrição da serralheria
   if (q5InstalacaoEletricaObs) q5InstalacaoEletricaObs.value = "";    // limpa observações da instalação elétrica
 
+  if (infraListaMateriaisTbody) {                    // verifica se o corpo da tabela de materiais de infraestrutura existe
+    limparTabelaMateriaisInfra();                    // limpa a lista de materiais, deixando apenas uma linha vazia pronta para uso
+  }
+  
   // Imagens
   if (imgRef1) imgRef1.value = "";
   if (imgRef2) imgRef2.value = "";
@@ -2511,6 +2706,8 @@ function coletarEstadoFormularioComoRascunho() {
 
   let rotuloCliente = "Cliente não informado"; // rótulo padrão caso nenhum cliente esteja preenchido
 
+  const listaMateriaisInfra = coletarListaMateriaisInfraDoFormulario(); // coleta a lista de materiais de infraestrutura a partir da tabela dinâmica do formulário
+
   if (clienteNomeInput) { // se o select de cliente existir
     const valorSelect = clienteNomeInput.value || ""; // lê o valor selecionado no combo de cliente
 
@@ -2586,9 +2783,11 @@ function coletarEstadoFormularioComoRascunho() {
     id: idRascunhoAtual, // usa o id descoberto (hidden ou global) para o rascunho
     tipo_formulario: tipoFormularioAtual, // salva o tipo de formulário (UTP/Fibra ou Câmeras) para futura restauração
     rotulo: rotuloCliente, // rótulo amigável para exibir na lista de rascunhos
-    form_values: valores, // objeto contendo todos os valores dos campos do formulário
+    form_values: valores, // objeto contendo todos os valores dos campos do formulário (mapeados por id)
+    lista_materiais_infra: listaMateriaisInfra, // armazena a lista de materiais de infraestrutura coletada da tabela dinâmica
     avaliacao_id: avaliacaoEmEdicaoId, // se estivermos editando uma avaliação existente, associa o id da avaliação
   }; // fecha o objeto base de rascunho
+
 
   return base; // devolve o objeto de rascunho montado
 }
@@ -2775,6 +2974,13 @@ function carregarRascunhoNoFormulario(rascunho) {
   }
 
   const valores = rascunho.form_values || {}; // obtém o mapa de valores dos campos (id => valor) salvo no rascunho
+
+  const listaMateriaisInfra =
+    Array.isArray(rascunho.lista_materiais_infra) // verifica se o rascunho possui uma lista de materiais de infraestrutura e se ela é um array válido
+      ? rascunho.lista_materiais_infra // se for um array, usa diretamente a lista salva
+      : []; // caso contrário (rascunhos antigos), utiliza um array vazio para manter a compatibilidade
+
+  preencherListaMateriaisInfraAPartirDeDados(listaMateriaisInfra); // recria as linhas da tabela de materiais de infraestrutura a partir da lista vinda do rascunho
 
   Object.keys(valores).forEach((campoId) => { // percorre cada id de campo salvo no rascunho
     const campo = document.getElementById(campoId); // tenta localizar o elemento correspondente no DOM
@@ -3013,6 +3219,8 @@ async function salvarAvaliacao(event) {
     return; // interrompe o fluxo sem chamar a API
   }
 
+  let listaMateriaisInfraParaApi = []; // inicializa o array que armazenará a lista de materiais de infraestrutura preparada para envio ao backend
+  
   // Monta o payload que será enviado para a API
   // OBS: serve tanto para criação quanto para atualização.
   const payload = {
@@ -3387,6 +3595,67 @@ if (q1ModeloPatchPanel) {                                       // se o select d
     ? lancheQtdInput.value || null
     : null; // quantidade de lanches (idem)
 
+  const itensMateriaisInfra = coletarListaMateriaisInfraDoFormulario(); // obtém a lista de materiais de infraestrutura preenchida na tabela dinâmica
+
+  listaMateriaisInfraParaApi = []; // zera explicitamente o array que será enviado ao backend para evitar resíduos de chamadas anteriores
+
+  if (itensMateriaisInfra && itensMateriaisInfra.length > 0) { // se existir pelo menos um item na lista de materiais
+    for (let i = 0; i < itensMateriaisInfra.length; i++) { // percorre a lista de materiais usando um índice numérico
+      const item = itensMateriaisInfra[i]; // obtém o item atual da lista com base no índice
+
+      const equipamento =
+        item && item.equipamento
+          ? item.equipamento.toString().trim()
+          : ""; // normaliza o texto do campo "Equipamento / material" (ou usa string vazia se não existir)
+
+      const modelo =
+        item && item.modelo
+          ? item.modelo.toString().trim()
+          : ""; // normaliza o texto do modelo indicado para o material, se houver
+
+      const quantidadeStr =
+        item && item.quantidade !== undefined && item.quantidade !== null
+          ? item.quantidade.toString().trim()
+          : ""; // garante que a quantidade seja tratada como string, mesmo que tenha sido salva como número
+
+      const fabricante =
+        item && item.fabricante
+          ? item.fabricante.toString().trim()
+          : ""; // normaliza o texto do fabricante, se informado
+
+      if (!equipamento) { // se a linha tiver alguma coisa preenchida mas não tiver o equipamento/material informado
+        avaliacaoFeedbackEl.textContent =
+          'Preencha o campo "Equipamento / material" em todas as linhas da lista de materiais.'; // mensagem de erro indicando o campo faltante
+        avaliacaoFeedbackEl.classList.add("form-error"); // aplica classe visual de erro ao feedback
+        return; // interrompe o fluxo de salvamento antes de chamar a API
+      }
+
+      let quantidadeInt = null; // inicializa variável que guardará a quantidade convertida para número inteiro
+      if (quantidadeStr !== "") { // se o usuário digitou alguma coisa no campo de quantidade
+        const parsed = parseInt(quantidadeStr, 10); // tenta converter o texto em número inteiro na base decimal
+        if (Number.isNaN(parsed) || parsed <= 0) { // se a conversão falhar ou for menor/igual a zero, a quantidade é inválida
+          avaliacaoFeedbackEl.textContent =
+            "Informe uma quantidade numérica válida (maior que zero) em todas as linhas da lista de materiais."; // mensagem de erro de validação de quantidade
+          avaliacaoFeedbackEl.classList.add("form-error"); // aplica classe de erro
+          return; // interrompe o fluxo de salvamento
+        }
+        quantidadeInt = parsed; // se tudo estiver ok, armazena o valor convertido como inteiro
+      } else { // se o campo de quantidade estiver vazio
+        avaliacaoFeedbackEl.textContent =
+          "Informe a quantidade em todas as linhas preenchidas da lista de materiais."; // exige que a quantidade seja informada para linhas parcialmente preenchidas
+        avaliacaoFeedbackEl.classList.add("form-error"); // aplica estilo visual de erro
+        return; // interrompe o fluxo de salvamento
+      }
+
+      listaMateriaisInfraParaApi.push({
+        equipamento: equipamento, // salva o nome do equipamento/material já normalizado
+        modelo: modelo || null, // salva o modelo ou null caso o campo esteja em branco
+        quantidade: quantidadeInt, // salva a quantidade já validada em formato inteiro
+        fabricante: fabricante || null, // salva o fabricante ou null se o campo estiver em branco
+      }); // adiciona o item convertido ao array final que será sincronizado com o backend
+    }
+  }
+
   if (salvarAvaliacaoButton) { // se o botão "Salvar avaliação" existir
     salvarAvaliacaoButton.disabled = true; // desabilita o botão para evitar múltiplos envios simultâneos
     salvarAvaliacaoButton.dataset.originalText =
@@ -3395,26 +3664,46 @@ if (q1ModeloPatchPanel) {                                       // se o select d
   }
 
   try {
+    let avaliacaoSalva = null; // inicializa variável que armazenará a resposta do backend ao criar ou atualizar a avaliação (inclusive o id)
+
     if (!avaliacaoEmEdicaoId) { // se não há avaliação em edição, vamos criar uma nova
 
-      await apiPostJson("/avaliacoes", payload); // envia o payload para o backend criando um novo registro
+      avaliacaoSalva = await apiPostJson(
+        "/avaliacoes",
+        payload
+      ); // envia o payload para o backend criando um novo registro e captura a resposta (incluindo o id da avaliação)
 
       avaliacaoFeedbackEl.textContent =
         "Avaliação salva com sucesso."; // define mensagem de sucesso para criação
+
       avaliacaoFeedbackEl.classList.add("form-success"); // aplica classe de estilo de sucesso
     } else { // se existe uma avaliação em edição
       // Se houver id em edição, fazemos um PUT (edição)
-      await apiPutJson(
+      avaliacaoSalva = await apiPutJson(
         `/avaliacoes/${avaliacaoEmEdicaoId}`,
         payload
-      ); // envia o payload para atualizar a avaliação existente
+      ); // envia o payload para atualizar a avaliação existente e captura a resposta (incluindo o id da avaliação)
 
       avaliacaoFeedbackEl.textContent =
         "Avaliação atualizada com sucesso."; // define mensagem de sucesso específica para edição
+
       avaliacaoFeedbackEl.classList.add("form-success"); // aplica classe de estilo de sucesso
     }
 
+    const avaliacaoIdParaMateriais =
+      avaliacaoSalva && typeof avaliacaoSalva.id === "number" // verifica se a resposta do backend traz um id numérico válido
+        ? avaliacaoSalva.id // em caso positivo, usa o id retornado pelo backend (principalmente em criação)
+        : avaliacaoEmEdicaoId; // se não houver id na resposta, usa o id que já estava em edição (cenário de atualização)
+
+    if (avaliacaoIdParaMateriais) { // se foi possível determinar um id de avaliação para associar os materiais
+      await salvarListaMateriaisInfraNoBackend(
+        avaliacaoIdParaMateriais, // id da avaliação cujos materiais devem ser sincronizados
+        listaMateriaisInfraParaApi // lista de materiais que já foi validada e preparada para o backend
+      ); // executa a estratégia "apagar tudo e recriar" para a lista de materiais desta avaliação
+    }
+
     if (rascunhoEmEdicaoId) { // se existe um rascunho vinculado ao formulário atual
+
       excluirRascunhoLocalPorId(rascunhoEmEdicaoId); // remove do localStorage o rascunho correspondente
       rascunhoEmEdicaoId = null; // zera a referência global ao rascunho em edição, pois os dados já foram salvos no servidor
       renderizarListaRascunhos(); // atualiza a tabela de "Rascunhos locais" para refletir a remoção
@@ -3721,6 +4010,8 @@ async function inicializarApp() {
   // Registra listeners de eventos
   registrarEventos();
 
+  inicializarListaMateriaisInfra(); // prepara a tabela de lista de materiais de infraestrutura (linhas iniciais e botão "Nova linha")
+  
   // Tenta carregar token salvo no navegador
   const tokenSalvo = getStoredToken();
 
@@ -3759,11 +4050,255 @@ async function inicializarApp() {
   }
 }
 
+/**
+ * Registra eventos de teclado para a lista de materiais de infraestrutura.
+ * Objetivo principal: ao pressionar Enter na última linha, criar uma nova linha automaticamente.
+ */
+function registrarEventosListaMateriaisInfra() {
+  if (!infraListaMateriaisTbody) {                                       // verifica se o corpo da tabela de materiais existe no DOM
+    return;                                                              // se não existir (por alguma razão), encerra a função sem registrar eventos
+  }
+
+  infraListaMateriaisTbody.addEventListener("keydown", (event) => {      // adiciona um listener de tecla pressionada no corpo da tabela (event delegation)
+    const alvo = event.target;                                           // captura o elemento que recebeu o foco e disparou o evento
+
+    if (!alvo || alvo.tagName !== "INPUT") {                             // se não houver alvo ou se o alvo não for um campo de input
+      return;                                                            // não fazemos nada (ignora teclas em outros elementos)
+    }
+
+    if (event.key !== "Enter") {                                         // verifica se a tecla pressionada é diferente de Enter
+      return;                                                            // se não for Enter, não queremos interferir, então encerramos aqui
+    }
+
+    const linhaAtual = alvo.closest(".infra-lista-materiais-linha");     // busca a linha (tr) mais próxima que representa a linha de materiais atual
+    if (!linhaAtual) {                                                   // se não encontrar uma linha correspondente
+      return;                                                            // não há o que fazer, encerra o handler
+    }
+
+    const linhas = infraListaMateriaisTbody.querySelectorAll(            // busca todas as linhas de materiais atualmente na tabela
+      ".infra-lista-materiais-linha"
+    );
+    if (!linhas || linhas.length === 0) {                                // se, por algum motivo, não houver linhas
+      return;                                                            // encerra sem tentar criar nova linha
+    }
+
+    const ultimaLinha = linhas[linhas.length - 1];                       // considera a última linha da lista como referência
+
+    if (linhaAtual === ultimaLinha) {                                    // se a linha em que o usuário está é a última linha da tabela
+      event.preventDefault();                                            // impede o comportamento padrão do Enter (como submit do formulário)
+      criarLinhaListaMateriaisInfra();                                   // chama a função que cria e adiciona uma nova linha à tabela
+    }                                                                    // se não for a última linha, nada é feito (deixa o Enter ter efeito padrão, se houver)
+  });
+}
+
 // Garante que inicializamos somente após o DOM estar pronto
 document.addEventListener("DOMContentLoaded", () => {
-  inicializarApp();
+  inicializarApp();                         // inicia a aplicação (login, carregamento de avaliações, etc.)
+  registrarEventosListaMateriaisInfra();    // registra os eventos de teclado da lista de materiais de infraestrutura (Enter na última linha cria nova linha)
 });
 
+/**
+ * Cria uma nova linha na lista de materiais de infraestrutura,
+ * clonando a linha modelo existente no tbody e limpando seus campos.
+ */
+function criarLinhaListaMateriaisInfra() {
+  if (!infraListaMateriaisTbody) { // verifica se o corpo da tabela de materiais está disponível no DOM
+    return null;                   // se não existir (por algum motivo), encerra a função retornando null
+  }
+
+  const linhaModelo = infraListaMateriaisTbody.querySelector(".infra-lista-materiais-linha"); // busca a primeira linha com a classe usada como modelo
+  if (!linhaModelo) { // se nenhuma linha modelo for encontrada
+    return null;      // não há como clonar, então encerra a função retornando null
+  }
+
+  const novaLinha = linhaModelo.cloneNode(true); // clona a linha modelo, incluindo toda a estrutura interna (células e inputs)
+
+  const inputs = novaLinha.querySelectorAll("input"); // seleciona todos os inputs dentro da nova linha
+  inputs.forEach((input) => { // percorre cada input encontrado na nova linha
+    input.value = "";         // zera o valor do campo para que a nova linha comece vazia
+  });
+
+  infraListaMateriaisTbody.appendChild(novaLinha); // adiciona a nova linha ao final do corpo da tabela
+
+  const primeiroInput = novaLinha.querySelector("input"); // busca o primeiro input da nova linha
+  if ( primeiroInput ) {           // se o primeiro input existir
+    primeiroInput.focus();         // move o foco para esse input para facilitar a digitação contínua
+  }
+
+  return novaLinha; // retorna a referência da nova linha criada (caso alguém queira usar no futuro)
+}
+
+/**
+ * Limpa completamente a tabela de materiais de infraestrutura,
+ * preservando uma única linha vazia (a linha modelo).
+ */
+function limparTabelaMateriaisInfra() {
+  if (!infraListaMateriaisTbody) { // verifica se o corpo da tabela está disponível
+    return;                        // se não estiver, não há o que limpar e a função é encerrada
+  }
+
+  const linhas = infraListaMateriaisTbody.querySelectorAll(".infra-lista-materiais-linha"); // obtém todas as linhas de materiais atuais
+  if (!linhas || linhas.length === 0) { // se não houver nenhuma linha encontrada
+    criarLinhaListaMateriaisInfra();    // cria uma linha nova para garantir que exista pelo menos uma linha editável
+    return;                             // encerra após criar a nova linha
+  }
+
+  const primeiraLinha = linhas[0]; // considera a primeira linha como linha base/modelo a ser preservada
+
+  const inputsPrimeiraLinha = primeiraLinha.querySelectorAll("input"); // seleciona todos os inputs da primeira linha
+  inputsPrimeiraLinha.forEach((input) => { // percorre cada input da primeira linha
+    input.value = "";                     // limpa o valor para que a linha fique completamente vazia
+  });
+
+  for (let i = 1; i < linhas.length; i++) {                        // percorre as demais linhas (a partir do índice 1)
+    infraListaMateriaisTbody.removeChild(linhas[i]);               // remove cada linha extra do corpo da tabela
+  }
+}
+
+/**
+ * Inicializa o comportamento da lista de materiais de infraestrutura:
+ * - garante que exista pelo menos uma linha na tabela;
+ * - conecta o botão "Nova linha" para adicionar novas linhas.
+ */
+function inicializarListaMateriaisInfra() {
+  if (!infraListaMateriaisTbody) { // verifica se o corpo da tabela existe na página atual
+    return;                        // se não existir, significa que o formulário não está presente, então encerra
+  }
+
+  const linhaExistente = infraListaMateriaisTbody.querySelector(".infra-lista-materiais-linha"); // tenta localizar uma linha já definida no HTML
+  if (!linhaExistente) {          // se nenhuma linha for encontrada (cenário improvável, mas tratado por segurança)
+    criarLinhaListaMateriaisInfra(); // cria uma primeira linha vazia para o usuário preencher
+  }
+
+  if (infraAdicionarLinhaButton) {                                                // verifica se o botão "Nova linha" está presente no DOM
+    infraAdicionarLinhaButton.addEventListener("click", () => {                   // registra o listener de clique no botão
+      criarLinhaListaMateriaisInfra();                                            // ao clicar, cria e adiciona uma nova linha à tabela
+    });
+  }
+}
+
+function inicializarListaMateriaisInfra() {
+  if (!infraListaMateriaisTbody) { // verifica se o corpo da tabela existe na página atual
+    return;                        // se não existir, significa que o formulário não está presente, então encerra
+  }
+
+  const linhaExistente = infraListaMateriaisTbody.querySelector(".infra-lista-materiais-linha"); // tenta localizar uma linha já definida no HTML
+  if (!linhaExistente) {          // se nenhuma linha for encontrada (cenário improvável, mas tratado por segurança)
+    criarLinhaListaMateriaisInfra(); // cria uma primeira linha vazia para o usuário preencher
+  }
+
+  if (infraAdicionarLinhaButton) {                                                // verifica se o botão "Nova linha" está presente no DOM
+    infraAdicionarLinhaButton.addEventListener("click", () => {                   // registra o listener de clique no botão
+      criarLinhaListaMateriaisInfra();                                            // ao clicar, cria e adiciona uma nova linha à tabela
+    });
+  }
+}
+
+/**
+ * Coleta os dados da tabela de lista de materiais de infraestrutura
+ * e devolve um array de objetos simples para uso em rascunhos ou envio à API.
+ */
+function coletarListaMateriaisInfraDoFormulario() {
+  if (!infraListaMateriaisTbody) { // se o corpo da tabela não existir na página
+    return []; // devolve um array vazio, pois não há lista de materiais para coletar
+  }
+
+  const linhas = infraListaMateriaisTbody.querySelectorAll(".infra-lista-materiais-linha"); // captura todas as linhas de materiais definidas na tabela
+  const lista = []; // inicializa o array que acumulará os itens da lista de materiais
+
+  linhas.forEach((linha) => { // percorre cada linha encontrada na tabela
+    const inputEquipamento = linha.querySelector(".infra-lista-materiais-equipamento"); // localiza o campo de equipamento/material na linha
+    const inputModelo = linha.querySelector(".infra-lista-materiais-modelo"); // localiza o campo de modelo na linha
+    const inputQuantidade = linha.querySelector(".infra-lista-materiais-quantidade"); // localiza o campo de quantidade na linha
+    const inputFabricante = linha.querySelector(".infra-lista-materiais-fabricante"); // localiza o campo de fabricante na linha
+
+    const equipamento = inputEquipamento && inputEquipamento.value // verifica se o input de equipamento existe e possui algum valor
+      ? inputEquipamento.value.trim() // se houver valor, normaliza removendo espaços nas extremidades
+      : ""; // se não houver valor, usa string vazia
+
+    const modelo = inputModelo && inputModelo.value // verifica se o input de modelo existe e possui algum valor
+      ? inputModelo.value.trim() // normaliza o texto do modelo removendo espaços extras
+      : ""; // se não houver valor, usa string vazia
+
+    const quantidade = inputQuantidade && inputQuantidade.value // verifica se o input de quantidade existe e possui algum valor
+      ? inputQuantidade.value.trim() // normaliza o texto da quantidade como string
+      : ""; // se não houver valor, usa string vazia
+
+    const fabricante = inputFabricante && inputFabricante.value // verifica se o input de fabricante existe e possui algum valor
+      ? inputFabricante.value.trim() // normaliza o texto do fabricante removendo espaços nas extremidades
+      : ""; // se não houver valor, usa string vazia
+
+    const todosCamposVazios =
+      !equipamento && !modelo && !quantidade && !fabricante; // verifica se todos os campos da linha estão vazios
+
+    if (todosCamposVazios) { // se a linha estiver completamente vazia
+      return; // ignora esta linha e segue para a próxima
+    }
+
+    lista.push({
+      equipamento, // adiciona o valor do equipamento/material no objeto da linha
+      modelo, // adiciona o modelo preenchido (se houver) no objeto da linha
+      quantidade, // adiciona a quantidade como string (facilitando a edição futura no rascunho)
+      fabricante, // adiciona o fabricante informado (se houver) no objeto da linha
+    }); // insere o objeto desta linha no array principal de lista de materiais
+  });
+
+  return lista; // devolve o array de itens de materiais coletados da tabela
+}
+
+/**
+ * Preenche a tabela de materiais de infraestrutura a partir de um array
+ * previamente salvo (por exemplo, no rascunho local).
+ */
+function preencherListaMateriaisInfraAPartirDeDados(lista) {
+  if (!infraListaMateriaisTbody) { // se o corpo da tabela não existir
+    return; // não há onde preencher as linhas, então encerra a função
+  }
+
+  limparTabelaMateriaisInfra(); // limpa a tabela existente, deixando apenas uma linha vazia como base
+
+  if (!Array.isArray(lista) || lista.length === 0) { // se não houver lista válida ou se o array estiver vazio
+    return; // mantém apenas a linha vazia padrão e encerra a função
+  }
+
+  let primeiraLinha =
+    infraListaMateriaisTbody.querySelector(".infra-lista-materiais-linha"); // obtém a linha base (primeira linha da tabela)
+
+  lista.forEach((item, index) => { // percorre cada item do array de materiais recebido
+    let linhaDestino = null; // variável que representará a linha em que os valores serão escritos
+
+    if (index === 0 && primeiraLinha) { // se for o primeiro item e a linha base existir
+      linhaDestino = primeiraLinha; // reutiliza a linha base existente para o primeiro item
+    } else {
+      linhaDestino = criarLinhaListaMateriaisInfra(); // para os itens seguintes, cria uma nova linha na tabela
+    }
+
+    if (!linhaDestino) { // se por algum motivo não for possível obter/criar uma linha
+      return; // interrompe o preenchimento para este item específico
+    }
+
+    const inputEquipamento = linhaDestino.querySelector(".infra-lista-materiais-equipamento"); // localiza o input de equipamento/material na linha
+    const inputModelo = linhaDestino.querySelector(".infra-lista-materiais-modelo"); // localiza o input de modelo na linha
+    const inputQuantidade = linhaDestino.querySelector(".infra-lista-materiais-quantidade"); // localiza o input de quantidade na linha
+    const inputFabricante = linhaDestino.querySelector(".infra-lista-materiais-fabricante"); // localiza o input de fabricante na linha
+
+    if (inputEquipamento) { // se o input de equipamento existir
+      inputEquipamento.value = item && item.equipamento ? item.equipamento : ""; // escreve o valor de equipamento/material ou deixa em branco
+    }
+
+    if (inputModelo) { // se o input de modelo existir
+      inputModelo.value = item && item.modelo ? item.modelo : ""; // escreve o valor de modelo ou deixa em branco
+    }
+
+    if (inputQuantidade) { // se o input de quantidade existir
+      inputQuantidade.value = item && item.quantidade ? item.quantidade : ""; // escreve a quantidade ou deixa o campo vazio
+    }
+
+    if (inputFabricante) { // se o input de fabricante existir
+      inputFabricante.value = item && item.fabricante ? item.fabricante : ""; // escreve o fabricante ou deixa o campo em branco
+    }
+  });
+}
 
 // ================== INÍCIO: SUPORTE DE AUDITORIA NO FRONT ==================
 
