@@ -3664,7 +3664,8 @@ if (q1ModeloPatchPanel) {                                       // se o select d
   }
 
   try {
-    let avaliacaoSalva = null; // inicializa variável que armazenará a resposta do backend ao criar ou atualizar a avaliação (inclusive o id)
+    let avaliacaoSalva = null;              // inicializa variável que armazenará a resposta do backend ao criar ou atualizar a avaliação (inclusive o id)
+    let mensagemSucessoAvaliacao = "";      // variável que guardará a mensagem de sucesso apropriada (criação ou edição) para exibir somente após todo o processo terminar
 
     if (!avaliacaoEmEdicaoId) { // se não há avaliação em edição, vamos criar uma nova
 
@@ -3673,10 +3674,9 @@ if (q1ModeloPatchPanel) {                                       // se o select d
         payload
       ); // envia o payload para o backend criando um novo registro e captura a resposta (incluindo o id da avaliação)
 
-      avaliacaoFeedbackEl.textContent =
-        "Avaliação salva com sucesso."; // define mensagem de sucesso para criação
+      mensagemSucessoAvaliacao =
+        "Avaliação salva com sucesso."; // guarda a mensagem de sucesso apropriada para criação, mas sem exibir ainda
 
-      avaliacaoFeedbackEl.classList.add("form-success"); // aplica classe de estilo de sucesso
     } else { // se existe uma avaliação em edição
       // Se houver id em edição, fazemos um PUT (edição)
       avaliacaoSalva = await apiPutJson(
@@ -3684,10 +3684,8 @@ if (q1ModeloPatchPanel) {                                       // se o select d
         payload
       ); // envia o payload para atualizar a avaliação existente e captura a resposta (incluindo o id da avaliação)
 
-      avaliacaoFeedbackEl.textContent =
-        "Avaliação atualizada com sucesso."; // define mensagem de sucesso específica para edição
-
-      avaliacaoFeedbackEl.classList.add("form-success"); // aplica classe de estilo de sucesso
+      mensagemSucessoAvaliacao =
+        "Avaliação atualizada com sucesso."; // guarda a mensagem de sucesso específica para edição, sem exibir imediatamente
     }
 
     const avaliacaoIdParaMateriais =
@@ -3700,6 +3698,12 @@ if (q1ModeloPatchPanel) {                                       // se o select d
         avaliacaoIdParaMateriais, // id da avaliação cujos materiais devem ser sincronizados
         listaMateriaisInfraParaApi // lista de materiais que já foi validada e preparada para o backend
       ); // executa a estratégia "apagar tudo e recriar" para a lista de materiais desta avaliação
+    }
+
+    if (mensagemSucessoAvaliacao) {                              // verifica se alguma mensagem de sucesso foi definida durante o fluxo
+      avaliacaoFeedbackEl.textContent = mensagemSucessoAvaliacao; // aplica o texto de sucesso no elemento de feedback
+      avaliacaoFeedbackEl.classList.remove("form-error");         // remove qualquer classe de erro que possa estar aplicada de tentativas anteriores
+      avaliacaoFeedbackEl.classList.add("form-success");          // adiciona a classe de sucesso para estilizar positivamente a mensagem
     }
 
     if (rascunhoEmEdicaoId) { // se existe um rascunho vinculado ao formulário atual
@@ -4100,8 +4104,12 @@ document.addEventListener("DOMContentLoaded", () => {
 /**
  * Cria uma nova linha na lista de materiais de infraestrutura,
  * clonando a linha modelo existente no tbody e limpando seus campos.
+ *
+ * Parâmetro opcional:
+ * - deveFocar (boolean): quando true, o foco vai para o primeiro input da nova linha.
+ *   Usado em ações do usuário (Enter / botão "Nova linha").
  */
-function criarLinhaListaMateriaisInfra() {
+function criarLinhaListaMateriaisInfra({ deveFocar = true } = {}) {
   if (!infraListaMateriaisTbody) { // verifica se o corpo da tabela de materiais está disponível no DOM
     return null;                   // se não existir (por algum motivo), encerra a função retornando null
   }
@@ -4120,13 +4128,16 @@ function criarLinhaListaMateriaisInfra() {
 
   infraListaMateriaisTbody.appendChild(novaLinha); // adiciona a nova linha ao final do corpo da tabela
 
-  const primeiroInput = novaLinha.querySelector("input"); // busca o primeiro input da nova linha
-  if ( primeiroInput ) {           // se o primeiro input existir
-    primeiroInput.focus();         // move o foco para esse input para facilitar a digitação contínua
+  if (deveFocar) {                                      // verifica se a chamada solicitou mover o foco para a nova linha
+    const primeiroInput = novaLinha.querySelector("input"); // busca o primeiro input da nova linha
+    if (primeiroInput) {                             // se o primeiro input existir
+      primeiroInput.focus();                         // move o foco para esse input para facilitar a digitação contínua
+    }
   }
 
   return novaLinha; // retorna a referência da nova linha criada (caso alguém queira usar no futuro)
 }
+
 
 /**
  * Limpa completamente a tabela de materiais de infraestrutura,
@@ -4138,9 +4149,9 @@ function limparTabelaMateriaisInfra() {
   }
 
   const linhas = infraListaMateriaisTbody.querySelectorAll(".infra-lista-materiais-linha"); // obtém todas as linhas de materiais atuais
-  if (!linhas || linhas.length === 0) { // se não houver nenhuma linha encontrada
-    criarLinhaListaMateriaisInfra();    // cria uma linha nova para garantir que exista pelo menos uma linha editável
-    return;                             // encerra após criar a nova linha
+  if (!linhas || linhas.length === 0) {                         // se não houver nenhuma linha encontrada
+    criarLinhaListaMateriaisInfra({ deveFocar: false });        // cria uma linha nova sem focar, apenas para garantir que exista pelo menos uma linha editável
+    return;                                                     // encerra após criar a nova linha
   }
 
   const primeiraLinha = linhas[0]; // considera a primeira linha como linha base/modelo a ser preservada
@@ -4166,8 +4177,8 @@ function inicializarListaMateriaisInfra() {
   }
 
   const linhaExistente = infraListaMateriaisTbody.querySelector(".infra-lista-materiais-linha"); // tenta localizar uma linha já definida no HTML
-  if (!linhaExistente) {          // se nenhuma linha for encontrada (cenário improvável, mas tratado por segurança)
-    criarLinhaListaMateriaisInfra(); // cria uma primeira linha vazia para o usuário preencher
+  if (!linhaExistente) {                              // se nenhuma linha for encontrada (cenário improvável, mas tratado por segurança)
+    criarLinhaListaMateriaisInfra({ deveFocar: false }); // cria uma primeira linha vazia sem alterar o foco da página
   }
 
   if (infraAdicionarLinhaButton) {                                                // verifica se o botão "Nova linha" está presente no DOM
@@ -4267,10 +4278,12 @@ function preencherListaMateriaisInfraAPartirDeDados(lista) {
   lista.forEach((item, index) => { // percorre cada item do array de materiais recebido
     let linhaDestino = null; // variável que representará a linha em que os valores serão escritos
 
-    if (index === 0 && primeiraLinha) { // se for o primeiro item e a linha base existir
-      linhaDestino = primeiraLinha; // reutiliza a linha base existente para o primeiro item
+    if (index === 0 && primeiraLinha) {                 // se for o primeiro item e a linha base existir
+      linhaDestino = primeiraLinha;                     // reutiliza a linha base existente para o primeiro item
     } else {
-      linhaDestino = criarLinhaListaMateriaisInfra(); // para os itens seguintes, cria uma nova linha na tabela
+      linhaDestino = criarLinhaListaMateriaisInfra({    // para os itens seguintes, cria uma nova linha na tabela
+        deveFocar: false,                               // evita mover o foco quando a tabela está sendo preenchida a partir de rascunho ou backend
+      });
     }
 
     if (!linhaDestino) { // se por algum motivo não for possível obter/criar uma linha
