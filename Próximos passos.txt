@@ -1,6 +1,14 @@
+1º prompt)
+
+Sabe aqueles campos de fotos? Vamos mudar eles pra ser parecido com a tabela de lista de materiais em que podemos inserir quantas fotos quisermos que ficarão ajustadas no campo.
+Vai ter um botão "+" ou "Adicionar foto+" que vai abrir ou um seletor de arquivos ou a câmera, caso o dispositivo tenha, para poder anexar a foto.
+Entendo que esta etapa pode ser grande, então vamos subdividir em pequenas etapas para evitar respostas grandes.
+
+Avalie impacto no front end, back end, banco de dados, etc.
+
 2º prompt)
 
-Implementar fotos
+bug: rascunho n ta salvando auto, verificar todos os saves de rascunho
 
 3º prompt)
 

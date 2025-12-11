@@ -98,6 +98,8 @@ function formularioRascunhoEstaVazio(valores) {
       continue;                                                       // não conta como preenchimento e avança para o próximo
     }
 
+    const valor = valores[idCampo];                                   // obtém o valor associado a este campo
+    
     // Tratamento especial para o campo "status"
     if (idCampo === "status") {                           // se o campo atual for o select de status
       const statusVal = (valor || "").toString().trim();  // normaliza o valor do status como string sem espaços
@@ -117,8 +119,6 @@ function formularioRascunhoEstaVazio(valores) {
       encontrouAlgumPreenchido = true;                    // marca que o formulário não está vazio
       break;                                              // encerra o loop, pois já achamos algo relevante
     }
-
-    const valor = valores[idCampo];                                   // obtém o valor associado a este campo
 
     if (typeof valor === "boolean") {                                 // se o valor for booleano (tipicamente checkbox)
       if (valor === true) {                                           // se o checkbox estiver marcado
