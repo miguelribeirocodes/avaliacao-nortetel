@@ -217,6 +217,7 @@ body {
 .card-list-rascunho{
   overflow: hidden;
   background: #fffbc8;                         
+  min-height: 0;
 }
 
 /* ======================= RASCUNHOS: ACCORDION ===================== */
