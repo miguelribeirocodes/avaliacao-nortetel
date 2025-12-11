@@ -47,6 +47,11 @@ let avaliacaoEmEdicaoId = null; // mantém o id da avaliação que está sendo e
 // Constante com a chave usada no localStorage para guardar a lista de rascunhos de avaliações.
 const DRAFTS_STORAGE_KEY = "nortetel_avaliacoes_rascunhos_v1"; // chave única no localStorage para armazenar todos os rascunhos do sistema
 
+const SESSION_MARKER_KEY = "nt_avaliacoes_had_session"; // chave usada no localStorage para indicar se este navegador já teve uma sessão autenticada
+// Quando o usuário faz login com sucesso, gravamos "1" nessa chave.
+// Quando o usuário faz logout manual, removemos essa chave.
+// Assim conseguimos diferenciar "primeiro acesso" de "sessão expirada" ao abrir a página.
+
 // Variável global para manter o id do rascunho atualmente associado ao formulário em edição.
 let rascunhoEmEdicaoId = null; // guarda o identificador do rascunho local vinculado ao formulário (null quando não há rascunho carregado)
 
@@ -592,10 +597,18 @@ function mostrarTelaLogin() {
  * e esconde a tela de login.
  */
 function mostrarTelaApp() {
-  // Esconde a tela de login
-  loginScreen.classList.add("hidden");
-  // Mostra a tela principal
-  appScreen.classList.remove("hidden");
+  // Antes de exibir a tela principal, conferimos se há um usuário autenticado
+  if (!authToken || !currentUser) {
+    // Se não houver token ou objeto de usuário, tratamos como problema de autenticação
+    handleAuthError(); // limpa qualquer resquício de sessão e volta para a tela de login com mensagem apropriada
+    return; // interrompe a tentativa de mostrar a tela principal
+  }
+
+  // Esconde a tela de login (já que temos um usuário válido)
+  loginScreen.classList.add("hidden"); // garante que a seção de login não fique visível
+
+  // Mostra a tela principal da aplicação com lista de avaliações e formulário
+  appScreen.classList.remove("hidden"); // remove a classe que escondia a tela principal
 }
 
 /**
@@ -1073,12 +1086,18 @@ async function realizarLogin(username, password) {
     }
 
     // Se deu certo, lemos o JSON com o token
-    const tokenData = await response.json();
+    const tokenData = await response.json(); // converte a resposta da API de JSON para objeto JavaScript
+
     // Salva o token no helper e no localStorage
-    setAuthToken(tokenData.access_token);
+    setAuthToken(tokenData.access_token); // guarda o access_token em memória e no localStorage sob a chave de token
+
+    // Marca no localStorage que este navegador já teve uma sessão autenticada
+    if (typeof localStorage !== "undefined") {
+      localStorage.setItem(SESSION_MARKER_KEY, "1"); // grava o valor "1" indicando que já houve login bem-sucedido neste navegador
+    }
 
     // Depois de logar, carregamos os dados do usuário
-    await carregarDadosUsuario();
+    await carregarDadosUsuario(); // chama o endpoint /auth/me para obter nome, papel (admin/colaborador) e demais dados do usuário logado
 
     // E então carregamos a tela principal
     mostrarTelaApp();
@@ -1145,6 +1164,11 @@ function realizarLogout() {
   setAuthToken(null); // remove o token JWT armazenado (localStorage) e em memória
   currentUser = null; // limpa o objeto com dados do usuário logado
 
+  // Como o usuário clicou em "Sair", removemos o marcador de sessão anterior
+  if (typeof localStorage !== "undefined") {
+    localStorage.removeItem(SESSION_MARKER_KEY); // apaga a informação de que este navegador tinha uma sessão ativa
+  }
+
   avaliacaoEmEdicaoId = null; // garante que não mantenha nenhuma avaliação em edição após sair
   rascunhoEmEdicaoId = null;  // garante que nenhum rascunho continue marcado como "em edição" após o logout
 
@@ -1152,15 +1176,17 @@ function realizarLogout() {
     formAvaliacao.reset(); // limpa o formulário ao fazer logout
   }
 
-  resetarFormularioParaNovaAvaliacao(); // volta o título/subtítulo para o modo padrão
+  resetarFormularioParaNovaAvaliacao(); // volta o título/subtítulo para o modo padrão (texto de "Nova avaliação")
 
   // Limpa eventuais mensagens do formulário de avaliação
-  avaliacaoFeedbackEl.textContent = "";
-  if (userManagementCard) {                                    // se o card de gestão de usuários existir
-    userManagementCard.classList.add("hidden");                // garante que ele não apareça na tela de login
+  avaliacaoFeedbackEl.textContent = ""; // apaga qualquer feedback de sucesso/erro do formulário de avaliação
+
+  if (userManagementCard) { // se o card de gestão de usuários existir no DOM
+    userManagementCard.classList.add("hidden"); // garante que ele não apareça quando estivermos na tela de login
   }
-  // Exibe a tela de login
-  mostrarTelaLogin();
+
+  // Exibe a tela de login após o logout
+  mostrarTelaLogin(); // troca para a tela de login, escondendo a tela principal
 }
 
 // ----------------------------------------------------------------------
@@ -4033,10 +4059,25 @@ async function inicializarApp() {
   // Tenta carregar token salvo no navegador
   const tokenSalvo = getStoredToken();
 
+  // Verifica se este navegador já teve uma sessão autenticada em algum momento
+  const jaTeveSessao =
+    typeof localStorage !== "undefined" && // confere se o localStorage está disponível no ambiente
+    localStorage.getItem(SESSION_MARKER_KEY) === "1"; // lê a chave de marcador de sessão e compara com "1"
+
   if (!tokenSalvo) {
-    // Se não houver token, mostramos a tela de login
-    mostrarTelaLogin();
-    return;
+    // Se não houver token salvo, verificamos se o navegador já teve sessão antes
+    if (jaTeveSessao && loginErrorEl) {
+      // Caso já tenha tido sessão, avisamos que a sessão expirou
+      loginErrorEl.textContent =
+        "Sua sessão expirou. Entre novamente para continuar."; // mensagem amigável de sessão expirada
+    } else if (loginErrorEl) {
+      // Se for o primeiro acesso (ou nunca marcou sessão), limpamos qualquer mensagem antiga
+      loginErrorEl.textContent = ""; // garante que não haja erro “preso” de tentativas anteriores
+    }
+
+    // Em ambos os casos (com ou sem sessão anterior), mostramos a tela de login
+    mostrarTelaLogin(); // exibe a tela de login como estado inicial
+    return; // interrompe a inicialização, pois não temos usuário autenticado
   }
 
   // Se encontrou token, guardamos em memória
