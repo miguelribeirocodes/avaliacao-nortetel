@@ -4738,6 +4738,17 @@ function inicializarListaFotosSwitchQ2() {
 
   if (q2SwitchAdicionarFotoButton) { // se o botão "Adicionar foto +" estiver presente no DOM
     q2SwitchAdicionarFotoButton.addEventListener("click", () => { // registra o listener de clique no botão
+      try {
+        // Antes de abrir câmera/galeria, tentamos salvar um rascunho automático
+        // Isso não salva fotos, mas preserva todos os demais campos do formulário
+        salvarRascunhoAutomatico();                               // força o autosave com o estado atual do formulário
+      } catch (e) {
+        console.error(
+          "Falha ao salvar rascunho automático antes de abrir seletor de fotos:",
+          e
+        );                                                        // em caso de erro, apenas registramos no console e seguimos o fluxo
+      }
+
       if (avaliacaoEmEdicaoId && q2SwitchFotoFileInput) {         // se estamos editando uma avaliação já salva e o input de arquivo existir
         q2SwitchFotoFileInput.value = "";                         // limpa qualquer seleção anterior para garantir novo envio
         q2SwitchFotoFileInput.click();                            // dispara o seletor de arquivos/câmera do navegador
@@ -4747,12 +4758,12 @@ function inicializarListaFotosSwitchQ2() {
     });
   }
 
+
   if (q2SwitchFotoFileInput) {                                    // se o input de arquivo escondido estiver disponível no DOM
     q2SwitchFotoFileInput.addEventListener("change", async (event) => {
       const arquivos = Array.from(event.target.files || []);      // converte a lista de arquivos selecionados em um array "normal"
 
-      if (!arquivos.length) {                                     // se o usuário cancelou a seleção ou não escolheu nada
-        return;                                                   // encerra o handler
+      if (!arquivos.length) {                                     // se o usuário cancelou a seleção ou não escolheu nada        return;                                                   // encerra o handler
       }
 
       if (!avaliacaoEmEdicaoId) {                                 // se por algum motivo não houver avaliação em edição
