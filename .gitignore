@@ -3,3 +3,4 @@ Deploy netlify/*
 __pycache__/*
 change_log.txt
 "Próximos passos.txt"
+static/uploads/*

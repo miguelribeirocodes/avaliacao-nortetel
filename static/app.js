@@ -742,7 +742,6 @@ function handleAuthError() {
   loginErrorEl.textContent =
     "Sua sessão expirou. Entre novamente para continuar.";
   // Mostra a tela de login
-  window.alert("Sua sessão expirou. Entre novamente para continuar.");
   mostrarTelaLogin();
 }
 
