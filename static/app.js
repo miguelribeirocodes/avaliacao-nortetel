@@ -1293,15 +1293,20 @@ async function carregarAvaliacoes() {
         }
 
         // Escapa informações básicas, caindo para string vazia se nulo
-        const cliente = item.cliente_nome || "";
-        const local = item.local || "";
-        const status = (item.status || "").toString().toUpperCase();
-        const objeto = item.objeto || "";
+        const cliente = item.cliente_nome || "";                   // nome do cliente ou string vazia se não vier preenchido
+        const local = item.local || "";                            // local da avaliação ou string vazia se não vier
+        const status = (item.status || "").toString().toUpperCase(); // status em maiúsculas (ABERTO, FECHADO, etc.)
+        const objeto = item.objeto || "";                          // objeto da avaliação ou string vazia por padrão
+
+        const codigo =
+          (item.codigo_avaliacao &&                                // verifica se o backend retornou um código amigável
+            item.codigo_avaliacao.toString()) ||                   // se sim, converte para string e usa como código principal
+          (item.id != null ? String(item.id) : "");                // senão, cai para o id numérico como fallback (registros antigos)
 
         // Retorna o HTML da linha de tabela
         return `
             <tr class="avaliacao-row" data-avaliacao-id="${item.id}">
-                <td>${item.id}</td>
+                <td>${codigo}</td>
                 <td>${objeto}</td>
                 <td>${cliente}</td>
                 <td>${dataFormatada}</td>
@@ -1309,6 +1314,7 @@ async function carregarAvaliacoes() {
                 <td>${status}</td>
             </tr>
             `;
+
     })
     .join(""); // junta todas as linhas geradas em uma única string HTML
 

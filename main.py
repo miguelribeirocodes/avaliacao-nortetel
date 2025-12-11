@@ -136,6 +136,12 @@ class Avaliacao(Base):                                           # define a clas
 
     id = Column(Integer, primary_key=True, index=True)           # coluna id inteira, chave primária, com índice
 
+    codigo_avaliacao = Column(                                   # coluna para o código amigável da avaliação
+        String(20),                                              # string de até 20 caracteres (ex.: AVT2025001)
+        unique=True,                                             # garante que não haverá dois registros com o mesmo código
+        index=True                                               # cria um índice para facilitar buscas e ordenações por código
+    )
+
     # Dados da equipe responsável
     equipe = Column(Text)                                        # equipe responsável (texto livre)
     responsavel_avaliacao = Column(Text)                         # responsável pela avaliação técnica
@@ -420,12 +426,45 @@ def verificar_senha(senha_plana: str, senha_hash: str) -> bool:  # função para
 def gerar_hash_senha(senha_plana: str) -> str:                   # função para gerar o hash de uma senha
     return pwd_context.hash(senha_plana)                         # retorna o hash bcrypt da senha
 
-def gerar_senha_temporaria(tamanho: int = 10) -> str:            # gera uma senha temporária aleatória e segura com o tamanho informado
-    alfabeto = string.ascii_letters + string.digits              # monta o conjunto de caracteres possíveis (letras maiúsculas/minúsculas + dígitos)
+def gerar_senha_temporaria(tamanho: int = 10) -> str:
+    alfabeto = string.ascii_letters + string.digits  
     return "".join(                                              # junta os caracteres escolhidos em uma única string
-        secrets.choice(alfabeto)                                 # escolhe um caractere aleatório do alfabeto de forma criptograficamente segura
+        secrets.choice(alfabeto) 
         for _ in range(tamanho)                                  # repete o processo 'tamanho' vezes
     )                                                            # retorna a senha gerada
+
+def gerar_codigo_avaliacao(                                     # função para gerar o código amigável da avaliação
+    db: Session,                                                 # recebe a sessão de banco para consultar avaliações existentes
+    data_avaliacao: Optional[date]                              # recebe a data da avaliação (pode ser None)
+) -> str:                                                        # retorna uma string com o código gerado
+    if isinstance(data_avaliacao, date):                         # verifica se a data recebida é um objeto date válido
+        ano_referencia = data_avaliacao.year                     # usa o ano da própria data da avaliação como referência
+    else:                                                        # caso a data venha None ou em formato inesperado
+        ano_referencia = date.today().year                       # usa o ano atual do servidor como fallback
+
+    prefixo = f"AVT{ano_referencia}"                             # monta o prefixo fixo com AVT + ano (ex.: AVT2025)
+
+    ultimo = (                                                   # inicia a busca pela última avaliação com esse prefixo
+        db.query(Avaliacao)                                      # abre uma consulta na tabela de Avaliacoes
+        .filter(                                                 # aplica um filtro na consulta
+            Avaliacao.codigo_avaliacao.like(f"{prefixo}%")       # pega apenas códigos que comecem com o prefixo do ano
+        )
+        .order_by(Avaliacao.codigo_avaliacao.desc())             # ordena de forma decrescente pelo código (mais recente primeiro)
+        .first()                                                 # pega apenas o primeiro resultado (ou None, se não houver)
+    )
+
+    proximo_numero = 1                                           # valor padrão para o próximo número sequencial (001)
+
+    if ultimo and ultimo.codigo_avaliacao:                       # se encontramos um registro com código definido
+        sufixo = ultimo.codigo_avaliacao[-3:]                    # pega os últimos 3 caracteres do código (parte numérica)
+        try:                                                     # tenta converter o sufixo em número
+            proximo_numero = int(sufixo) + 1                     # incrementa o número encontrado para gerar o próximo da sequência
+        except ValueError:                                       # se o sufixo não for um número válido
+            proximo_numero = 1                                   # volta para 1 como fallback seguro
+
+    codigo = f"{prefixo}{proximo_numero:03d}"                    # monta o código final com sufixo de 3 dígitos, preenchido com zeros
+
+    return codigo                                                # devolve a string gerada (ex.: AVT2025001)
 
 def criar_token_acesso(dados: dict,                              # função para criar um token JWT
                        expira_em: Optional[timedelta] = None     # parâmetro opcional com tempo de expiração
@@ -1226,11 +1265,17 @@ class AvaliacaoUpdateSchema(BaseModel):  # schema usado para atualizar uma avali
     class Config:  # configuração do Pydantic
         orm_mode = True  # permite converter diretamente a partir de objetos ORM do SQLAlchemy
 
-class AvaliacaoOutSchema(AvaliacaoBaseSchema):                      # schema de saída de avaliação, herdando os campos básicos (cliente_nome, data_avaliacao, local, objeto, status, tipo_formulario)
+class AvaliacaoOutSchema(AvaliacaoBaseSchema):
     id: int = Field(...,                                            # id numérico da avaliação (chave primária no banco)
                     description="ID da avaliação")                  # descrição exibida na documentação/Swagger
 
-    equipe: Optional[str] = Field(                                  # equipe responsável pela avaliação
+    codigo_avaliacao: Optional[str] = Field(                        # campo opcional com o código amigável da avaliação
+        None,                                                       # pode ser None em registros antigos que não tinham esse código
+        description="Código amigável da avaliação (ex.: AVT2025001)"# descrição exibida na documentação/Swagger
+    )
+
+    equipe: Optional[str] = Field(                                  # equipe responsável
+
         None,                                                       # None significa que pode vir vazio em alguns registros
         description="Equipe responsável pela avaliação"             # descrição do campo
     )
@@ -2059,10 +2104,16 @@ def criar_avaliacao(                                             # função para
     payload: AvaliacaoCreateSchema,                              # dados recebidos no corpo da requisição (já parseados pelo Pydantic)
     db: Session = Depends(get_db)                               # sessão de banco injetada pela dependência
 ):
-    # Neste ponto, payload.data_avaliacao já é um objeto date,    # comentário explicando que o Pydantic já converteu a string
+    # Neste ponto, payload.data_avaliacao já é um objeto date,    # comentário explicand
     # porque tipamos o campo como date no schema.                 # reforço da compatibilidade com a coluna Date do SQLAlchemy
 
+    codigo_avaliacao = gerar_codigo_avaliacao(                      # chama helper para gerar o código amigável da nova avaliação
+        db=db,                                                      # passa a sessão de banco atual para que a função consulte registros existentes
+        data_avaliacao=payload.data_avaliacao                       # passa a data da avaliação para compor o ano do código (AVTAAAAxxx)
+    )                                                               # ao final, teremos uma string no formato "AVT2025001", por exemplo
+
     avaliacao = Avaliacao(                                           # instancia um novo objeto Avaliacao
+        codigo_avaliacao=codigo_avaliacao,                           # atribui o código amigável gerado (ex.: AVT2025001) à nova avaliação
         cliente_nome=payload.cliente_nome,                           # nome do cliente
         data_avaliacao=payload.data_avaliacao,                       # data da avaliação (já é date)
         local=payload.local,                                         # local da instalação
