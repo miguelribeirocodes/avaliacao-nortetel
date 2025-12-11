@@ -62,6 +62,98 @@ const AUTO_SAVE_DELAY_MS = 2000; // define um atraso de 2 segundos após a últi
 let autoSaveTimeoutId = null; // permite cancelar o salvamento automático anterior antes de agendar um novo
 
 /**
+ * Verifica se o formulário de avaliação está "vazio" do ponto de vista de rascunho.
+ * Usa o objeto "valores" montado em coletarEstadoFormularioComoRascunho().
+ * Se só tiver campos técnicos/ocultos ou tudo em branco, devolve true.
+ */
+function formularioRascunhoEstaVazio(valores) {
+  console.log(
+    "[RASCUNHO][DEBUG] Iniciando verificação de formulário vazio. Valores recebidos:",
+    valores
+  ); // registra no console todos os valores coletados antes de analisar se o formulário está vazio
+
+  if (!valores || typeof valores !== "object") {          // se não vier um objeto de valores válido
+    console.log(
+      "[RASCUNHO][DEBUG] Valores inválidos ou indefinidos. Considerando formulário vazio."
+    );                                                    // informa no console que não há dados utilizáveis
+    return true;                                          // considera o formulário como vazio
+  }
+
+  const idsIgnorados = [                                              // lista de ids de campos que não contam como "preenchimento real"
+    "rascunho-id",                                                    // id do campo oculto que guarda o id do rascunho
+    "tipo-formulario",                                                // id do campo oculto que guarda o tipo de formulário (UTP/Fibra x Câmeras)
+    "avaliacao-id",                                                   // id de eventual campo oculto técnico da avaliação (se existir)
+  ];
+
+  const chaves = Object.keys(valores);                                // obtém a lista de ids de campos presentes no objeto de valores
+
+  for (let i = 0; i < chaves.length; i++) {                           // percorre cada chave (id de campo) encontrada
+    const idCampo = chaves[i];                                        // guarda o id atual para facilitar leitura
+
+    if (!Object.prototype.hasOwnProperty.call(valores, idCampo)) {    // garante que a chave é realmente própria do objeto (não herdada)
+      continue;                                                       // se não for própria, ignora e passa para a próxima
+    }
+
+    if (idsIgnorados.indexOf(idCampo) !== -1) {                       // se este id está na lista de campos ignorados
+      continue;                                                       // não conta como preenchimento e avança para o próximo
+    }
+
+    // Tratamento especial para o campo "status"
+    if (idCampo === "status") {                           // se o campo atual for o select de status
+      const statusVal = (valor || "").toString().trim();  // normaliza o valor do status como string sem espaços
+      if (statusVal === "" || statusVal === "aberto") {   // se estiver vazio (caso raro) ou no valor padrão "aberto"
+        // Não consideramos isso como preenchimento "real" para fins de rascunho
+        console.log(
+          "[RASCUNHO][DEBUG] Campo status em valor padrão (ou vazio):",
+          JSON.stringify(statusVal)
+        );                                                // registra no console que o status está em estado padrão
+        continue;                                         // ignora o campo status e segue analisando os demais
+      }
+      // Se o status for diferente de "aberto", conta como preenchido
+      console.log(
+        "[RASCUNHO][DEBUG] Campo status preenchido com valor não padrão:",
+        JSON.stringify(statusVal)
+      );                                                  // registra no console que o status foi alterado do padrão
+      encontrouAlgumPreenchido = true;                    // marca que o formulário não está vazio
+      break;                                              // encerra o loop, pois já achamos algo relevante
+    }
+
+    const valor = valores[idCampo];                                   // obtém o valor associado a este campo
+
+    if (typeof valor === "boolean") {                                 // se o valor for booleano (tipicamente checkbox)
+      if (valor === true) {                                           // se o checkbox estiver marcado
+        return false;                                                 // já consideramos que o formulário não está vazio
+      }
+      continue;                                                       // se for false, ignora e segue avaliando os demais campos
+    }
+
+    if (valor === null || valor === undefined) {                      // se for null ou undefined
+      continue;                                                       // não conta como preenchimento
+    }
+
+    if (typeof valor === "string") {                                  // se o valor for uma string
+      if (valor.trim() !== "") {                                      // verifica se, depois de remover espaços, sobrou algum conteúdo
+        return false;                                                 // se houver texto, consideramos que o formulário não está vazio
+      }
+      continue;                                                       // se a string estiver vazia, ignora e passa para o próximo campo
+    }
+
+    if (typeof valor === "number") {                                  // se o valor for numérico
+      if (!Number.isNaN(valor) && valor !== 0) {                      // se não for NaN e for diferente de zero
+        return false;                                                 // consideramos que há um valor relevante preenchido
+      }
+      continue;                                                       // se for 0 ou NaN, tratamos como ausência de valor
+    }
+
+    if (valor) {                                                      // para outros tipos, qualquer valor "truthy" conta como preenchido
+      return false;                                                   // assim que encontramos um valor truthy, encerramos indicando que não está vazio
+    }
+  }
+
+  return true;                                                        // se percorremos todos os campos sem encontrar nada relevante, o formulário é considerado vazio
+}
+
+/**
  * Lê do localStorage a lista bruta de rascunhos salvos.
  * O retorno é sempre um array; em caso de erro, cai para [].
  */
@@ -2733,6 +2825,21 @@ function coletarEstadoFormularioComoRascunho() {
 
   });
 
+  if (formularioRascunhoEstaVazio(valores)) {                    // verifica se, pelos valores coletados, o formulário está vazio
+    return null;                                                 // se estiver vazio, não faz sentido criar/atualizar rascunho, devolve null
+  }
+    console.log(
+    "[RASCUNHO][DEBUG] Valores coletados do formulário para rascunho:",
+    valores
+  );                                                       // mostra no console o objeto completo de valores antes da verificação de vazio
+
+  if (formularioRascunhoEstaVazio(valores)) {              // usa o helper para verificar se o formulário está efetivamente vazio
+    console.log(
+      "[RASCUNHO][DEBUG] Formulário considerado vazio. Não será criado/atualizado rascunho."
+    );                                                     // registra no console que nenhum rascunho será gerado
+    return null;                                           // devolve null para indicar que não há rascunho a ser salvo
+  }
+
   const tipoFormularioAtual = tipoFormularioInput // pega o input hidden que guarda o tipo de formulário
     ? (tipoFormularioInput.value || "utp_fibra") // usa o valor atual ou "utp_fibra" como padrão se estiver vazio
     : "utp_fibra"; // se por algum motivo o hidden não existir, assume "utp_fibra" como valor padrão
@@ -2836,10 +2943,17 @@ function salvarRascunhoAtual() {
 
   const base = coletarEstadoFormularioComoRascunho(); // monta o objeto de rascunho a partir dos campos atuais
 
+  console.log(
+    "[RASCUNHO][DEBUG] salvarRascunhoAtual - base retornada:",
+    base
+  );                                                       // mostra no console qual objeto de rascunho foi montado (ou null)
+  
   if (!base) { // se por algum motivo não foi possível montar o rascunho
+    console.log(
+      "[RASCUNHO][DEBUG] salvarRascunhoAtual - base nula. Nenhum rascunho será salvo (provavelmente formulário vazio).")    
     if (avaliacaoFeedbackEl) { // garante que o elemento de feedback exista antes de usar
       avaliacaoFeedbackEl.textContent =
-        "Não foi possível salvar o rascunho no momento."; // mensagem genérica informando a falha no salvamento
+        "Preencha pelo menos um campo antes de salvar o rascunho."; // orienta o usuário de que é necessário preencher algo para salvar rascunho
       avaliacaoFeedbackEl.className = "form-feedback form-error"; // aplica estilo de erro na área de feedbackfunction salvarRascunhoAtual() {
     }
     return; // encerra a função, pois não há rascunho válido
@@ -2847,6 +2961,11 @@ function salvarRascunhoAtual() {
 
   try {
     const rascunhoSalvo = salvarOuAtualizarRascunhoLocal(base); // chama o helper que cria/atualiza o rascunho no localStorage
+    
+    console.log(
+      "[RASCUNHO][DEBUG] salvarRascunhoAtual - rascunho salvo/atualizado:",
+      rascunhoSalvo
+    );                                                     // registra no console o conteúdo completo do rascunho persistido
     
     rascunhoEmEdicaoId = rascunhoSalvo.id; // atualiza a variável global com o id do rascunho recém-salvo
 
@@ -2887,12 +3006,25 @@ function salvarRascunhoAutomatico() {
 
   const base = coletarEstadoFormularioComoRascunho(); // monta o objeto de rascunho com os valores atuais dos campos
 
-  if (!base) { // se por algum motivo não foi possível montar o objeto de rascunho
-    return; // não tenta salvar nada e apenas encerra
+  console.log(
+    "[RASCUNHO][DEBUG] salvarRascunhoAutomatico - base retornada:",
+    base
+  );                                                       // exibe no console o objeto de rascunho montado (ou null) durante o autosave
+  
+  if (!base) {                                             // se por algum motivo não foi possível montar o objeto de rascunho (formulário vazio, por exemplo)
+    console.log(
+      "[RASCUNHO][DEBUG] salvarRascunhoAutomatico - base nula. Autosave não irá criar/atualizar rascunho."
+    );                                                     // registra no console que o autosave foi abortado por não haver conteúdo
+    return;                                                // não tenta salvar nada e apenas encerra
   }
 
   try {
     const rascunhoSalvo = salvarOuAtualizarRascunhoLocal(base); // chama o helper que cria/atualiza o rascunho no localStorage
+
+    console.log(
+      "[RASCUNHO][DEBUG] salvarRascunhoAutomatico - rascunho salvo/atualizado:",
+      rascunhoSalvo
+    );                                                     // mostra no console o rascunho persistido automaticamente
 
     rascunhoEmEdicaoId = rascunhoSalvo.id; // garante que a variável global mantenha o id do rascunho mais recente
 
@@ -3106,12 +3238,49 @@ function carregarRascunhoNoFormularioPorId(idRascunho) {
 }
 
 /**
+ * Remove do localStorage rascunhos considerados "vazios":
+ * - form_values sem nenhum campo relevante preenchido
+ * - e sem lista de materiais de infraestrutura preenchida.
+ */
+function removerRascunhosVaziosDoStorage() {
+  const todos = lerRascunhosDoStorage();                             // lê a lista completa de rascunhos do storage bruto
+  if (!Array.isArray(todos) || todos.length === 0) {                 // se não houver rascunhos ou o formato estiver incorreto
+    return;                                                          // não há nada para limpar, encerra a função
+  }
+
+  const filtrados = todos.filter((item) => {                         // monta uma nova lista apenas com rascunhos que queremos manter
+    if (!item || typeof item !== "object") {                         // se o item não for um objeto válido
+      return false;                                                  // descarta esse item do storage
+    }
+
+    const formValues = item.form_values || {};                       // obtém o mapa de valores do formulário salvo no rascunho (ou objeto vazio)
+    const vazioForm = formularioRascunhoEstaVazio(formValues);       // verifica se esses valores caracterizam um formulário vazio
+
+    const temMateriais =
+      Array.isArray(item.lista_materiais_infra) &&                   // confere se o rascunho possui uma lista de materiais de infraestrutura
+      item.lista_materiais_infra.length > 0;                         // e se essa lista contém pelo menos um item
+
+    if (vazioForm && !temMateriais) {                                // se o formulário estiver vazio e não houver materiais
+      return false;                                                  // este rascunho é considerado "fantasma" e será removido
+    }
+
+    return true;                                                     // caso contrário, mantemos o rascunho na lista filtrada
+  });
+
+  if (filtrados.length !== todos.length) {                           // se houve alguma alteração na quantidade de rascunhos
+    gravarRascunhosNoStorage(filtrados);                             // grava a nova lista filtrada de volta no localStorage
+  }
+}
+
+/**
  * Renderiza na tabela HTML a lista de rascunhos locais do usuário atual.
  */
 function renderizarListaRascunhos() {
   if (!rascunhosTbody) { // se a tabela de rascunhos não existir no DOM
     return; // não há onde desenhar a lista
   }
+
+  removerRascunhosVaziosDoStorage();
 
   const rascunhos = obterRascunhosDoUsuarioAtual(); // obtém todos os rascunhos associados ao usuário atual (ou sem user_id)
   rascunhosTbody.innerHTML = ""; // limpa o conteúdo atual da tabela para redesenhar do zero

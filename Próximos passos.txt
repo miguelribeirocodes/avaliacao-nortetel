@@ -1,34 +1,3 @@
-Melhorias futuras:
-
-- implementação de tabela com lista de materiais: equipamento/material, modelo quantidade e fabricante
-- evitar criar rascunho vazio
-- implementação da foto
-- resolver problema do login que aparece "Usuario" ao invés do "Nome"
-- implementação do audit trail
-- modelo do id: AVTANO001. Ex.: AVT2025001, AVT2025002, AVT2026001
-
-1º prompt)
-
-Vamos incluir na seção de infraestrutura uma tabela "Lista de Materiais" com as seguintes colunas: equipamento/material, modelo quantidade e fabricante.
-Essa tabela terá "infinitas linhas" começando obviamente por somente 1 e conforme o usuário aperte "Enter" (e tab pra mudar de coluna) ou um botão "Nova linha",
-novas linhas serão adicionadas.
-Preciso que você primeiro me diga como isso impactará o banco de dados, como vamos salvar esses dados, sendo que potencialmente podem ter vários atrelados a somente 1 avaliação?
-Não mande nenhum código ainda, vamos apenas pensar no conceito dessa alteração.
-
-Continuação:
-
-Estou de acordo com esta estratégia, agora vamos separar este passo em 
-sub etapas para evitar que a resposta do prompt fique muito grande.
-Quero que já crie essas etapas, avalie pra mim o impacto:
-
-- No front end
-- No back end
-- No banco de dados
-
-E já me envie quais serão as etapas e pode iniciar já pela primeira.
-
-OK OK OK OK OK OK OK OK OK OK OK OK OK OK OK OK OK OK OK OK OK OK OK OK OK OK OK OK 
-
 2º prompt)
 
 Implementar fotos
