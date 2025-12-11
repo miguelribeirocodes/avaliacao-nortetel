@@ -99,7 +99,7 @@ function formularioRascunhoEstaVazio(valores) {
     }
 
     const valor = valores[idCampo];                                   // obtém o valor associado a este campo
-    
+
     // Tratamento especial para o campo "status"
     if (idCampo === "status") {                           // se o campo atual for o select de status
       const statusVal = (valor || "").toString().trim();  // normaliza o valor do status como string sem espaços
@@ -738,6 +738,7 @@ function handleAuthError() {
   loginErrorEl.textContent =
     "Sua sessão expirou. Entre novamente para continuar.";
   // Mostra a tela de login
+  window.alert("Sua sessão expirou. Entre novamente para continuar.");
   mostrarTelaLogin();
 }
 

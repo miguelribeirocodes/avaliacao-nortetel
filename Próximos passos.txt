@@ -13,3 +13,6 @@ bug: rascunho n ta salvando auto, verificar todos os saves de rascunho
 3º prompt)
 
 - Logout automático e refresh automático pra evitar problemas no celular principalmente
+
+
+Fazer testes de robustez
