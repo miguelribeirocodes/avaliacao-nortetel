@@ -27,6 +27,12 @@ Quero que já crie essas etapas, avalie pra mim o impacto:
 
 E já me envie quais serão as etapas e pode iniciar já pela primeira.
 
+OK OK OK OK OK OK OK OK OK OK OK OK OK OK OK OK OK OK OK OK OK OK OK OK OK OK OK OK 
+
 2º prompt)
+
+Implementar fotos
+
+3º prompt)
 
 - Logout automático e refresh automático pra evitar problemas no celular principalmente

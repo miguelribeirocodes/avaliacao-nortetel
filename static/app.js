@@ -391,6 +391,7 @@ const novaAvaliacaoButton = document.getElementById("btn-nova-avaliacao"); // re
 
 const rascunhosTbody = document.getElementById("rascunhos-tbody"); // corpo da tabela que exibirá os rascunhos locais
 const recarregarRascunhosButton = document.getElementById("btn-recarregar-rascunhos"); // botão que força o recarregamento da lista de rascunhos
+const limparRascunhosButton = document.getElementById("btn-limpar-rascunhos");
 
 // Elementos do título e do subtítulo do formulário de avaliação, usados para indicar "Nova" ou "Editar".
 const formTituloEl = document.getElementById("form-avaliacao-titulo"); // h2 acima do formulário de avaliação
@@ -3091,6 +3092,7 @@ function renderizarListaRascunhos() {
     celula.textContent = "Nenhum rascunho salvo neste dispositivo."; // mensagem informando que não há rascunhos
     linhaVazia.appendChild(celula); // adiciona a célula à linha
     rascunhosTbody.appendChild(linhaVazia); // adiciona a linha à tabela
+    atualizarBadgeRascunhosAPartirDoStorage(0);
     return; // encerra a função, pois já tratamos o caso sem rascunhos
   }
 
@@ -3147,6 +3149,9 @@ function renderizarListaRascunhos() {
 
     rascunhosTbody.appendChild(linha); // finalmente adiciona a linha completa à tabela de rascunhos
   });
+
+  atualizarBadgeRascunhosAPartirDoStorage();
+  
 }
 
 /**
@@ -3886,6 +3891,15 @@ function registrarEventos() {
     });
   }
 
+  if (limparRascunhosButton) {                             
+    limparRascunhosButton.addEventListener("click", () => {
+        //const valorBruto = window.localStorage.getItem(DRAFTS_STORAGE_KEY); // lê a string JSON armazenada sob a chave de rascunhos
+        window.localStorage.clear(); //limpar para debug
+        renderizarListaRascunhos();                                 // simplesmente re-renderiza a lista de rascunhos a partir do storage
+        atualizarBadgeRascunhos(0);                       // depois de limpar, zera o contador na badge
+    });
+  }
+
   // Salvamento automático silencioso quando o usuário tenta sair da página
   window.addEventListener("beforeunload", () => {                 // registra um listener para o evento de saída/recarga da página
     try {
@@ -4122,7 +4136,46 @@ function registrarEventosListaMateriaisInfra() {
 document.addEventListener("DOMContentLoaded", () => {
   inicializarApp();                         // inicia a aplicação (login, carregamento de avaliações, etc.)
   registrarEventosListaMateriaisInfra();    // registra os eventos de teclado da lista de materiais de infraestrutura (Enter na última linha cria nova linha)
+  // ================== RASCUNHOS: TOGGLE DO ACCORDION ==================
+  // Função de inicialização do comportamento de abre/fecha da seção de rascunhos
+  (function initRascunhosToggle() {                            // IIFE para rodar assim que o script for carregado
+    const rascunhosCard = document.querySelector('.card-list-rascunho'); // pega o card amarelo de rascunhos
+    const toggleButton  = document.getElementById('btn-toggle-rascunhos'); // pega o botão que funciona como "aba"
+
+    if (!rascunhosCard || !toggleButton) return;              // se por algum motivo não encontrar os elementos, sai silenciosamente
+
+    toggleButton.addEventListener('click', () => {            // adiciona um ouvinte de clique no botão de toggle
+      rascunhosCard.classList.toggle('rascunhos-collapsed');  // alterna a classe que colapsa/expande o painel
+    });                                                       // fim da função de clique
+  })();                                                       // executa imediatamente a função de inicialização
+
 });
+
+// ================== RASCUNHOS: BADGE DE QUANTIDADE ==================
+
+// Atualiza o número exibido na badge ao lado do título
+function atualizarBadgeRascunhos(qtdRascunhos) {                  // recebe a quantidade de rascunhos
+  const badge = document.getElementById('rascunhos-count-badge'); // pega o span da badge pelo id
+
+  if (!badge) return;                                             // se não existir (HTML não foi renderizado), não faz nada
+
+  const numero = Number(qtdRascunhos) || 0;                       // garante que a quantidade seja um número (fallback para 0)
+
+  badge.textContent = numero.toString();                          // escreve o valor na badge como texto
+}
+
+// Versão que lê direto do localStorage usando sua função existente
+function atualizarBadgeRascunhosAPartirDoStorage() {              // função auxiliar para usar no fluxo atual
+  try {                                                           // bloco try/catch para evitar quebrar a tela
+    const todos = lerRascunhosDoStorage();                        // usa a função que você já tem para ler os rascunhos locais
+    const qtd = Array.isArray(todos) ? todos.length : 0;          // se for array pega o length, senão assume 0
+    atualizarBadgeRascunhos(qtd);                                 // chama a função que atualiza o texto da badge
+  } catch (erro) {                                                // se der algum erro ao ler o storage
+    console.error('Erro ao atualizar badge de rascunhos:', erro); // loga no console para debug
+    atualizarBadgeRascunhos(0);                                   // garante que a badge não fique com lixo visual
+  }
+}
+
 
 /**
  * Cria uma nova linha na lista de materiais de infraestrutura,

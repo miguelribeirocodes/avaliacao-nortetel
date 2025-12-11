@@ -424,42 +424,60 @@
           </section>
           <!-- Card de gestão de usuários - visível apenas para administradores -->
 
-          <section class="card card-list"> <!-- card de listagem de rascunhos locais salvos no navegador -->
-            <div class="card-header"> <!-- cabeçalho do card de rascunhos -->
-              <div> <!-- contêiner para título e subtítulo -->
-                <h2>Rascunhos locais</h2> <!-- título do card de rascunhos -->
-                <p class="card-title">
-                  Rascunhos salvos apenas neste dispositivo e navegador, sem enviar nada para o servidor.
-                  <!-- texto explicando que os rascunhos são locais -->
-                </p>
+          <section class="card card-list-rascunho rascunhos-collapsed">
+            <div class="card-header rascunhos-header">
+              <button type="button" id="btn-toggle-rascunhos" class="rascunhos-toggle">
+                <div class="rascunhos-toggle-left">
+                  <h2>Rascunhos locais</h2>
+                  <p class="card-title">
+                    Rascunhos salvos apenas neste dispositivo e navegador, sem enviar nada para o servidor.
+                  </p>
+                </div>
+
+                <div class="rascunhos-toggle-right">
+                  <span id="rascunhos-count-badge" class="rascunhos-count-badge">
+                    0
+                  </span>
+                  <span id="rascunhos-chevron" class="rascunhos-chevron" aria-hidden="true">
+                    ▾
+                  </span>
+                </div>
+              </button>
+
+              <div class="rascunhos-header-actions">
+                <button id="btn-recarregar-rascunhos" class="btn btn-ghost btn-small">
+                  Recarregar
+                </button>
+
+                <button id="btn-limpar-rascunhos" class="btn btn-ghost btn-small">
+                  Limpar tudo
+                </button>
               </div>
-              <button
-                id="btn-recarregar-rascunhos"
-                class="btn btn-ghost btn-small"
-              >
-                Recarregar
-              </button> <!-- botão para recarregar a lista de rascunhos a partir do storage local -->
             </div>
-            <div class="table-wrapper"> <!-- wrapper de tabela para aplicar rolagem e bordas consistentes -->
-              <table class="table"> <!-- tabela reutilizando o mesmo estilo das outras listas -->
-                <thead> <!-- cabeçalho da tabela de rascunhos -->
-                  <tr>
-                    <th>Cliente / Rótulo</th> <!-- coluna com o nome do cliente ou rótulo amigável -->
-                    <th>Tipo</th> <!-- coluna indicando se é UTP/Fibra ou Câmeras -->
-                    <th>Atualizado em</th> <!-- coluna com data e hora da última atualização -->
-                    <th>Ações</th> <!-- coluna para os botões de ação (carregar / excluir) -->
-                  </tr>
-                </thead>
-                <tbody id="rascunhos-tbody"> <!-- corpo da tabela que será preenchido via JavaScript -->
-                  <tr>
-                    <td colspan="4" class="table-empty">
-                      Nenhum rascunho salvo neste dispositivo.
-                    </td> <!-- mensagem padrão quando não há rascunhos -->
-                  </tr>
-                </tbody>
-              </table>
+
+            <div id="rascunhos-panel" class="rascunhos-panel">
+              <div class="table-wrapper">
+                <table class="table">
+                  <thead>
+                    <tr>
+                      <th>Cliente / Rótulo</th>
+                      <th>Tipo</th>
+                      <th>Atualizado em</th>
+                      <th>Ações</th>
+                    </tr>
+                  </thead>
+                  <tbody id="rascunhos-tbody">
+                    <tr>
+                      <td colspan="4" class="table-empty">
+                        Nenhum rascunho salvo neste dispositivo.
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
             </div>
           </section>
+
 
           <!-- Coluna direita: formulário de nova avaliação -->
           <section class="card card-form">

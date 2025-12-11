@@ -214,6 +214,105 @@ body {
 .card-list {
   overflow: hidden;
 }
+.card-list-rascunho{
+  overflow: hidden;
+  background: #fffbc8;                         
+}
+
+/* ======================= RASCUNHOS: ACCORDION ===================== */
+
+/* Ajusta o header da seção de rascunhos para caber o botão + ações */
+.rascunhos-header {                               /* aplica ao header só do card de rascunhos */
+  align-items: center;                            /* alinha verticalmente os elementos do header */
+  gap: 12px;                                      /* espaço entre o botão principal e as ações à direita */
+}
+
+/* Botão que funciona como "aba" de abrir/fechar */
+.rascunhos-toggle {                               /* estiliza o botão de toggle do accordion */
+  flex: 1;                                        /* ocupa todo o espaço disponível do header (menos as ações) */
+  display: flex;                                  /* organiza o conteúdo interno em linha */
+  align-items: center;                            /* alinha verticalmente título e badge */
+  justify-content: space-between;                 /* separa textos à esquerda e indicadores à direita */
+  gap: 12px;                                      /* espaço interno entre esquerda e direita */
+  border: none;                                   /* remove borda padrão do botão */
+  background: transparent;                        /* fundo transparente para parecer parte do card */
+  padding: 0;                                     /* remove padding padrão do botão */
+  cursor: pointer;                                /* mostra mãozinha indicando que é clicável */
+}
+
+/* Bloco de textos à esquerda do botão */
+.rascunhos-toggle-left {                          /* agrupa h2 e descrição do cabeçalho de rascunhos */
+  display: flex;                                  /* usa flexbox */
+  flex-direction: column;                         /* empilha título e subtítulo em coluna */
+  gap: 2px;                                       /* espaço pequeno entre título e subtítulo */
+}
+
+/* Bloco de indicadores à direita (badge + chevron) */
+.rascunhos-toggle-right {                         /* agrupa badge e ícone de seta */
+  display: flex;                                  /* exibe em linha */
+  align-items: center;                            /* alinha verticalmente ao centro */
+  gap: 8px;                                       /* espaço entre badge e seta */
+}
+
+/* Badge de quantidade de rascunhos */
+.rascunhos-count-badge {                          /* bolinha com quantidade de rascunhos */
+  display: none;                                  /* por padrão fica escondida (só aparece quando colapsado) */
+  min-width: 26px;                                /* largura mínima para acomodar 2 dígitos */
+  height: 22px;                                   /* altura fixa da badge */
+  padding: 0 8px;                                 /* espaço horizontal interno para o texto */
+  border-radius: 999px;                           /* formato de pílula */
+  background: #2563eb;                            /* fundo azul em destaque */
+  color: #ffffff;                                 /* texto branco */
+  font-size: 0.75rem;                             /* fonte um pouco menor */
+  font-weight: 600;                               /* texto mais forte para legibilidade */
+  display: inline-flex;                           /* centraliza o número na vertical e horizontal */
+  align-items: center;                            /* centra verticalmente */
+  justify-content: center;                        /* centra horizontalmente */
+}
+
+/* Ícone de seta à direita */
+.rascunhos-chevron {                              /* seta que indica abrir/fechar */
+  font-size: 0.9rem;                              /* tamanho da seta */
+  transition: transform 0.18s ease;               /* animação suave ao girar */
+}
+
+/* Ações (Recarregar / Limpar tudo) ficam alinhadas à direita do cabeçalho */
+.rascunhos-header-actions {                       /* contêiner dos botões de ação */
+  display: flex;                                  /* exibe os botões em linha */
+  gap: 8px;                                       /* espaço entre eles */
+}
+
+/* Corpo interno do accordion */
+.rascunhos-panel {                                /* painel onde fica a tabela de rascunhos */
+  margin-top: 8px;                                /* espaço entre o header e a tabela */
+}
+
+/* Estado colapsado: esconde o painel e mostra a badge */
+.card-list-rascunho.rascunhos-collapsed .rascunhos-panel {
+  display: none;                                  /* esconde o corpo do card quando colapsado */
+}
+
+/* Quando colapsado, a badge aparece (avisa quantos rascunhos existem) */
+.card-list-rascunho.rascunhos-collapsed .rascunhos-count-badge {
+  display: inline-flex;                           /* exibe a badge no estado colapsado */
+}
+
+/* Quando colapsado, gira a seta para cima (visualização de "fechado") */
+.card-list-rascunho.rascunhos-collapsed .rascunhos-chevron {
+  transform: rotate(180deg);                      /* inverte a direção da seta */
+}
+
+/* Ajuste para telas menores: deixa tudo em coluna no header */
+@media (max-width: 720px) {                       /* regra específica para celulares/tablets menores */
+  .rascunhos-header {                             /* cabeçalho do card de rascunhos */
+    flex-direction: column;                       /* empilha o botão e as ações em coluna */
+    align-items: stretch;                         /* faz o botão ocupar toda a largura */
+  }
+
+  .rascunhos-header-actions {                     /* contêiner dos botões de ação */
+    justify-content: flex-end;                    /* alinha os botões à direita abaixo do cabeçalho */
+  }
+}
 
 .card-form {                                    /* card específico do formulário principal */
   max-width: 820px;                             /* limita a largura para leitura mais confortável em telas grandes */
@@ -235,7 +334,8 @@ body {
 }
 
 .card-form .card-header {                       /* cabeçalho com título do formulário + texto explicativo */
-  background: #eef2ff;                          /* fundo azul clarinho para destacar essa área do resto do card */
+  background: #eef2ff;
+  /* background: #fff563;
   border-radius: 12px;                          /* cantos arredondados, combinando com o estilo geral do app */
   padding: 10px 12px;                           /* espaçamento interno para o título/subtítulo respirarem */
   margin-top: 10px;                             /* respiro entre as abas e o cabeçalho */
