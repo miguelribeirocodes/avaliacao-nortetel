@@ -992,7 +992,7 @@
                   </div>
                 </div>
 
-                <!-- linha com identificação e foto do switch existente -->
+                <!-- linha com identificação e fotos do switch existente -->
                 <div class="form-row">
                   <!-- <div class="form-group">
                     <label for="q2-switch-existente-nome">Nome/identificação do switch existente</label>
@@ -1003,13 +1003,77 @@
                     />
                   </div> -->
 
-                  <div class="form-group">
-                    <label for="q2-switch-foto-url">URL da foto do switch</label>
-                    <input
-                      type="text"
-                      id="q2-switch-foto-url"
-                      placeholder="Link para foto (Drive, WhatsApp Web, etc.)"
-                    />
+                  <!-- Campo LEGADO oculto: mantém a URL principal da foto do switch para compatibilidade com o backend -->
+                  <input
+                    type="hidden"
+                    id="q2-switch-foto-url"
+                  />
+
+                  <div class="form-group full-width">
+                    <label>Fotos do switch (URLs)</label>
+                    <!-- Wrapper de tabela reutilizando o estilo padrão de tabelas do sistema -->
+                    <div class="table-wrapper">
+                      <table
+                        class="table"
+                        id="q2-switch-fotos-tabela"
+                      >
+                        <thead>
+                          <tr>
+                            <th>URL da foto</th>
+                            <th>Descrição (opcional)</th>
+                            <th class="q2-switch-fotos-acoes-header"></th>
+                          </tr>
+                        </thead>
+                        <tbody id="q2-switch-fotos-tbody">
+                          <!-- Linha inicial que serve como modelo para novas fotos -->
+                          <tr class="q2-switch-fotos-linha">
+                            <td>
+                              <input
+                                type="url"
+                                class="q2-switch-foto-url-input"
+                                placeholder="Link para foto (Drive, WhatsApp Web, etc.)"
+                              />
+                            </td>
+                            <td>
+                              <input
+                                type="text"
+                                class="q2-switch-foto-descricao-input"
+                                placeholder="Descrição ou observação da foto"
+                              />
+                            </td>
+                            <td class="q2-switch-fotos-acoes">
+                              <button
+                                type="button"
+                                class="q2-switch-foto-remover"
+                                title="Remover linha"
+                              >
+                                🗑️
+                              </button>
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+
+                    <div class="lista-materiais-acoes">
+                      <button
+                        type="button"
+                        id="btn-q2-switch-adicionar-foto"
+                        class="btn btn-primary btn-small"
+                      >
+                        Adicionar foto +
+                      </button>
+
+                      <!-- Input de arquivo escondido: usado para abrir câmera/galeria ao adicionar foto em avaliações já salvas -->
+                      <input
+                        type="file"                         
+                        id="q2-switch-foto-file-input"      
+                        accept="image/*"                    
+                        capture="environment"               
+                        multiple                            
+                        class="hidden-file-input"           
+                      />
+                    </div>
                   </div>
                 </div>
 

@@ -1,6 +1,15 @@
 # ========================= main.py =========================
 # Importações básicas da FastAPI
-from fastapi import FastAPI, Depends, HTTPException              # importa a classe FastAPI e utilidades de dependência/erros
+from fastapi import (                                      # importa componentes principais da FastAPI
+    FastAPI,                                               # classe principal da aplicação
+    Depends,                                               # injeção de dependências (ex.: sessão do banco)
+    HTTPException,                                         # exceção HTTP para erros controlados
+    UploadFile,                                            # tipo usado para receber arquivos via multipart/form-data
+    File,                                                  # marcador para parâmetros de arquivo em endpoints
+    Form,                                                  # marcador para parâmetros vindos de formulário (multipart/form-data)
+)
+
+from fastapi.staticfiles import StaticFiles                      # permite servir arquivos estáticos (HTML, CSS, JS, imagens)
 from fastapi.staticfiles import StaticFiles                      # permite servir arquivos estáticos (HTML, CSS, JS, imagens)
 from fastapi.responses import FileResponse                       # permite devolver um arquivo diretamente como resposta HTTP
 from fastapi.middleware.cors import CORSMiddleware               # middleware que habilita CORS (acesso à API a partir de outros domínios)
@@ -12,9 +21,12 @@ from pydantic import BaseModel, Field                            # BaseModel é 
 from typing import List, Optional                                # List e Optional são usados para declarar listas e campos opcionais
 
 # Módulos padrão de apoio
-import json                                                      # módulo para manipular dados em formato JSON (logs, payloads, etc.)
-import secrets                                                   # módulo para gerar valores aleatórios criptograficamente seguros (tokens, senhas)
-import string                                                    # módulo com constantes de letras/dígitos, útil para montar senhas
+import json                                                     # módulo para manipular dados em formato JSON (logs, payloads, etc.)
+import secrets                                                  # módulo para gerar valores aleatórios criptograficamente seguros (tokens, senhas)
+import string                                                   # módulo com constantes de caracteres (usado na geração de senhas)
+import uuid                                                     # módulo para gerar identificadores únicos (usado em nomes de arquivos de upload)
+from pathlib import Path                                        # Path facilita a manipulação de caminhos de arquivos em disco
+import shutil                                                   # módulo utilitário para copiar streams de arquivo (salvar uploads em disco)
 
 from datetime import date, datetime, timedelta                   # tipos de data, data/hora e diferença de tempo
 
@@ -1868,6 +1880,11 @@ app = FastAPI(                                                   # instancia a a
     version="0.1.0"                                              # versão inicial da API
 )
 
+UPLOAD_DIR = Path("static/uploads")                              # diretório base onde os arquivos de imagem enviados serão armazenados
+# OBS: este diretório fica dentro da pasta "static", que já é exposta pela aplicação em "/static"
+# Em produção, este mecanismo pode ser substituído por um storage externo (ex.: Supabase Storage, S3),
+# mantendo em banco apenas a URL pública (arquivo_url) apontando para a imagem.
+
 # -----------------------------------------------------------
 # Configuração de CORS (para permitir o front do Netlify acessar a API)
 # -----------------------------------------------------------
@@ -2518,6 +2535,106 @@ def adicionar_foto(                                             # função para 
     db.commit()                                                 # grava o log no banco
 
     return foto                                                 # retorna a foto criada para o cliente
+
+# -----------------------------------------------------------
+# Endpoint: upload de arquivo de foto e criação de registro
+# -----------------------------------------------------------
+@app.post("/avaliacoes/{avaliacao_id}/fotos/upload",            # rota POST específica para upload de arquivo de imagem
+          response_model=FotoOutSchema)                         # retorna os dados completos da foto criada
+def upload_foto_avaliacao(                                      # função que processa o upload e cria o registro de foto
+    avaliacao_id: int,                                          # id da avaliação recebido na URL
+    secao: str = Form(...),                                     # seção da avaliação à qual a foto pertence (ex.: "q2_switch")
+    descricao: Optional[str] = Form(None),                      # descrição opcional da foto, também enviada no formulário
+    arquivo: UploadFile = File(...),                            # arquivo de imagem enviado no corpo multipart/form-data
+    db: Session = Depends(get_db)                               # sessão de banco de dados injetada pela dependência
+):
+    avaliacao = db.query(Avaliacao).filter(                     # consulta a avaliação associada ao id informado
+        Avaliacao.id == avaliacao_id                            # condição: id igual ao parâmetro da rota
+    ).first()                                                   # obtém o primeiro resultado ou None se não existir
+
+    if not avaliacao:                                           # se nenhuma avaliação for encontrada com esse id
+        raise HTTPException(                                    # interrompe com um erro HTTP
+            status_code=404,                                    # código 404 - recurso não encontrado
+            detail="Avaliação não encontrada"                   # mensagem de erro retornada ao cliente
+        )
+
+    if not arquivo.filename:                                    # se o arquivo enviado não tiver um nome válido
+        raise HTTPException(                                    # interrompe com erro de requisição inválida
+            status_code=400,                                    # código 400 - bad request
+            detail="Nenhum arquivo foi enviado"                 # mensagem indicando que não veio arquivo
+        )
+
+    content_type = arquivo.content_type or ""                   # obtém o content-type informado pelo cliente (ou string vazia)
+    if not content_type.startswith("image/"):                   # se o content-type não indicar uma imagem
+        raise HTTPException(                                    # interrompe com erro de validação
+            status_code=400,                                    # código 400 - bad request
+            detail="Tipo de arquivo inválido. Envie uma imagem."  # mensagem explicando que apenas imagens são aceitas
+        )
+
+    try:
+        UPLOAD_DIR.mkdir(parents=True, exist_ok=True)           # garante que o diretório de upload exista, criando se necessário
+    except Exception as e:                                      # se ocorrer algum erro na criação do diretório
+        raise HTTPException(                                    # interrompe com erro interno de servidor
+            status_code=500,                                    # código 500 - internal server error
+            detail=f"Erro ao preparar diretório de upload: {e}" # mensagem indicando falha na infraestrutura de arquivos
+        )
+
+    nome_original = os.path.basename(arquivo.filename)          # extrai apenas o nome base do arquivo enviado (sem caminhos)
+    extensao = ""                                               # inicializa a extensão como vazia
+    if "." in nome_original:                                    # se o nome original tiver ponto (.)
+        extensao = nome_original.rsplit(".", 1)[-1]             # pega tudo após o último ponto como extensão (ex.: "jpg", "png")
+
+    identificador = uuid.uuid4().hex                            # gera um identificador único em hexadecimal
+    nome_arquivo_final = f"aval_{avaliacao_id}_{identificador}" # base do nome de arquivo final usando id da avaliação + UUID
+
+    if extensao:                                                # se foi encontrada uma extensão
+        nome_arquivo_final += f".{extensao.lower()}"            # adiciona a extensão em minúsculo ao nome do arquivo
+
+    caminho_final = UPLOAD_DIR / nome_arquivo_final             # monta o caminho completo do arquivo em disco usando Path
+
+    try:
+        with caminho_final.open("wb") as buffer:                # abre o arquivo de destino em modo binário para escrita
+            shutil.copyfileobj(arquivo.file, buffer)            # copia o conteúdo do arquivo enviado para o arquivo em disco
+    except Exception as e:                                      # se ocorrer erro durante a escrita do arquivo
+        raise HTTPException(                                    # interrompe com erro interno
+            status_code=500,                                    # código 500 - internal server error
+            detail=f"Erro ao salvar arquivo de imagem: {e}"     # mensagem descrevendo o problema
+        )
+
+    arquivo_url = f"/static/uploads/{nome_arquivo_final}"       # monta a URL pública relativa para acessar a imagem via HTTP
+
+    foto = AvaliacaoFoto(                                       # cria uma instância do modelo ORM de foto
+        avaliacao_id=avaliacao_id,                              # associa a foto à avaliação recebida na rota
+        secao=secao,                                            # registra em qual seção essa foto será usada (ex.: "q2_switch")
+        descricao=descricao,                                    # armazena a descrição opcional fornecida pelo usuário
+        arquivo_url=arquivo_url                                 # guarda a URL pública onde a imagem está disponível
+    )
+
+    db.add(foto)                                                # adiciona a foto recém-criada à sessão de banco de dados
+    db.commit()                                                 # confirma a transação, persistindo a foto
+    db.refresh(foto)                                            # recarrega o objeto para garantir acesso a campos gerados (id, etc.)
+
+    detalhes_log = json.dumps(                                  # monta um JSON com os detalhes da operação para auditoria
+        {
+            "acao": "upload_foto",                              # identifica que a ação foi de upload de foto
+            "secao": secao,                                     # seção à qual a foto está vinculada
+            "arquivo_url": arquivo_url,                         # caminho público da imagem salva
+            "descricao": descricao,                             # descrição informada (se houver)
+        },
+        ensure_ascii=False                                      # mantém caracteres acentuados no JSON
+    )
+
+    log = AvaliacaoAuditoria(                                   # cria um registro de auditoria da operação
+        avaliacao_id=avaliacao_id,                              # id da avaliação relacionada
+        usuario="sistema",                                      # TODO: substituir pelo usuário autenticado quando o contexto estiver disponível
+        acao="UPLOAD_FOTO",                                     # código curto representando a ação
+        detalhes=detalhes_log                                   # JSON com detalhes adicionais
+    )
+
+    db.add(log)                                                 # adiciona o registro de auditoria à sessão do banco
+    db.commit()                                                 # confirma a gravação do log no banco de dados
+
+    return foto                                                 # retorna o objeto de foto criado para o cliente (via FotoOutSchema)
 
 # -----------------------------------------------------------
 # Endpoint: remover uma foto específica
