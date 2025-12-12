@@ -98,8 +98,6 @@ function formularioRascunhoEstaVazio(valores) {
       continue;                                                       // não conta como preenchimento e avança para o próximo
     }
 
-    const valor = valores[idCampo];                                   // obtém o valor associado a este campo
-
     // Tratamento especial para o campo "status"
     if (idCampo === "status") {                           // se o campo atual for o select de status
       const statusVal = (valor || "").toString().trim();  // normaliza o valor do status como string sem espaços
@@ -119,6 +117,8 @@ function formularioRascunhoEstaVazio(valores) {
       encontrouAlgumPreenchido = true;                    // marca que o formulário não está vazio
       break;                                              // encerra o loop, pois já achamos algo relevante
     }
+
+    const valor = valores[idCampo];                                   // obtém o valor associado a este campo
 
     if (typeof valor === "boolean") {                                 // se o valor for booleano (tipicamente checkbox)
       if (valor === true) {                                           // se o checkbox estiver marcado
@@ -364,10 +364,6 @@ const q2FornecedorSwitch = document.getElementById("q2-fornecedor-switch");     
 const q2ModeloSwitch = document.getElementById("q2-modelo-switch");             // input texto: modelo do switch
 const q2SwitchExistenteNome = document.getElementById("q2-switch-existente-nome"); // input texto: identificação do switch existente
 const q2SwitchFotoUrl = document.getElementById("q2-switch-foto-url");          // input texto: URL da foto do switch
-const q2SwitchFotosTabela = document.getElementById("q2-switch-fotos-tabela");      // tabela dinâmica de URLs de fotos do switch (Q2)
-const q2SwitchFotosTbody = document.getElementById("q2-switch-fotos-tbody");        // corpo da tabela onde as linhas de fotos serão gerenciadas
-const q2SwitchAdicionarFotoButton = document.getElementById("btn-q2-switch-adicionar-foto"); // botão "Adicionar foto +" da seção de switch
-const q2SwitchFotoFileInput = document.getElementById("q2-switch-foto-file-input"); // input de arquivo escondido usado para abrir câmera/galeria ao adicionar fotos do switch (Q2)
 const q2ObsSwitch = document.getElementById("q2-observacoes");                  // textarea: observações sobre switches
 
 // Quantitativo 03 – Cabeamento Óptico
@@ -869,46 +865,6 @@ async function apiPost(path) {
 }
 
 /**
- * Função genérica para chamadas POST usando FormData (multipart/form-data).
- * Útil para upload de arquivos (imagens, documentos, etc.) com autenticação.
- * @param {string} path - Caminho relativo (ex.: "/avaliacoes/1/fotos/upload").
- * @param {FormData} formData - Instância de FormData com os campos do formulário, incluindo arquivos.
- * @returns {Promise<any>} - JSON retornado pela API.
- */
-async function apiPostFormData(path, formData) {
-  try {
-    const url = API_BASE_URL + path;                            // monta a URL final juntando a base da API com o caminho
-
-    const response = await fetch(url, {
-      method: "POST",                                            // método HTTP POST para criação/envio de recursos
-      headers: {
-        // NÃO definimos "Content-Type" manualmente aqui        // o navegador se encarrega de definir o boundary correto do multipart
-        Accept: "application/json",                             // indicamos que esperamos JSON como resposta
-        Authorization: authToken ? `Bearer ${authToken}` : "",  // envia o token JWT no cabeçalho, se estiver definido
-      },
-      body: formData,                                            // corpo da requisição é o próprio FormData com campos e arquivos
-    });
-
-    if (response.status === 401 || response.status === 403) {   // se o backend indicar problema de autenticação/autorização
-      handleAuthError();                                        // tratamos a expiração de sessão (limpa token, volta para login)
-      throw new Error("Não autorizado");                        // interrompe o fluxo com um erro
-    }
-
-    if (!response.ok) {                                         // se qualquer outro erro HTTP ocorrer
-      const text = await response.text().catch(() => "");       // tentamos ler o corpo como texto para ajudar no debug
-      throw new Error(
-        "Erro na requisição POST (multipart): " + text          // montamos uma mensagem detalhada informando o erro
-      );
-    }
-
-    return await response.json();                               // se deu tudo certo, retornamos o JSON parseado da resposta
-  } catch (err) {
-    console.error(err);                                         // registra o erro no console do navegador
-    throw err;                                                  // propaga o erro para quem chamou
-  }
-}
-
-/**
  * Função genérica para chamadas PATCH com corpo JSON e autenticação.
  * Útil para atualizações parciais (ex.: ativar/desativar usuário).
  * @param {string} path - Caminho relativo (ex.: "/usuarios/1/status").
@@ -1115,168 +1071,6 @@ async function salvarListaMateriaisInfraNoBackend(
     ); // registra no console um erro detalhado da sincronização
     throw err; // propaga o erro para que o fluxo de salvamento da avaliação possa tratar
   }
-}
-
-async function salvarListaFotosSwitchQ2NoBackend(
-  avaliacaoId,                  // id da avaliação cujas fotos serão sincronizadas
-  listaFotos                    // lista de objetos { url, descricao } coletados do formulário
-) {
-  if (!avaliacaoId) {           // se não houver id de avaliação informado
-    return;                     // encerra a função silenciosamente (não há avaliação para associar fotos)
-  }
-
-  const listaNormalizada = Array.isArray(listaFotos)
-    ? listaFotos                // se já for um array válido, usamos diretamente
-    : [];                       // caso contrário, garantimos que trabalharemos com um array vazio
-
-  try {
-    const existentes = await apiGet(
-      `/avaliacoes/${avaliacaoId}/fotos`
-    );                          // busca no backend todas as fotos já vinculadas a esta avaliação
-
-    if (Array.isArray(existentes)) {  // se a resposta do backend for uma lista válida
-      for (const fotoExistente of existentes) { // percorre cada foto já cadastrada
-        if (
-          fotoExistente &&                  // garante que o objeto não seja null/undefined
-          fotoExistente.secao === "q2_switch" && // só manipulamos as fotos da seção Q2 (switch)
-          typeof fotoExistente.id === "number"   // confere se a foto possui um id numérico válido
-        ) {
-          await apiDelete(
-            `/fotos/${fotoExistente.id}`
-          );                      // chama a API para excluir a foto específica pelo id
-        }
-      }
-    }
-
-    for (const item of listaNormalizada) { // percorre cada item da lista de fotos que queremos persistir
-      const url =
-        item && item.url
-          ? item.url.toString().trim()
-          : "";                   // normaliza a URL da foto, garantindo string sem espaços nas extremidades
-
-      const descricao =
-        item && item.descricao
-          ? item.descricao.toString().trim()
-          : "";                   // normaliza a descrição, se houver
-
-      if (!url) {                 // se a URL estiver vazia ou inválida
-        continue;                 // ignora silenciosamente este item da lista
-      }
-
-      const payloadFoto = {
-        secao: "q2_switch",       // seção fixa indicando que a foto é do bloco Q2 (switch)
-        arquivo_url: url,         // URL da imagem que será armazenada no backend
-        descricao: descricao || null, // descrição ou null se o campo estiver em branco
-      };                          // objeto que será enviado ao endpoint de criação de fotos
-
-      await apiPostJson(
-        `/avaliacoes/${avaliacaoId}/fotos`,
-        payloadFoto
-      );                          // cria o registro de foto no backend vinculado à avaliação
-    }
-  } catch (err) {
-    console.error(
-      "Erro ao sincronizar a lista de fotos do switch (Q2) com o backend:",
-      err
-    );                            // registra no console um erro detalhado da sincronização
-    throw err;                    // propaga o erro para que o fluxo de salvamento da avaliação possa tratar
-  }
-}
-
-async function carregarListaFotosSwitchQ2DoBackend(avaliacaoId) {
-  if (!q2SwitchFotosTbody) {      // se a tabela de fotos não estiver presente no DOM
-    return;                       // encerra a função sem fazer nada (evita erro em telas onde o bloco não existe)
-  }
-
-  q2SwitchFotosTbody.innerHTML = ""; // limpa todas as linhas atuais da tabela de fotos para evitar mistura de dados
-
-  const valorLegado =
-    q2SwitchFotoUrl && q2SwitchFotoUrl.value
-      ? q2SwitchFotoUrl.value
-      : "";                       // lê o valor do campo legado escondido (q2-switch-foto-url), se existir
-
-  if (!avaliacaoId) {             // se nenhum id de avaliação foi informado
-    preencherListaFotosSwitchQ2APartirDeValorUnico(valorLegado); // preenche a tabela de fotos usando apenas o valor legado (se houver)
-    return;                       // encerra a função, pois não faz sentido chamar o backend sem id
-  }
-
-  try {
-    const itens = await apiGet(
-      `/avaliacoes/${avaliacaoId}/fotos`
-    );                            // chama a API para buscar todas as fotos associadas a esta avaliação
-
-    if (!Array.isArray(itens) || itens.length === 0) { // se a resposta não for uma lista válida ou vier vazia
-      preencherListaFotosSwitchQ2APartirDeValorUnico(valorLegado); // volta a exibir apenas a foto principal (campo legado), se houver
-      return;                   // encerra a função mantendo a tabela com uma linha baseada no valor legado
-    }
-
-    const fotosQ2 = itens.filter(
-      (item) => item && item.secao === "q2_switch"
-    );                          // filtra apenas as fotos pertencentes à seção Q2 (switch)
-
-    if (!fotosQ2 || fotosQ2.length === 0) { // se não houver nenhuma foto marcada como q2_switch
-      preencherListaFotosSwitchQ2APartirDeValorUnico(valorLegado); // usa o campo legado como fallback visual
-      return;                   // encerra a função
-    }
-
-    q2SwitchFotosTbody.innerHTML = ""; // limpa novamente para garantir que só as fotos Q2 serão exibidas
-
-    fotosQ2.forEach((foto) => { // percorre cada foto retornada pelo backend
-      const linha = criarLinhaListaFotosSwitchQ2({ deveFocar: false }); // cria uma nova linha na tabela sem alterar o foco
-      if (!linha) {            // se por algum motivo a linha não puder ser criada
-        return;                // simplesmente ignora essa iteração
-      }
-
-      const inputUrl = linha.querySelector(".q2-switch-foto-url-input"); // pega o input de URL na linha criada
-      const inputDescricao = linha.querySelector(
-        ".q2-switch-foto-descricao-input"
-      );                            // pega o input de descrição na mesma linha
-
-      if (inputUrl) {              // se o campo de URL existir
-        inputUrl.value = foto.arquivo_url || ""; // preenche o campo com a URL vinda do backend (ou string vazia se undefined)
-      }
-      if (inputDescricao) {        // se o campo de descrição existir
-        inputDescricao.value = foto.descricao || ""; // preenche a descrição com o texto retornado pela API (ou vazio)
-      }
-    });
-
-    const linhasAtuais = q2SwitchFotosTbody.querySelectorAll(
-      ".q2-switch-fotos-linha"
-    );                            // após o preenchimento, confere quantas linhas existem na tabela
-
-    if (!linhasAtuais || linhasAtuais.length === 0) { // se por algum motivo nenhuma linha estiver presente
-      preencherListaFotosSwitchQ2APartirDeValorUnico(valorLegado); // garante pelo menos uma linha baseada no valor legado
-    }
-  } catch (err) {
-    console.error(
-      "Erro ao carregar fotos do switch (Q2) do backend:",
-      err
-    );                            // registra no console o erro ocorrido ao chamar a API
-    preencherListaFotosSwitchQ2APartirDeValorUnico(valorLegado); // em caso de erro, volta a exibir a linha baseada no valor legado
-  }
-}
-
-async function enviarArquivoFotoSwitchQ2ParaBackend(arquivo) {
-  if (!arquivo) {                                                // se nenhum arquivo foi fornecido
-    throw new Error("Nenhum arquivo informado para upload.");    // lançamos um erro explícito para facilitar debug
-  }
-
-  if (!avaliacaoEmEdicaoId) {                                    // se não houver avaliação em edição associada
-    throw new Error(
-      "Não há avaliação em edição para associar a foto do switch (Q2)."
-    );                                                           // lançamos erro, pois o upload depende de um id de avaliação válido
-  }
-
-  const formData = new FormData();                               // cria um novo objeto FormData para envio multipart/form-data
-  formData.append("secao", "q2_switch");                         // informa ao backend que a foto pertence à seção Q2 (switch)
-  formData.append("descricao", "");                              // descrição opcional fica vazia por enquanto (pode ser ajustada no futuro)
-  formData.append("arquivo", arquivo);                           // anexa o arquivo de imagem propriamente dito no campo "arquivo"
-
-  const path = `/avaliacoes/${avaliacaoEmEdicaoId}/fotos/upload`; // monta o caminho relativo do endpoint de upload de foto
-
-  const fotoCriada = await apiPostFormData(path, formData);      // chama a função genérica de POST multipart para enviar o arquivo
-
-  return fotoCriada;                                             // devolve o objeto retornado pelo backend (inclui arquivo_url, id, etc.)
 }
 
 /**
@@ -2167,9 +1961,8 @@ async function carregarAvaliacaoParaEdicao(avaliacaoId) {
       q2SwitchExistenteNome.value = dados.q2_switch_existente_nome || "";     // identificação do switch existente
     }
     if (q2SwitchFotoUrl) {
-      q2SwitchFotoUrl.value = dados.q2_switch_foto_url || "";                 // URL da foto do switch (campo legado principal)
+      q2SwitchFotoUrl.value = dados.q2_switch_foto_url || "";                 // URL da foto do switch
     }
-    preencherListaFotosSwitchQ2APartirDeValorUnico(dados.q2_switch_foto_url); // atualiza a tabela de fotos de Q2 com base nesse valor
     if (q2ObsSwitch) {
       q2ObsSwitch.value = dados.q2_observacoes || "";                         // observações sobre switches
     }
@@ -2364,14 +2157,20 @@ async function carregarAvaliacaoParaEdicao(avaliacaoId) {
 
     // Imagens
     if (imgRef1) {
-      imgRef1.value = dados.localizacao_imagem1_url || "";                         // URL da primeira imagem
+      imgRef1.value = dados.localizacao_imagem1_url || "";                         // URL da primeira imagem vinda da API (ou string vazia)
     }
     if (imgRef2) {
-      imgRef2.value = dados.localizacao_imagem2_url || "";                         // URL da segunda imagem
+      imgRef2.value = dados.localizacao_imagem2_url || "";                         // URL da segunda imagem vinda da API (ou string vazia)
+    }
+
+    // Após preencher as URLs, garantimos que as miniaturas fiquem sincronizadas
+    if (typeof atualizarThumbnailLocalizacao === "function") {                     // verifica se o helper de miniaturas está definido no escopo
+      atualizarThumbnailLocalizacao(1);                                            // atualiza a miniatura da imagem 1 de acordo com o campo de URL
+      atualizarThumbnailLocalizacao(2);                                            // atualiza a miniatura da imagem 2 de acordo com o campo de URL
     }
 
     // Pré-requisitos
-    if (preTrabalhoAltura) {                                                    // verifica se o <select> de serviço fora de Montes Claros existe
+    if (preTrabalhoAltura) {
       booleanParaSelectSimNao(                                              // usa helper para preencher o <select> baseado em um booleano
         preTrabalhoAltura,                                                      // referência ao <select id="servico-fora-montes-claros">
         dados.pre_trabalho_altura                                    // valor booleano vindo da API (true/false ou null)
@@ -2444,10 +2243,6 @@ async function carregarAvaliacaoParaEdicao(avaliacaoId) {
     await carregarListaMateriaisInfraDoBackend(
       avaliacaoId
     ); // busca no backend a lista de materiais de infraestrutura da avaliação e preenche a tabela dinâmica correspondente
-
-    await carregarListaFotosSwitchQ2DoBackend(
-      avaliacaoId
-    ); // busca no backend as fotos da seção Q2 (switch) e preenche a tabela dinâmica de fotos
 
     // Feedback visual informando que estamos em modo edição
     avaliacaoFeedbackEl.textContent =
@@ -2606,11 +2401,17 @@ function resetarFormularioParaNovaAvaliacao() {
   }
   
   // Imagens
-  if (imgRef1) imgRef1.value = "";
-  if (imgRef2) imgRef2.value = "";
+  if (imgRef1) imgRef1.value = "";                                                 // limpa o campo de URL da imagem 1 ao iniciar nova avaliação
+  if (imgRef2) imgRef2.value = "";                                                 // limpa o campo de URL da imagem 2 ao iniciar nova avaliação
+
+  // Após limpar os campos de URL, forçamos a limpeza visual das miniaturas
+  if (typeof atualizarThumbnailLocalizacao === "function") {                       // confere se o helper de miniaturas está disponível
+    atualizarThumbnailLocalizacao(1);                                              // limpa a miniatura da imagem 1 (remove src e mostra placeholder)
+    atualizarThumbnailLocalizacao(2);                                              // limpa a miniatura da imagem 2 (remove src e mostra placeholder)
+  }
 
   // Pré-requisitos
-  if (preTrabalhoAltura) preTrabalhoAltura.value = "";
+  if (preTrabalhoAltura) preTrabalhoAltura.value = "";                             // reseta o select de trabalho em altura
   if (prePlataforma) prePlataforma.value = "";
   if (prePlataformaModelo) {
     prePlataformaModelo.classList.add("invisible-keep-space");
@@ -3636,8 +3437,7 @@ async function salvarAvaliacao(event) {
     return; // interrompe o fluxo sem chamar a API
   }
 
-  let listaMateriaisInfraParaApi = []; // inicializa o array que será enviado ao backend com a lista de materiais de infraestrutura
-  let listaFotosSwitchQ2ParaApi = [];  // inicializa o array que armazenará as fotos do switch (Q2) preparadas para o backend (URLs + descrições)
+  let listaMateriaisInfraParaApi = []; // inicializa o array que armazenará a lista de materiais de infraestrutura preparada para envio ao backend
   
   // Monta o payload que será enviado para a API
   // OBS: serve tanto para criação quanto para atualização.
@@ -3780,23 +3580,9 @@ if (q1ModeloPatchPanel) {                                       // se o select d
       ? q2ModeloSwitch.value.trim()                                      // modelo/descrição do switch
       : null;
 
-  const listaFotosSwitch = coletarListaFotosSwitchQ2DoFormulario();        // coleta a lista de fotos (URLs) preenchida na tabela de Q2
-
-  let primeiraFotoSwitchUrl = null;                                      // variável para armazenar a primeira URL de foto encontrada
-  if (listaFotosSwitch && listaFotosSwitch.length > 0) {                 // se houver pelo menos uma foto na lista
-    primeiraFotoSwitchUrl = listaFotosSwitch[0].url;                     // usa a URL da primeira foto como referência principal
-  }
-
-  if (q2SwitchFotoUrl) {                                                 // se o campo legado escondido existir no DOM
-    q2SwitchFotoUrl.value =                                             // atualiza o valor desse campo legado
-      primeiraFotoSwitchUrl ||                                          // prioriza a URL da primeira foto da lista
-      (q2SwitchFotoUrl.value && q2SwitchFotoUrl.value.trim()) ||        // senão, mantém o que já estiver preenchido
-      "";                                                               // ou zera se nada estiver definido
-  }
-
   payload.q2_switch_foto_url =
     q2SwitchFotoUrl && q2SwitchFotoUrl.value.trim()
-      ? q2SwitchFotoUrl.value.trim()                                     // URL principal da foto do switch (campo legado / compat)
+      ? q2SwitchFotoUrl.value.trim()                                     // URL da foto do switch
       : null;
 
   // payload.q2_switch_existente_nome =
@@ -4086,15 +3872,6 @@ if (q1ModeloPatchPanel) {                                       // se o select d
         fabricante: fabricante || null, // salva o fabricante ou null se o campo estiver em branco
       }); // adiciona o item convertido ao array final que será sincronizado com o backend
     }
-      
-
-    // Monta a lista de fotos do switch (Q2) que será enviada ao backend
-    const itensFotosSwitchQ2 = coletarListaFotosSwitchQ2DoFormulario(); // usa a tabela dinâmica de fotos para coletar URLs e descrições preenchidas
-
-    listaFotosSwitchQ2ParaApi = Array.isArray(itensFotosSwitchQ2)
-      ? itensFotosSwitchQ2 // se o helper retornou um array, usamos diretamente
-      : [];                // caso contrário, garantimos que a variável será sempre um array (evita erros em chamadas posteriores)
-
   }
 
   if (salvarAvaliacaoButton) { // se o botão "Salvar avaliação" existir
@@ -4139,13 +3916,6 @@ if (q1ModeloPatchPanel) {                                       // se o select d
         avaliacaoIdParaMateriais, // id da avaliação cujos materiais devem ser sincronizados
         listaMateriaisInfraParaApi // lista de materiais que já foi validada e preparada para o backend
       ); // executa a estratégia "apagar tudo e recriar" para a lista de materiais desta avaliação
-    }
-
-    if (avaliacaoIdParaMateriais) { // se temos um id válido de avaliação, também sincronizamos as fotos do switch (Q2)
-      await salvarListaFotosSwitchQ2NoBackend(
-        avaliacaoIdParaMateriais, // id da avaliação cujas fotos serão sincronizadas
-        listaFotosSwitchQ2ParaApi // lista de fotos (URLs + descrições) preparada anteriormente a partir da tabela de Q2
-      ); // aplica a mesma estratégia "apagar tudo e recriar" para as fotos da seção Q2
     }
 
     if (mensagemSucessoAvaliacao) {                              // verifica se alguma mensagem de sucesso foi definida durante o fluxo
@@ -4472,8 +4242,7 @@ async function inicializarApp() {
   registrarEventos();
 
   inicializarListaMateriaisInfra(); // prepara a tabela de lista de materiais de infraestrutura (linhas iniciais e botão "Nova linha")
-  inicializarListaFotosSwitchQ2();  // prepara a tabela dinâmica de fotos do switch (Q2), criando a linha inicial e handlers
-
+  
   // Tenta carregar token salvo no navegador
   const tokenSalvo = getStoredToken();
 
@@ -4635,275 +4404,6 @@ function atualizarBadgeRascunhosAPartirDoStorage() {              // função au
   }
 }
 
-function criarLinhaListaFotosSwitchQ2({ deveFocar = true } = {}) {
-  if (!q2SwitchFotosTbody) { // se o corpo da tabela de fotos não existir na página atual
-    return null;             // encerra a função retornando null (não há onde inserir novas linhas)
-  }
-
-  const linhaModelo = q2SwitchFotosTbody.querySelector(".q2-switch-fotos-linha"); // captura uma linha modelo existente na tabela
-  if (!linhaModelo) {        // se nenhuma linha modelo for encontrada (cenário improvável)
-    return null;             // encerra a função sem criar nada
-  }
-
-  const novaLinha = linhaModelo.cloneNode(true); // clona a linha modelo, incluindo a estrutura de células, inputs e botão de remover
-
-  const inputUrl = novaLinha.querySelector(".q2-switch-foto-url-input"); // localiza o campo de URL da nova linha
-  const inputDescricao = novaLinha.querySelector(".q2-switch-foto-descricao-input"); // localiza o campo de descrição da nova linha
-
-  if (inputUrl) {            // se o campo de URL existir na linha clonada
-    inputUrl.value = "";     // limpa qualquer valor herdado da linha modelo
-  }
-  if (inputDescricao) {      // se o campo de descrição existir na linha clonada
-    inputDescricao.value = ""; // limpa qualquer valor herdado da linha modelo
-  }
-
-  q2SwitchFotosTbody.appendChild(novaLinha); // insere a nova linha clonada no final da tabela de fotos
-
-  if (deveFocar && inputUrl) { // se for solicitado para focar e o campo de URL estiver disponível
-    inputUrl.focus();          // coloca o foco no campo de URL para o usuário digitar imediatamente
-  }
-
-  return novaLinha;          // retorna a referência da linha criada para usos futuros, se necessário
-}
-
-function inicializarListaFotosSwitchQ2() {
-  if (!q2SwitchFotosTbody) { // se o corpo da tabela de fotos não existir, significa que o formulário não está na tela
-    return;                  // encerra a função sem fazer nada
-  }
-
-  let linhaExistente = q2SwitchFotosTbody.querySelector(".q2-switch-fotos-linha"); // tenta localizar uma linha já definida no HTML
-  if (!linhaExistente) {     // se nenhuma linha existente for encontrada
-    linhaExistente = criarLinhaListaFotosSwitchQ2({ deveFocar: false }); // cria uma primeira linha vazia sem alterar o foco
-  }
-
-  q2SwitchFotosTbody.addEventListener("keydown", (event) => { // registra um listener de teclado no corpo da tabela de fotos
-    if (event.key !== "Enter") { // só tratamos especificamente a tecla Enter
-      return;                    // para qualquer outra tecla, não fazemos nada
-    }
-
-    const alvo = event.target;   // captura o elemento que recebeu o evento de teclado
-    if (!alvo) {                 // se não houver alvo, algo está errado
-      return;                    // encerra o handler
-    }
-
-    const linhaAtual = alvo.closest(".q2-switch-fotos-linha"); // encontra a linha de fotos associada ao campo em foco
-    if (!linhaAtual) {          // se a linha não for encontrada
-      return;                   // encerra o handler
-    }
-
-    const linhas = q2SwitchFotosTbody.querySelectorAll(".q2-switch-fotos-linha"); // obtém todas as linhas atuais da tabela
-    if (!linhas || linhas.length === 0) { // se não houver nenhuma linha definida
-      return;                   // não há o que fazer
-    }
-
-    const ultimaLinha = linhas[linhas.length - 1]; // identifica a última linha atualmente presente na tabela
-    if (linhaAtual === ultimaLinha) {  // se o Enter foi pressionado na última linha
-      event.preventDefault();          // impede o comportamento padrão (como submit do formulário)
-      criarLinhaListaFotosSwitchQ2({ deveFocar: true }); // cria uma nova linha e posiciona o foco no campo de URL da nova linha
-    }
-  });
-
-  q2SwitchFotosTbody.addEventListener("click", (event) => { // registra um listener de clique para tratar os botões de remover
-    const alvo = event.target;   // captura o elemento clicado
-    if (!alvo) {                 // se não houver alvo, encerra
-      return;
-    }
-
-    const botaoRemover = alvo.closest(".q2-switch-foto-remover"); // verifica se o clique ocorreu em um botão de remoção
-    if (!botaoRemover) {        // se não for o botão de remover
-      return;                   // não fazemos nada
-    }
-
-    const linha = botaoRemover.closest(".q2-switch-fotos-linha"); // encontra a linha de fotos associada ao botão clicado
-    if (!linha) {               // se não encontrar linha correspondente
-      return;                   // encerra o handler
-    }
-
-    const linhas = q2SwitchFotosTbody.querySelectorAll(".q2-switch-fotos-linha"); // obtém todas as linhas de fotos atuais
-    if (linhas.length > 1) {    // se existir mais de uma linha na tabela
-      linha.remove();           // remove a linha clicada completamente
-    } else {
-      const inputUrl = linha.querySelector(".q2-switch-foto-url-input"); // captura o campo de URL da única linha
-      const inputDescricao = linha.querySelector(".q2-switch-foto-descricao-input"); // captura o campo de descrição
-
-      if (inputUrl) {           // se o campo de URL existir
-        inputUrl.value = "";    // limpa o valor preenchido
-      }
-      if (inputDescricao) {     // se o campo de descrição existir
-        inputDescricao.value = ""; // limpa o valor preenchido
-      }
-    }
-  });
-
-  if (q2SwitchAdicionarFotoButton) { // se o botão "Adicionar foto +" estiver presente no DOM
-    q2SwitchAdicionarFotoButton.addEventListener("click", () => { // registra o listener de clique no botão
-      try {
-        // Antes de abrir câmera/galeria, tentamos salvar um rascunho automático
-        // Isso não salva fotos, mas preserva todos os demais campos do formulário
-        salvarRascunhoAutomatico();                               // força o autosave com o estado atual do formulário
-      } catch (e) {
-        console.error(
-          "Falha ao salvar rascunho automático antes de abrir seletor de fotos:",
-          e
-        );                                                        // em caso de erro, apenas registramos no console e seguimos o fluxo
-      }
-
-      if (avaliacaoEmEdicaoId && q2SwitchFotoFileInput) {         // se estamos editando uma avaliação já salva e o input de arquivo existir
-        q2SwitchFotoFileInput.value = "";                         // limpa qualquer seleção anterior para garantir novo envio
-        q2SwitchFotoFileInput.click();                            // dispara o seletor de arquivos/câmera do navegador
-      } else {
-        criarLinhaListaFotosSwitchQ2({ deveFocar: true });        // se ainda não há avaliação salva, adiciona linha para preencher URL manualmente
-      }
-    });
-  }
-
-
-  if (q2SwitchFotoFileInput) {                                    // se o input de arquivo escondido estiver disponível no DOM
-    q2SwitchFotoFileInput.addEventListener("change", async (event) => {
-      const arquivos = Array.from(event.target.files || []);      // converte a lista de arquivos selecionados em um array "normal"
-
-      if (!arquivos.length) {                                     // se o usuário cancelou a seleção ou não escolheu nada        return;                                                   // encerra o handler
-      }
-
-      if (!avaliacaoEmEdicaoId) {                                 // se por algum motivo não houver avaliação em edição
-        alert(
-          "Para anexar fotos diretamente pelo navegador/câmera, primeiro salve a avaliação e reabra em modo de edição."
-        );                                                        // informa ao usuário que o upload automático depende de uma avaliação já criada
-        q2SwitchFotoFileInput.value = "";                         // limpa a seleção do input de arquivo
-        return;                                                   // encerra o handler sem tentar fazer upload
-      }
-
-      for (const arquivo of arquivos) {                           // percorre cada arquivo selecionado
-        try {
-          const fotoCriada = await enviarArquivoFotoSwitchQ2ParaBackend(
-            arquivo
-          );                                                      // envia o arquivo para o backend e recebe os dados da foto registrada
-
-          if (fotoCriada && fotoCriada.arquivo_url) {             // se o backend retornou uma URL de arquivo válida
-            preencherOuCriarLinhaFotosSwitchQ2ComUrl(
-              fotoCriada.arquivo_url
-            );                                                    // preenche ou cria uma linha na tabela com a URL retornada
-          }
-        } catch (err) {
-          console.error("Erro ao enviar foto do switch (Q2):", err); // registra o erro detalhado no console
-          alert(
-            "Erro ao enviar uma das fotos. Verifique sua conexão e tente novamente."
-          );                                                      // exibe uma mensagem de erro amigável ao usuário
-          break;                                                  // interrompe o loop em caso de erro, para evitar múltiplos alertas
-        }
-      }
-
-      q2SwitchFotoFileInput.value = "";                           // ao final, limpa o input para permitir novo envio com os mesmos arquivos se necessário
-    });
-  }
-}
-
-
-function coletarListaFotosSwitchQ2DoFormulario() {
-  if (!q2SwitchFotosTbody) { // se a tabela de fotos não estiver presente na página
-    return [];               // devolve um array vazio, indicando que não há fotos para coletar
-  }
-
-  const linhas = q2SwitchFotosTbody.querySelectorAll(".q2-switch-fotos-linha"); // seleciona todas as linhas de fotos da tabela
-  if (!linhas || linhas.length === 0) { // se não houver linhas definidas
-    return [];               // devolve array vazio
-  }
-
-  const lista = [];          // inicializa o array que acumulará as fotos válidas
-
-  linhas.forEach((linha) => { // percorre cada linha encontrada
-    const inputUrl = linha.querySelector(".q2-switch-foto-url-input"); // localiza o campo de URL na linha
-    const inputDescricao = linha.querySelector(".q2-switch-foto-descricao-input"); // localiza o campo de descrição na linha
-
-    const url =
-      inputUrl && inputUrl.value && inputUrl.value.trim() // verifica se existe um valor preenchido para a URL
-        ? inputUrl.value.trim()                           // normaliza a URL removendo espaços nas extremidades
-        : "";                                             // caso contrário, considera string vazia
-
-    const descricao =
-      inputDescricao && inputDescricao.value && inputDescricao.value.trim() // verifica se existe descrição preenchida
-        ? inputDescricao.value.trim()                                      // normaliza a descrição
-        : "";                                                              // considera string vazia se não houver
-
-    if (url) {                // somente linhas com URL preenchida são consideradas válidas
-      lista.push({            // adiciona um objeto representando a foto à lista
-        url,                  // URL da foto
-        descricao: descricao || null, // descrição ou null, se a string estiver vazia
-      });
-    }
-  });
-
-  return lista;               // devolve o array de fotos coletadas a partir do formulário
-}
-
-function preencherOuCriarLinhaFotosSwitchQ2ComUrl(url) {
-  if (!q2SwitchFotosTbody) {                             // se a tabela de fotos não estiver presente na página
-    return;                                              // encerra sem fazer nada
-  }
-
-  const urlNormalizada =
-    url && typeof url === "string" && url.trim()         // verifica se foi passada uma string não vazia
-      ? url.trim()                                       // remove espaços das extremidades da URL
-      : "";                                              // caso contrário, considera string vazia
-
-  if (!urlNormalizada) {                                 // se após normalizar a URL ainda estiver vazia
-    return;                                              // não faz sentido preencher/criar linha com valor vazio
-  }
-
-  const linhas = q2SwitchFotosTbody.querySelectorAll(
-    ".q2-switch-fotos-linha"
-  );                                                     // captura todas as linhas atuais da tabela de fotos
-
-  let linhaAlvo = null;                                  // variável que guardará a linha escolhida para receber a URL
-
-  if (linhas && linhas.length > 0) {                     // se existem linhas na tabela
-    for (const linha of linhas) {                        // percorre cada linha existente
-      const inputUrl = linha.querySelector(
-        ".q2-switch-foto-url-input"
-      );                                                 // pega o campo de URL desta linha
-
-      if (
-        inputUrl &&                                      // se o campo existir
-        (!inputUrl.value || !inputUrl.value.trim())      // e estiver vazio (sem URL preenchida)
-      ) {
-        linhaAlvo = linha;                               // escolhe esta linha como candidata para receber a nova URL
-        break;                                           // interrompe o loop após encontrar a primeira linha vazia
-      }
-    }
-  }
-
-  if (!linhaAlvo) {                                      // se não encontramos nenhuma linha vazia adequada
-    linhaAlvo = criarLinhaListaFotosSwitchQ2({           // criamos uma nova linha baseada no modelo
-      deveFocar: false,                                  // não alteramos foco ao criar essa linha
-    });
-  }
-
-  if (!linhaAlvo) {                                      // se ainda assim não for possível obter uma linha válida
-    return;                                              // encerramos a função silenciosamente
-  }
-
-  const inputUrlAlvo = linhaAlvo.querySelector(
-    ".q2-switch-foto-url-input"
-  );                                                     // recupera o campo de URL da linha escolhida
-
-  if (inputUrlAlvo) {                                    // se o campo existir
-    inputUrlAlvo.value = urlNormalizada;                 // preenche o campo com a URL normalizada
-  }
-}
-
-function preencherListaFotosSwitchQ2APartirDeValorUnico(url) {
-  if (!q2SwitchFotosTbody) {                             // se a tabela de fotos não existir na tela
-    return;                                              // encerra sem fazer nada
-  }
-
-  q2SwitchFotosTbody.innerHTML = "";                     // limpa todas as linhas atuais da tabela
-
-  if (url && typeof url === "string" && url.trim()) {    // se foi fornecida uma URL válida (não vazia)
-    preencherOuCriarLinhaFotosSwitchQ2ComUrl(url);       // delega para o helper que preenche ou cria linha conforme a necessidade
-  } else {
-    criarLinhaListaFotosSwitchQ2({ deveFocar: false });  // se não houver URL válida, apenas recria uma linha vazia padrão
-  }
-}
 
 /**
  * Cria uma nova linha na lista de materiais de infraestrutura,
@@ -5440,3 +4940,474 @@ function inicializarTelaAuditoria() { // declara função que liga os elementos 
 // Exemplo (ajuste para o seu sistema de navegação):
 // - ao clicar no botão/menu "Auditoria", além de mostrar a section, chame esta função:
 //   inicializarTelaAuditoria();
+
+// ==================== PRÉ-VISUALIZAÇÃO DAS IMAGENS DE LOCALIZAÇÃO ====================
+
+function atualizarThumbnailLocalizacao(index) {                    // atualiza a miniatura e o placeholder da imagem de localização
+  const urlInput = document.getElementById(`localizacao-imagem${index}-url`); // obtém o input de URL correspondente ao índice (1 ou 2)
+  const thumbImg = document.getElementById(`localizacao-imagem${index}-thumb`); // obtém o elemento <img> da miniatura
+  const placeholder = document.getElementById(`localizacao-imagem${index}-placeholder`); // obtém o elemento de placeholder de texto
+
+  if (!urlInput || !thumbImg || !placeholder) {                   // verifica se todos os elementos necessários existem no DOM
+    return;                                                       // se algum estiver faltando, sai da função sem fazer nada
+  }
+
+  const url = (urlInput.value || "").trim();                      // lê o valor do campo de URL e remove espaços em branco extras
+
+  if (url) {                                                      // se o usuário preencheu uma URL válida
+    thumbImg.src = url;                                           // define o src da miniatura com a URL informada
+    thumbImg.style.display = "block";                             // garante que a miniatura fique visível
+    placeholder.style.display = "none";                           // esconde o texto de "Prévia não disponível"
+  } else {                                                        // caso não haja URL preenchida
+    thumbImg.src = "";                                            // limpa o src da imagem (evita mostrar imagem anterior)
+    thumbImg.style.display = "none";                              // esconde a miniatura
+    placeholder.style.display = "block";                          // volta a mostrar o placeholder de texto
+  }
+}
+
+function abrirModalPreviewImagem(src, descricao) {                 // abre o modal global exibindo a imagem ampliada
+  const modal = document.getElementById("image-preview-modal");    // obtém o elemento raiz do modal de preview
+  if (!modal) {                                                    // se o modal não for encontrado no DOM
+    console.warn("[IMAGENS] Modal de preview não encontrado no DOM."); // registra um aviso no console para facilitar debug
+    return;                                                        // encerra a função sem tentar abrir nada
+  }
+
+  if (!src) {                                                      // se não foi passada uma URL de imagem válida
+    alert("Nenhuma imagem disponível para ampliar.");              // exibe alerta informando que não há imagem
+    return;                                                        // encerra a função sem abrir o modal
+  }
+
+  const img = modal.querySelector(".image-preview-img");           // busca o elemento <img> que exibirá a foto ampliada
+  const caption = modal.querySelector(".image-preview-caption");   // busca o elemento que exibirá a legenda/descrição
+
+  if (img) {                                                       // se o elemento de imagem foi encontrado
+    img.src = src;                                                 // define o src da imagem com a URL recebida
+  }
+  if (caption) {                                                   // se o elemento de legenda foi encontrado
+    caption.textContent = descricao || "";                         // preenche o texto da legenda (ou string vazia se não houver descrição)
+  }
+
+  modal.classList.add("open");                                     // adiciona a classe "open" para tornar o modal visível
+}
+
+function inicializarModalPreviewImagens() {                        // configura os eventos de fechamento do modal de imagem
+  const modal = document.getElementById("image-preview-modal");    // obtém o elemento do modal de preview
+  if (!modal) {                                                    // se o modal não existe no DOM
+    return;                                                        // não há nada para configurar, então encerra a função
+  }
+
+  const closeBtn = modal.querySelector(".image-preview-close");    // obtém o botão de fechar (X) dentro do modal
+  const backdrop = modal.querySelector(".image-preview-backdrop"); // obtém a camada de fundo escurecida do modal
+
+  const fecharModal = () => {                                      // função auxiliar para esconder o modal
+    modal.classList.remove("open");                                // remove a classe "open", escondendo o modal novamente
+  };
+
+  if (closeBtn) {                                                  // se o botão de fechar foi encontrado
+    closeBtn.addEventListener("click", fecharModal);               // fecha o modal quando o usuário clicar no X
+  }
+
+  if (backdrop) {                                                  // se o fundo escurecido foi encontrado
+    backdrop.addEventListener("click", fecharModal);               // fecha o modal quando o usuário clicar fora da caixa de conteúdo
+  }
+
+  document.addEventListener("keydown", (event) => {                // adiciona ouvinte global para eventos de teclado
+    if (event.key === "Escape" && modal.classList.contains("open")) { // se a tecla pressionada for ESC e o modal estiver aberto
+      fecharModal();                                               // fecha o modal ao pressionar ESC
+    }
+  });                                                              // fim do listener de teclado
+}
+
+function inicializarSecaoLocalizacaoImagens() {                      // inicializa a seção de localização / imagens
+  const imagem1UrlInput = document.getElementById("localizacao-imagem1-url"); // obtém o input de URL da imagem 1
+  const imagem2UrlInput = document.getElementById("localizacao-imagem2-url"); // obtém o input de URL da imagem 2
+
+  if (imagem1UrlInput) {                                            // se o input de URL da imagem 1 existir
+    imagem1UrlInput.addEventListener("input", function () {         // adiciona listener de input
+      atualizarThumbnailLocalizacao(1);                             // sempre que o valor mudar, atualiza a miniatura 1
+    });                                                             // fim do listener de input da imagem 1
+  }                                                                 // fim do if de imagem1UrlInput
+
+  if (imagem2UrlInput) {                                            // se o input de URL da imagem 2 existir
+    imagem2UrlInput.addEventListener("input", function () {         // adiciona listener de input
+      atualizarThumbnailLocalizacao(2);                             // sempre que o valor mudar, atualiza a miniatura 2
+    });                                                             // fim do listener de input da imagem 2
+  }                                                                 // fim do if de imagem2UrlInput
+
+  const fileInput = document.createElement("input");                // cria um input de arquivo reutilizável para as duas imagens
+  fileInput.type = "file";                                          // define o tipo de input como "file"
+  fileInput.accept = "image/*";                                     // restringe os arquivos aceitos para imagens
+  fileInput.style.display = "none";                                 // mantém o input oculto na tela
+  fileInput.id = "localizacao-file-input-compartilhado";            // define um id apenas para facilitar depuração
+
+  document.body.appendChild(fileInput);                             // adiciona o input oculto ao body do documento
+
+  fileInput.addEventListener("change", function () {                // escuta quando o usuário escolhe um arquivo
+    const arquivo =
+      fileInput.files && fileInput.files[0]
+        ? fileInput.files[0]
+        : null;                                                     // pega o primeiro arquivo selecionado, se existir
+    const targetIndex = fileInput.dataset.targetIndex || "";        // lê qual índice de imagem (1 ou 2) deve ser atualizado
+
+    if (!arquivo || !targetIndex) {                                 // se não houver arquivo ou índice, não faz nada
+      return;                                                       // encerra a função sem alterar nada
+    }
+
+    const thumbImg = document.getElementById(
+      `localizacao-imagem${targetIndex}-thumb`
+    );                                                              // obtém a miniatura correspondente ao índice desejado
+    const placeholder = document.getElementById(
+      `localizacao-imagem${targetIndex}-placeholder`
+    );                                                              // obtém o placeholder de texto correspondente
+
+    if (!thumbImg || !placeholder) {                                // se não encontrar os elementos esperados
+      return;                                                       // encerra a função para evitar erros
+    }
+
+    if (thumbImg.dataset.objectUrl) {                               // se já houver um object URL salvo anteriormente na miniatura
+      URL.revokeObjectURL(thumbImg.dataset.objectUrl);              // libera o object URL anterior da memória
+    }
+
+    const objectUrl = URL.createObjectURL(arquivo);                 // cria um novo object URL temporário para o arquivo selecionado
+
+    thumbImg.src = objectUrl;                                       // define a miniatura para exibir a imagem escolhida
+    thumbImg.dataset.objectUrl = objectUrl;                         // guarda o object URL na miniatura para futura liberação
+    thumbImg.style.display = "block";                               // garante que a miniatura fique visível
+    placeholder.style.display = "none";                             // esconde o placeholder de texto
+
+    fileInput.value = "";                                           // limpa o valor do input para permitir selecionar o mesmo arquivo novamente
+  });                                                                // fim do listener de change do input de arquivo
+
+  const botoesSelecionarArquivo = document.querySelectorAll(
+    ".image-select-file-btn"
+  );                                                                // seleciona todos os botões "Selecionar imagem" da seção
+  botoesSelecionarArquivo.forEach(function (botao, index) {         // percorre cada botão encontrado
+    botao.addEventListener("click", function () {                   // adiciona listener de clique ao botão atual
+      const indiceImagem =
+        botao.dataset.imageIndex || String(index + 1);              // obtém o índice da imagem via data-image-index ou usa a posição do botão
+      fileInput.dataset.targetIndex = indiceImagem;                 // grava no input oculto qual miniatura deve ser atualizada
+      fileInput.click();                                            // dispara o clique no input para abrir a galeria do dispositivo
+    });                                                             // fim do listener de clique de cada botão
+  });                                                               // fim do forEach sobre os botões de seleção de arquivo
+
+  // ==================== MODAL GLOBAL DE CÂMERA (GETUSERMEDIA) ====================
+
+  const cameraModal = document.getElementById("camera-modal");                // obtém o contêiner raiz do modal de câmera
+  const cameraBackdrop = document.getElementById("camera-modal-backdrop");    // obtém o backdrop (clique fora para fechar)
+  const cameraVideo = document.getElementById("camera-video");                // obtém o <video> que exibirá o stream
+  const cameraCanvas = document.getElementById("camera-canvas");              // obtém o <canvas> para capturar frame
+  const cameraBtnCapturar = document.getElementById("camera-btn-capturar");   // obtém o botão "Capturar foto"
+  const cameraBtnFechar = document.getElementById("camera-btn-fechar");       // obtém o botão "Fechar"
+
+  let cameraStreamAtivo = null;                                               // guarda o stream ativo para encerramento
+  let cameraOnCapture = null;                                                 // guarda callback do contexto atual (recebe dataURL)
+
+  function cameraPararStream() {                                              // encerra o stream atual (libera a câmera)
+    if (!cameraStreamAtivo) {                                                 // se não há stream ativo
+      return;                                                                 // não há nada para parar
+    }
+    cameraStreamAtivo.getTracks().forEach((track) => {                        // percorre tracks do stream
+      track.stop();                                                           // para cada track
+    });
+    cameraStreamAtivo = null;                                                 // limpa referência do stream
+  }
+
+  function cameraFecharModal() {                                              // fecha modal e limpa recursos
+    if (cameraModal) {                                                        // se o modal existe
+      cameraModal.classList.remove("open");                                   // esconde o modal
+    }
+    if (cameraVideo) {                                                        // se o vídeo existe
+      cameraVideo.srcObject = null;                                           // desconecta o stream do <video>
+    }
+    cameraPararStream();                                                      // garante que o stream seja encerrado
+    cameraOnCapture = null;                                                   // limpa callback para evitar uso indevido
+  }
+
+  async function cameraAbrirModal(onCapture) {                                 // abre modal e inicia getUserMedia
+    if (
+      !cameraModal ||                                                         // valida modal
+      !cameraVideo ||                                                         // valida vídeo
+      !cameraCanvas ||                                                        // valida canvas
+      !cameraBtnCapturar ||                                                   // valida botão capturar
+      !cameraBtnFechar                                                        // valida botão fechar
+    ) {
+      alert("Modal de câmera não encontrado no HTML.");                        // alerta se o modal não existir
+      return;                                                                 // encerra para evitar erro
+    }
+
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {    // valida suporte do navegador
+      alert("Seu navegador não suporta câmera embutida (getUserMedia).");      // informa limitação
+      return;                                                                 // encerra
+    }
+
+    cameraFecharModal();                                                      // garante estado limpo antes de abrir novamente
+    cameraOnCapture = typeof onCapture === "function" ? onCapture : null;     // registra callback do contexto
+
+    try {                                                                     // tenta acessar a câmera
+      const stream = await navigator.mediaDevices.getUserMedia({              // solicita stream do navegador
+        video: { facingMode: { ideal: "environment" } },                      // tenta preferir câmera traseira
+        audio: false                                                          // sem áudio
+      });
+
+      cameraStreamAtivo = stream;                                             // salva stream para fechar depois
+      cameraVideo.srcObject = stream;                                         // conecta stream ao <video>
+      cameraModal.classList.add("open");                                      // exibe o modal
+      await cameraVideo.play();                                               // inicia o vídeo (quando permitido)
+    } catch (err) {                                                           // falhas: permissão negada/sem câmera/etc.
+      console.error("Falha ao abrir câmera:", err);                           // log para depuração
+      alert("Não foi possível acessar a câmera. Verifique permissões/HTTPS."); // feedback ao usuário
+      cameraFecharModal();                                                    // limpa estado
+    }
+  }
+
+  if (cameraBtnFechar) {                                                      // se o botão de fechar existe
+    cameraBtnFechar.addEventListener("click", cameraFecharModal);             // fecha ao clicar
+  }
+
+  if (cameraBackdrop) {                                                       // se o backdrop existe
+    cameraBackdrop.addEventListener("click", cameraFecharModal);              // fecha ao clicar fora
+  }
+
+  document.addEventListener("keydown", (event) => {                            // escuta teclas globais
+    if (event.key === "Escape") {                                             // se pressionar ESC
+      cameraFecharModal();                                                    // fecha o modal
+    }
+  });
+
+  if (cameraBtnCapturar) {                                                    // se o botão capturar existe
+    cameraBtnCapturar.addEventListener("click", () => {                       // captura frame ao clicar
+      if (!cameraVideo || !cameraCanvas) {                                    // valida elementos
+        return;                                                               // encerra se algo faltar
+      }
+
+      const width = cameraVideo.videoWidth || 1280;                           // largura do vídeo (fallback)
+      const height = cameraVideo.videoHeight || 720;                          // altura do vídeo (fallback)
+
+      cameraCanvas.width = width;                                             // ajusta canvas para a largura do frame
+      cameraCanvas.height = height;                                           // ajusta canvas para a altura do frame
+
+      const ctx = cameraCanvas.getContext("2d");                              // pega contexto 2D
+      if (!ctx) {                                                             // se não conseguiu obter contexto
+        return;                                                               // encerra
+      }
+
+      ctx.drawImage(cameraVideo, 0, 0, width, height);                        // desenha frame atual no canvas
+      const dataUrl = cameraCanvas.toDataURL("image/jpeg", 0.85);             // exporta dataURL JPEG (compressão moderada)
+
+      if (cameraOnCapture) {                                                  // se houver callback do contexto
+        cameraOnCapture(dataUrl);                                             // entrega a foto ao chamador
+      }
+
+      cameraFecharModal();                                                    // fecha o modal após capturar
+    });
+  }
+
+  // -------------------- "Abrir câmera" (LOCALIZAÇÃO) --------------------
+
+  const botoesAbrirCamera = document.querySelectorAll(
+    ".image-open-camera-btn"
+  );                                                                          // seleciona botões "Abrir câmera" (Localização)
+
+  function aplicarPreviewLocalizacaoPorCamera(indiceImagem, dataUrl) {        // aplica captura na imagem de Localização (1/2)
+    const index = String(indiceImagem || "").trim();                          // normaliza índice como string
+    if (!index) {                                                             // se índice não vier válido
+      return;                                                                 // encerra
+    }
+
+    const thumbImg = document.getElementById(`localizacao-imagem${index}-thumb`);         // pega <img> da miniatura
+    const placeholder = document.getElementById(`localizacao-imagem${index}-placeholder`); // pega placeholder da miniatura
+    const urlInput = document.getElementById(`localizacao-imagem${index}-url`);            // pega campo legado de URL
+
+    if (!thumbImg || !placeholder) {                                          // valida elementos visuais
+      return;                                                                 // encerra
+    }
+
+    thumbImg.src = dataUrl;                                                   // seta src com dataURL capturado
+    thumbImg.style.display = "block";                                         // garante visibilidade da miniatura
+    placeholder.style.display = "none";                                       // esconde placeholder
+
+    if (urlInput) {                                                           // se existir campo legado
+      urlInput.value = dataUrl;                                               // salva dataURL no legado (compatibilidade temporária)
+    }
+  }
+
+  botoesAbrirCamera.forEach(function (botao) {                                // percorre botões de câmera da Localização
+    botao.addEventListener("click", function () {                              // ao clicar em "Abrir câmera"
+      const indice = botao.getAttribute("data-image-index");                   // lê índice (1/2) do HTML
+      cameraAbrirModal((dataUrl) => {                                          // abre modal e recebe a captura
+        aplicarPreviewLocalizacaoPorCamera(indice, dataUrl);                   // aplica a captura na linha correta
+      });
+    });
+  });
+
+  // -------------------- Q2 SWITCH: Selecionar imagem + Abrir câmera (por linha) --------------------
+
+  const q2SwitchFotosTbody = document.getElementById("q2-switch-fotos-tbody"); // tbody da tabela de fotos do switch
+  const q2SwitchAdicionarFotoBtn = document.getElementById("btn-q2-switch-adicionar-foto"); // botão "Adicionar foto"
+  const q2SwitchCampoLegadoPrincipal = document.getElementById("q2-switch-foto-url"); // hidden legado principal do switch
+
+  const q2SwitchFileInput = document.createElement("input");                  // cria input file reaproveitável do Q2
+  q2SwitchFileInput.type = "file";                                            // define tipo arquivo
+  q2SwitchFileInput.accept = "image/*";                                       // aceita apenas imagens
+  q2SwitchFileInput.style.display = "none";                                   // mantém oculto
+  q2SwitchFileInput.id = "q2-switch-file-input-compartilhado";                // id para depuração
+
+  document.body.appendChild(q2SwitchFileInput);                               // adiciona no DOM
+
+  function q2SwitchSincronizarCampoLegadoPrincipal() {                        // mantém compatibilidade (um campo legado)
+    if (!q2SwitchCampoLegadoPrincipal || !q2SwitchFotosTbody) {               // valida dependências
+      return;                                                                 // encerra
+    }
+
+    const linhas = Array.from(
+      q2SwitchFotosTbody.querySelectorAll(".q2-switch-fotos-linha")
+    );                                                                        // lista linhas atuais
+
+    const primeiraUrl = linhas
+      .map((linha) => linha.querySelector(".q2-switch-foto-url-input"))        // pega hidden url por linha
+      .map((input) => (input ? (input.value || "").trim() : ""))              // normaliza valores
+      .find((valor) => !!valor) || "";                                        // pega a primeira não vazia (ou vazio)
+
+    q2SwitchCampoLegadoPrincipal.value = primeiraUrl;                         // grava no campo legado principal
+  }
+
+  function q2SwitchAplicarPreviewNaLinha(linha, dataUrl) {                    // aplica foto + hidden na linha do Q2
+    if (!linha) {                                                             // valida linha
+      return;                                                                 // encerra
+    }
+
+    const img = linha.querySelector(".q2-switch-foto-preview");               // pega <img> da linha
+    const placeholder = linha.querySelector(".q2-switch-foto-placeholder");   // pega placeholder da linha
+    const urlInput = linha.querySelector(".q2-switch-foto-url-input");        // pega hidden url da linha
+
+    if (img) {                                                                // se houver imagem
+      img.src = dataUrl || "";                                                // define src (ou limpa)
+      img.style.display = dataUrl ? "block" : "none";                         // mostra quando há foto
+    }
+
+    if (placeholder) {                                                        // se houver placeholder
+      placeholder.style.display = dataUrl ? "none" : "inline";                // alterna conforme há foto
+    }
+
+    if (urlInput) {                                                           // se houver hidden
+      urlInput.value = dataUrl || "";                                         // salva dataURL (temporário) no hidden
+    }
+
+    q2SwitchSincronizarCampoLegadoPrincipal();                                // atualiza campo legado principal
+  }
+
+  q2SwitchFileInput.addEventListener("change", function () {                  // ao escolher arquivo do Q2
+    const arquivo =
+      q2SwitchFileInput.files && q2SwitchFileInput.files[0]
+        ? q2SwitchFileInput.files[0]
+        : null;                                                               // pega arquivo selecionado
+
+    const linhaAlvo = q2SwitchFileInput._targetRow || null;                   // recupera linha alvo marcada
+    q2SwitchFileInput._targetRow = null;                                      // limpa referência da linha alvo
+
+    if (!arquivo || !linhaAlvo) {                                             // valida arquivo e linha
+      q2SwitchFileInput.value = "";                                           // limpa para permitir re-seleção
+      return;                                                                 // encerra
+    }
+
+    const reader = new FileReader();                                          // cria leitor para dataURL
+    reader.onload = function () {                                             // quando terminar de ler
+      const dataUrl = typeof reader.result === "string" ? reader.result : ""; // garante string
+      q2SwitchAplicarPreviewNaLinha(linhaAlvo, dataUrl);                      // aplica preview + hidden
+      q2SwitchFileInput.value = "";                                           // limpa para re-selecionar a mesma foto
+    };
+
+    reader.readAsDataURL(arquivo);                                            // inicia leitura
+  });
+
+  if (q2SwitchFotosTbody) {                                                   // só registra eventos se a tabela existir
+    q2SwitchFotosTbody.addEventListener("click", function (event) {           // delegation no tbody
+      const linha = event.target.closest(".q2-switch-fotos-linha");           // identifica a linha
+      if (!linha) {                                                          // se não clicou numa linha
+        return;                                                               // encerra
+      }
+
+      const btnSelecionar = event.target.closest(".q2-switch-foto-selecionar-btn"); // botão selecionar
+      const btnCamera = event.target.closest(".q2-switch-foto-abrir-camera-btn");  // botão câmera
+      const previewContainer = event.target.closest(".q2-switch-foto-preview-container"); // clique no preview
+      const btnRemover = event.target.closest(".q2-switch-foto-remover");     // botão remover (lixeira)
+
+      if (btnRemover) {                                                      // se clicou remover
+        const todas = q2SwitchFotosTbody.querySelectorAll(".q2-switch-fotos-linha"); // conta linhas
+        if (todas.length > 1) {                                              // se houver mais de uma
+          linha.remove();                                                    // remove linha
+        } else {                                                             // se for a única, apenas limpa
+          const desc = linha.querySelector(".q2-switch-foto-descricao-input"); // pega descrição
+          if (desc) { desc.value = ""; }                                     // limpa descrição
+          q2SwitchAplicarPreviewNaLinha(linha, "");                           // limpa foto/hidden/placeholder
+        }
+        q2SwitchSincronizarCampoLegadoPrincipal();                            // re-sincroniza legado
+        return;                                                              // encerra
+      }
+
+      if (btnCamera) {                                                       // se clicou em "Abrir câmera"
+        cameraAbrirModal((dataUrl) => {                                       // abre modal e recebe captura
+          q2SwitchAplicarPreviewNaLinha(linha, dataUrl);                      // aplica captura na linha
+        });
+        return;                                                              // encerra
+      }
+
+      if (btnSelecionar || previewContainer) {                                // selecionar ou clicar no preview
+        q2SwitchFileInput._targetRow = linha;                                 // marca linha alvo
+        q2SwitchFileInput.click();                                            // abre seletor de arquivo
+        return;                                                              // encerra
+      }
+    });
+  }
+
+  if (q2SwitchAdicionarFotoBtn && q2SwitchFotosTbody) {                       // se botão/tabela existem
+    q2SwitchAdicionarFotoBtn.addEventListener("click", function () {          // ao clicar em "Adicionar foto"
+      const modelo = q2SwitchFotosTbody.querySelector(".q2-switch-fotos-linha"); // usa primeira linha como modelo
+      if (!modelo) {                                                         // valida modelo
+        return;                                                              // encerra
+      }
+
+      const novaLinha = modelo.cloneNode(true);                               // clona a linha
+      const desc = novaLinha.querySelector(".q2-switch-foto-descricao-input"); // pega descrição
+      if (desc) { desc.value = ""; }                                         // limpa descrição
+      q2SwitchAplicarPreviewNaLinha(novaLinha, "");                            // limpa foto/hidden/placeholder
+      q2SwitchFotosTbody.appendChild(novaLinha);                               // adiciona ao final
+    });
+  }
+
+  const zoomButtons = document.querySelectorAll(".image-thumb-zoom-btn"); // seleciona todos os botões de "Ampliar" das linhas de imagem
+  zoomButtons.forEach((btn) => {                                  // percorre cada botão de zoom encontrado
+    btn.addEventListener("click", () => {                          // adiciona um ouvinte de clique ao botão
+      const targetId = btn.getAttribute("data-image-target");      // lê o id da imagem alvo do atributo data-image-target
+      const img = targetId ? document.getElementById(targetId) : null; // busca a tag <img> correspondente ao id informado
+      if (!img || !img.src) {                                     // se não encontrar a imagem ou se não houver src definido
+        alert("Nenhuma imagem disponível para ampliar.");          // informa ao usuário que não há imagem para visualizar
+        return;                                                   // encerra o handler de clique
+      }
+
+      let descricao = "";                                         // inicializa a descrição como string vazia
+      if (targetId === "localizacao-imagem1-thumb") {             // se a miniatura for da imagem 1
+        const descInput = document.getElementById("localizacao-imagem1-descricao"); // pega o input de descrição da imagem 1
+        descricao = descInput ? descInput.value : "";             // usa o valor do campo como descrição, se existir
+      } else if (targetId === "localizacao-imagem2-thumb") {      // se a miniatura for da imagem 2
+        const descInput = document.getElementById("localizacao-imagem2-descricao"); // pega o input de descrição da imagem 2
+        descricao = descInput ? descInput.value : "";             // usa o valor da descrição 2, se disponível
+      }
+
+      abrirModalPreviewImagem(img.src, descricao);                // chama a função que abre o modal com a imagem e a descrição
+    });                                                           // fim do ouvinte de clique para o botão de zoom
+  });                                                             // fim do loop de configuração dos botões de zoom
+  
+  atualizarThumbnailLocalizacao(1);                                 // força atualização da miniatura 1 na carga (para caso exista URL preenchida)
+  atualizarThumbnailLocalizacao(2);                                 // força atualização da miniatura 2 na carga (para caso exista URL preenchida)
+}                                                                   // fim da função inicializarSecaoLocalizacaoImagens
+
+
+
+// }
+
+// Inicialização dos recursos de imagem quando o DOM estiver pronto
+document.addEventListener("DOMContentLoaded", () => {             // aguarda o carregamento completo da estrutura HTML
+  inicializarModalPreviewImagens();                               // configura os handlers de abrir/fechar do modal de imagem
+  inicializarSecaoLocalizacaoImagens();                           // ativa a lógica de thumbnails e botões da seção de localização
+});                                                                // fim do ouvinte de DOMContentLoaded

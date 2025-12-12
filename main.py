@@ -1,15 +1,6 @@
 # ========================= main.py =========================
 # Importações básicas da FastAPI
-from fastapi import (                                      # importa componentes principais da FastAPI
-    FastAPI,                                               # classe principal da aplicação
-    Depends,                                               # injeção de dependências (ex.: sessão do banco)
-    HTTPException,                                         # exceção HTTP para erros controlados
-    UploadFile,                                            # tipo usado para receber arquivos via multipart/form-data
-    File,                                                  # marcador para parâmetros de arquivo em endpoints
-    Form,                                                  # marcador para parâmetros vindos de formulário (multipart/form-data)
-)
-
-from fastapi.staticfiles import StaticFiles                      # permite servir arquivos estáticos (HTML, CSS, JS, imagens)
+from fastapi import FastAPI, Depends, HTTPException, UploadFile, File, Form  # importa FastAPI, dependências, tipos de upload de arquivo e campos de formulário
 from fastapi.staticfiles import StaticFiles                      # permite servir arquivos estáticos (HTML, CSS, JS, imagens)
 from fastapi.responses import FileResponse                       # permite devolver um arquivo diretamente como resposta HTTP
 from fastapi.middleware.cors import CORSMiddleware               # middleware que habilita CORS (acesso à API a partir de outros domínios)
@@ -21,12 +12,10 @@ from pydantic import BaseModel, Field                            # BaseModel é 
 from typing import List, Optional                                # List e Optional são usados para declarar listas e campos opcionais
 
 # Módulos padrão de apoio
-import json                                                     # módulo para manipular dados em formato JSON (logs, payloads, etc.)
-import secrets                                                  # módulo para gerar valores aleatórios criptograficamente seguros (tokens, senhas)
-import string                                                   # módulo com constantes de caracteres (usado na geração de senhas)
-import uuid                                                     # módulo para gerar identificadores únicos (usado em nomes de arquivos de upload)
-from pathlib import Path                                        # Path facilita a manipulação de caminhos de arquivos em disco
-import shutil                                                   # módulo utilitário para copiar streams de arquivo (salvar uploads em disco)
+import json                                                      # módulo para manipular dados em formato JSON (logs, payloads, etc.)
+import secrets                                                   # módulo para gerar valores aleatórios criptograficamente seguros (tokens, senhas)
+import string                                                    # módulo com constantes de letras/dígitos, útil para montar senhas
+import shutil  # módulo auxiliar para copiar o conteúdo de arquivos enviados (UploadFile) para o disco
 
 from datetime import date, datetime, timedelta                   # tipos de data, data/hora e diferença de tempo
 
@@ -65,6 +54,9 @@ load_dotenv()                                                   # carrega o arqu
 # -----------------------------------------------------------
 # Configuração do banco de dados (somente Postgres, sem fallback)
 # -----------------------------------------------------------
+
+UPLOAD_DIR = os.getenv("UPLOAD_DIR", "uploads")  # define a pasta onde os arquivos de imagem serão salvos (pode ser configurada via variável de ambiente)
+os.makedirs(UPLOAD_DIR, exist_ok=True)  # garante que a pasta de uploads exista na inicialização da aplicação
 
 # Lê a URL do banco de dados a partir da variável de ambiente DATABASE_URL (sem valor padrão)
 DATABASE_URL = os.getenv("DATABASE_URL")                         # tenta buscar a variável no ambiente/.env
@@ -325,12 +317,16 @@ class Avaliacao(Base):                                           # define a clas
     equipamentos = relationship("AvaliacaoEquipamento",          # relacionamento 1:N com equipamentos
                                 back_populates="avaliacao",      # nome do atributo inverso na classe filha
                                 cascade="all, delete-orphan")    # apaga filhos ao apagar a avaliação
+    
+    imagens = relationship(                                      # relacionamento 1:N com as imagens associadas à avaliação
+        "AvaliacaoImagem",                                       # nome da classe filha que representa a tabela de imagens
+        back_populates="avaliacao",                              # atributo definido na classe AvaliacaoImagem apontando de volta para Avaliacao
+        cascade="all, delete-orphan"                             # ao apagar a avaliação, apaga também todas as imagens vinculadas
+    )                                                            # fim da definição do relacionamento de imagens
+
     outros_recursos = relationship("AvaliacaoOutroRecurso",      # relacionamento 1:N com outros recursos
                                    back_populates="avaliacao",   # atributo inverso
                                    cascade="all, delete-orphan") # apaga filhos ao apagar a avaliação
-    fotos = relationship("AvaliacaoFoto",                        # relacionamento 1:N com fotos da avaliação
-                         back_populates="avaliacao",             # atributo inverso definido em AvaliacaoFoto
-                         cascade="all, delete-orphan")           # remove fotos associadas ao excluir a avaliação
     auditoria = relationship("AvaliacaoAuditoria",               # relacionamento 1:N com auditoria
                              back_populates="avaliacao",         # atributo inverso
                              cascade="all, delete-orphan")       # apaga logs ao apagar a avaliação
@@ -352,22 +348,24 @@ class AvaliacaoEquipamento(Base):                                # classe para t
     avaliacao = relationship("Avaliacao",                        # relacionamento de volta com Avaliacao
                              back_populates="equipamentos")      # conecta com o atributo equipamentos em Avaliacao
 
-class AvaliacaoFoto(Base):                                       # classe para tabela "avaliacoes_fotos"
-    __tablename__ = "avaliacoes_fotos"                         # nome da tabela no banco de dados
+class AvaliacaoImagem(Base):                                     # classe ORM que representa a tabela "avaliacoes_imagens"
+    __tablename__ = "avaliacoes_imagens"                         # nome da tabela no banco de dados
 
-    id = Column(Integer, primary_key=True, index=True)         # id da foto (chave primária, indexada para buscas rápidas)
-    avaliacao_id = Column(Integer,                             # id da avaliação associada a esta foto
-                          ForeignKey("avaliacoes.id"),         # chave estrangeira referenciando a tabela de avaliacoes
-                          nullable=False)                      # campo obrigatório (toda foto pertence a uma avaliação)
+    id = Column(Integer, primary_key=True, index=True)           # identificador único da imagem (chave primária)
+    avaliacao_id = Column(                                       # coluna que guarda o id da avaliação dona da imagem
+        Integer,                                                 # tipo inteiro, compatível com a chave primária de avaliacoes
+        ForeignKey("avaliacoes.id"),                             # chave estrangeira apontando para avaliacoes.id
+        nullable=False                                           # não pode ser nulo, toda imagem pertence a uma avaliação
+    )
+    contexto = Column(String(50), nullable=False)                # contexto da imagem (ex.: 'switch', 'localizacao', 'q4_cameras', etc.)
+    ordem = Column(Integer, nullable=False)                      # ordem de exibição da imagem dentro do contexto
+    url = Column(Text, nullable=False)                           # URL pública ou caminho da imagem salva em storage
+    descricao = Column(Text)                                     # descrição/opcional para documentar o que a imagem representa
 
-    secao = Column(String(50),                                 # seção da avaliação à qual a foto pertence (ex.: "q2_switch")
-                   nullable=False)                             # obrigatório para sabermos em qual parte do formulário usar
-    descricao = Column(Text)                                   # descrição opcional da foto (campo livre)
-    arquivo_url = Column(Text,                                 # URL onde a imagem está armazenada (ou caminho lógico)
-                          nullable=False)                      # obrigatório, pois é como o front acessará a imagem
-
-    avaliacao = relationship("Avaliacao",                      # relacionamento ORM de volta para Avaliacao
-                             back_populates="fotos")           # conecta com o atributo "fotos" definido na classe Avaliacao
+    avaliacao = relationship(                                    # define o relacionamento de volta com a avaliação
+        "Avaliacao",                                             # nome da classe pai (Avaliacão)
+        back_populates="imagens"                                 # conecta com o atributo "imagens" definido na classe Avaliacao
+    )                                                            # fim da definição do relacionamento AvaliacaoImagem -> Avaliacao
 
 class AvaliacaoOutroRecurso(Base):                               # classe para tabela "avaliacoes_outros_recursos"
     __tablename__ = "avaliacoes_outros_recursos"                 # nome da tabela
@@ -663,6 +661,11 @@ class UsuarioMeSchema(UsuarioBaseSchema):                       # schema para re
 class TrocarSenhaSchema(BaseModel):                             # schema para alteração de senha pelo próprio usuário
     senha_atual: str                                            # senha atual digitada
     nova_senha: str                                             # nova senha desejada
+
+class UploadImagemResponseSchema(BaseModel):  # schema de resposta da rota de upload de imagem
+    avaliacao_id: int  # id da avaliação que teve o campo de imagem atualizado
+    campo: str  # nome do campo atualizado (localizacao_imagem1_url ou localizacao_imagem2_url)
+    url: str  # URL pública (relativa) para acessar a imagem salva via /uploads
 
 class AvaliacaoBaseSchema(BaseModel):                            # schema base com campos principais
     cliente_nome: str = Field(..., description="Nome do cliente")# nome do cliente, obrigatório
@@ -1822,35 +1825,32 @@ class EquipamentoOutSchema(EquipamentoBaseSchema):                # schema de sa
     id: int = Field(..., description="ID do equipamento")         # identificador único do equipamento
     avaliacao_id: int = Field(..., description="ID da avaliação") # id da avaliação relacionada
 
-
-class FotoBaseSchema(BaseModel):                                # schema base para operação com fotos
-    secao: str = Field(                                         # campo com a seção lógica da avaliação (ex.: "q2_switch")
-        ...,                                                    # obrigatório
-        description="Seção da avaliação à qual a foto pertence (ex.: 'q2_switch')"  # ajuda exibida na documentação
+class ImagemBaseSchema(BaseModel):                                # schema base para criação/edição de imagem de avaliação
+    contexto: str = Field(                                        # contexto da imagem (qual seção ela representa)
+        ...,                                                      # obrigatório
+        description="Contexto da imagem (ex.: switch, localizacao, q4_cameras)"  # ajuda na documentação do Swagger
     )
-    arquivo_url: str = Field(                                   # URL da imagem armazenada (no storage externo ou outro local)
-        ...,                                                    # obrigatório
-        description="URL pública ou caminho lógico da imagem"   # descrição para o Swagger
+    ordem: int = Field(                                           # ordem de exibição da imagem no contexto
+        ...,                                                      # obrigatório
+        ge=1,                                                     # garante que a ordem seja pelo menos 1
+        description="Ordem de exibição da imagem dentro do contexto"  # descrição exibida no Swagger
     )
-    descricao: Optional[str] = Field(                           # descrição opcional da foto
-        None,                                                   # padrão = None (não informado)
-        description="Descrição opcional da foto"                # ajuda na documentação
+    url: str = Field(                                             # URL pública/caminho da imagem
+        ...,                                                      # obrigatório
+        description="URL pública ou caminho da imagem salva"      # instrução para o consumidor da API
     )
-
-    class Config:                                               # configurações adicionais do Pydantic
-        orm_mode = True                                         # permite criar o schema a partir de objetos ORM
-
-
-class FotoOutSchema(FotoBaseSchema):                            # schema de saída para fotos
-    id: int = Field(                                            # identificador único da foto
-        ...,                                                    # obrigatório
-        description="ID da foto"                                # descrição no Swagger
-    )
-    avaliacao_id: int = Field(                                  # id da avaliação associada
-        ...,                                                    # obrigatório
-        description="ID da avaliação dona da foto"              # descrição no Swagger
+    descricao: Optional[str] = Field(                             # texto descritivo ligado à imagem
+        None,                                                     # opcional (pode ficar em branco)
+        description="Descrição ou observações sobre a imagem"     # texto de ajuda exibido no Swagger
     )
 
+    class Config:                                                 # configurações do Pydantic
+        orm_mode = True                                           # permite converter diretamente a partir de objetos ORM
+
+
+class ImagemOutSchema(ImagemBaseSchema):                          # schema de saída para imagem de avaliação
+    id: int = Field(..., description="ID da imagem")              # identificador único da imagem no banco
+    avaliacao_id: int = Field(..., description="ID da avaliação") # id da avaliação à qual a imagem pertence
 
 class OutroRecursoBaseSchema(BaseModel):                          # schema base para criação de outro recurso
     descricao: str = Field(                                       # descrição do recurso
@@ -1880,11 +1880,6 @@ app = FastAPI(                                                   # instancia a a
     version="0.1.0"                                              # versão inicial da API
 )
 
-UPLOAD_DIR = Path("static/uploads")                              # diretório base onde os arquivos de imagem enviados serão armazenados
-# OBS: este diretório fica dentro da pasta "static", que já é exposta pela aplicação em "/static"
-# Em produção, este mecanismo pode ser substituído por um storage externo (ex.: Supabase Storage, S3),
-# mantendo em banco apenas a URL pública (arquivo_url) apontando para a imagem.
-
 # -----------------------------------------------------------
 # Configuração de CORS (para permitir o front do Netlify acessar a API)
 # -----------------------------------------------------------
@@ -1901,6 +1896,8 @@ app.add_middleware(                                              # registra o mi
     allow_methods=["*"],                                         # libera todos os métodos HTTP (GET, POST, PUT, DELETE, etc.)
     allow_headers=["*"],                                         # libera todos os cabeçalhos nas requisições
 )
+
+app.mount("/uploads", StaticFiles(directory=UPLOAD_DIR), name="uploads")  # expõe o diretório de uploads na rota /uploads para servir os arquivos salvos
 
 # -----------------------------------------------------------
 # Arquivos estáticos e rota raiz (para uso local / testes)
@@ -2422,6 +2419,58 @@ def listar_equipamentos(                                         # função para
 
     return equipamentos                                          # retorna lista de equipamentos (pode ser vazia)
 
+@app.post(
+    "/avaliacoes/{avaliacao_id}/imagens",  # endpoint para fazer upload de imagem de localização de uma avaliação existente
+    response_model=UploadImagemResponseSchema,  # define o formato da resposta usando o schema criado
+    summary="Fazer upload de uma imagem de localização da avaliação",  # texto curto que aparece na documentação (Swagger)
+)
+async def upload_imagem_avaliacao(
+    avaliacao_id: int,  # id da avaliação que será atualizada
+    campo: str = Form(..., description="localizacao_imagem1_url ou localizacao_imagem2_url"),  # indica qual campo de imagem deve ser preenchido
+    arquivo: UploadFile = File(...),  # arquivo de imagem enviado via multipart/form-data
+    db: Session = Depends(get_db),  # injeta a sessão de banco usando a dependência padrão
+    usuario_atual: Usuario = Depends(obter_usuario_atual),  # garante que apenas usuários autenticados usem a rota
+) -> UploadImagemResponseSchema:  # define o tipo de retorno esperado pela função
+    if campo not in ("localizacao_imagem1_url", "localizacao_imagem2_url"):  # valida se o campo enviado é um dos dois aceitos
+        raise HTTPException(  # dispara erro HTTP se o campo for inválido
+            status_code=400,  # HTTP 400 - requisição inválida
+            detail="Campo de imagem inválido. Use localizacao_imagem1_url ou localizacao_imagem2_url.",  # mensagem com instrução correta
+        )
+
+    avaliacao = db.query(Avaliacao).filter(Avaliacao.id == avaliacao_id).first()  # busca a avaliação correspondente no banco pelo id informado
+    if not avaliacao:  # se nenhuma avaliação for encontrada
+        raise HTTPException(  # dispara erro HTTP 404
+            status_code=404,  # HTTP 404 - não encontrado
+            detail="Avaliação não encontrada.",  # mensagem informando que o id não existe
+        )
+
+    extensao_original = os.path.splitext(arquivo.filename or "")[1].lower()  # extrai a extensão do arquivo enviado (ex.: .jpg, .png)
+    if extensao_original not in [".jpg", ".jpeg", ".png", ".webp"]:  # restringe os formatos de imagem aceitos
+        raise HTTPException(  # dispara erro se o formato não estiver na lista permitida
+            status_code=400,  # HTTP 400 - requisição inválida
+            detail="Formato de imagem não suportado. Use JPG, JPEG, PNG ou WEBP.",  # mensagem de erro amigável para o usuário
+        )
+
+    timestamp = datetime.utcnow().strftime("%Y%m%d%H%M%S")  # gera um timestamp em UTC para evitar nomes duplicados
+    nome_arquivo = f"avt_{avaliacao_id}_{campo}_{timestamp}{extensao_original}"  # monta um nome de arquivo único com id da avaliação, campo e timestamp
+    caminho_arquivo = os.path.join(UPLOAD_DIR, nome_arquivo)  # monta o caminho físico completo do arquivo dentro da pasta de uploads
+
+    with open(caminho_arquivo, "wb") as destino:  # abre o arquivo de destino em modo binário de escrita
+        shutil.copyfileobj(arquivo.file, destino)  # copia todo o conteúdo do arquivo enviado para o arquivo no disco
+
+    url_publica = f"/uploads/{nome_arquivo}"  # monta a URL relativa que será usada pelo front para exibir a imagem
+
+    setattr(avaliacao, campo, url_publica)  # grava no objeto Avaliacao o valor da URL no campo correspondente (1 ou 2)
+    db.add(avaliacao)  # adiciona a avaliação (modificada) à sessão do banco
+    db.commit()  # confirma a transação e persiste a mudança no banco
+    db.refresh(avaliacao)  # recarrega o objeto Avaliacao com os dados atualizados vindos do banco
+
+    return UploadImagemResponseSchema(  # monta e retorna o objeto de resposta da API
+        avaliacao_id=avaliacao.id,  # id da avaliação que foi atualizada
+        campo=campo,  # nome do campo de imagem alterado
+        url=url_publica,  # URL relativa onde a imagem está disponível
+    )
+
 # -----------------------------------------------------------
 # Endpoint: remover um equipamento específico
 # -----------------------------------------------------------
@@ -2469,217 +2518,111 @@ def remover_equipamento(                                         # função para
     return {"detail": "Equipamento removido com sucesso"}        # resposta simples de confirmação
 
 # -----------------------------------------------------------
-# Endpoint: listar fotos de uma avaliação
+# Endpoint: listar imagens de uma avaliação
 # -----------------------------------------------------------
-@app.get("/avaliacoes/{avaliacao_id}/fotos",                    # rota GET para listar fotos de uma avaliação
-         response_model=List[FotoOutSchema])                    # resposta: lista de fotos associadas
-def listar_fotos(                                               # função para listar fotos
-    avaliacao_id: int,                                          # id da avaliação recebido na URL
-    db: Session = Depends(get_db)                               # sessão de banco injetada pela dependência
-):
-    fotos = db.query(AvaliacaoFoto).filter(                     # monta a query na tabela de fotos
-        AvaliacaoFoto.avaliacao_id == avaliacao_id              # filtra todas as fotos da avaliação informada
-    ).all()                                                     # executa a query e retorna a lista (pode ser vazia)
+@app.get(                                                        # decorador que define um endpoint HTTP GET
+    "/avaliacoes/{avaliacao_id}/imagens",                        # rota para listar imagens vinculadas a uma avaliação específica
+    response_model=List[ImagemOutSchema],                        # resposta será uma lista de imagens no formato do schema de saída
+)
+def listar_imagens_avaliacao(                                    # função que implementa a lógica de listagem de imagens
+    avaliacao_id: int,                                           # id da avaliação recebido como parte da URL
+    contexto: Optional[str] = None,                              # contexto opcional para filtrar as imagens (ex.: 'switch', 'localizacao')
+    db: Session = Depends(get_db),                               # injeta a sessão de banco de dados na função
+):                                                               # fim da assinatura da função
+    query = db.query(AvaliacaoImagem).filter(                    # inicia a query na tabela de imagens
+        AvaliacaoImagem.avaliacao_id == avaliacao_id             # filtra apenas registros vinculados à avaliação informada
+    )                                                            # fim da construção inicial da query
 
-    return fotos                                                # devolve a lista de fotos para o cliente
+    if contexto:                                                 # se um contexto específico tiver sido informado
+        query = query.filter(                                    # refina a query existente
+            AvaliacaoImagem.contexto == contexto                 # mantendo apenas imagens do contexto desejado
+        )                                                        # fim do filtro por contexto
+
+    imagens = query.order_by(                                    # define a ordenação do resultado
+        AvaliacaoImagem.ordem.asc()                              # ordena pela coluna "ordem" em ordem crescente
+    ).all()                                                      # executa a query e retorna todas as imagens encontradas
+
+    return imagens                                               # retorna a lista de imagens (pode ser vazia se não houver registros)
 
 # -----------------------------------------------------------
-# Endpoint: adicionar uma nova foto a uma avaliação
+# Endpoint: salvar (sincronizar) imagens de uma avaliação
 # -----------------------------------------------------------
-@app.post("/avaliacoes/{avaliacao_id}/fotos",                   # rota POST para adicionar foto em uma avaliação
-          response_model=FotoOutSchema)                         # resposta: foto criada com seus dados completos
-def adicionar_foto(                                             # função para criar uma nova foto
-    avaliacao_id: int,                                          # id da avaliação recebido na URL
-    payload: FotoBaseSchema,                                    # dados da foto enviados no corpo da requisição
-    db: Session = Depends(get_db)                               # sessão de banco injetada
-):
-    avaliacao = db.query(Avaliacao).filter(                     # consulta a tabela de avaliações
-        Avaliacao.id == avaliacao_id                            # filtra pela chave primária recebida
-    ).first()                                                   # pega o primeiro resultado (ou None)
+@app.put(                                                        # decorador que define um endpoint HTTP PUT
+    "/avaliacoes/{avaliacao_id}/imagens",                        # rota para sobrescrever as imagens de uma avaliação
+    response_model=List[ImagemOutSchema],                        # resposta será a lista de imagens persistidas após a operação
+)
+def salvar_imagens_avaliacao(                                    # função que implementa a sincronização das imagens
+    avaliacao_id: int,                                           # id da avaliação recebido pela URL
+    imagens: List[ImagemBaseSchema],                             # lista de imagens enviada no corpo da requisição
+    db: Session = Depends(get_db),                               # sessão de banco de dados injetada pelo FastAPI
+):                                                               # fim da assinatura da função
+    avaliacao = db.query(Avaliacao).filter(                      # busca a avaliação correspondente no banco
+        Avaliacao.id == avaliacao_id                             # filtra pelo id informado na URL
+    ).first()                                                    # retorna o primeiro resultado (ou None, se não existir)
 
-    if not avaliacao:                                           # se não encontrou avaliação correspondente
-        raise HTTPException(                                    # lança um erro HTTP 404
-            status_code=404,                                    # código de "não encontrado"
-            detail="Avaliação não encontrada"                   # mensagem de erro retornada ao cliente
-        )
+    if not avaliacao:                                            # se nenhuma avaliação for encontrada
+        raise HTTPException(                                     # lança uma exceção HTTP
+            status_code=404,                                     # código 404 - recurso não encontrado
+            detail="Avaliação não encontrada",                   # mensagem de erro retornada para o cliente
+        )                                                        # fim do raise HTTPException
 
-    foto = AvaliacaoFoto(                                       # cria uma nova instância ORM de foto
-        avaliacao_id=avaliacao_id,                              # associa à avaliação recebida na URL
-        secao=payload.secao,                                    # registra em qual seção do formulário a foto será usada
-        descricao=payload.descricao,                            # descrição opcional vinda do payload
-        arquivo_url=payload.arquivo_url                         # URL/caminho da imagem informada pelo front
-    )
+    if not imagens:                                              # se a lista recebida estiver vazia
+        db.query(AvaliacaoImagem).filter(                        # monta query para remover todas as imagens da avaliação
+            AvaliacaoImagem.avaliacao_id == avaliacao_id         # filtrando pelo id da avaliação
+        ).delete(synchronize_session=False)                      # executa remoção em lote sem sincronizar a sessão ORM
+        db.commit()                                              # confirma a remoção no banco
+        return []                                                # retorna lista vazia indicando que não há mais imagens cadastradas
 
-    db.add(foto)                                                # adiciona a foto à sessão de banco
-    db.commit()                                                 # grava a foto no banco de dados
-    db.refresh(foto)                                            # recarrega o objeto com os dados persistidos (id, etc.)
+    contextos = {img.contexto for img in imagens}                # cria um conjunto com todos os contextos distintos presentes na lista
 
-    detalhes_log = json.dumps(                                  # monta um JSON com informações relevantes para auditoria
+    for ctx in contextos:                                        # percorre cada contexto identificado
+        db.query(AvaliacaoImagem).filter(                        # monta query para remover imagens existentes nesse contexto
+            AvaliacaoImagem.avaliacao_id == avaliacao_id,        # restringe à avaliação atual
+            AvaliacaoImagem.contexto == ctx                      # restringe ao contexto específico
+        ).delete(synchronize_session=False)                      # executa remoção em lote para aquele contexto
+
+    db.commit()                                                  # confirma todas as remoções feitas para os contextos envolvidos
+
+    imagens_salvas: List[AvaliacaoImagem] = []                   # lista que armazenará as instâncias ORM das novas imagens criadas
+
+    for img in imagens:                                          # percorre cada imagem enviada pelo cliente
+        nova_imagem = AvaliacaoImagem(                           # cria uma nova instância da entidade de imagem
+            avaliacao_id=avaliacao_id,                           # associa a imagem à avaliação informada na URL
+            contexto=img.contexto,                               # define o contexto da imagem (ex.: 'switch', 'localizacao')
+            ordem=img.ordem,                                     # define a ordem de exibição da imagem dentro do contexto
+            url=img.url,                                         # define a URL/caminho público da imagem
+            descricao=img.descricao,                             # define a descrição (pode ser None)
+        )                                                        # fim da construção da instância AvaliacaoImagem
+
+        db.add(nova_imagem)                                      # adiciona a nova imagem à sessão do banco
+        imagens_salvas.append(nova_imagem)                       # guarda referência da nova imagem para retorno posterior
+
+    db.commit()                                                  # grava todas as novas imagens no banco de dados
+
+    for nova_imagem in imagens_salvas:                           # percorre novamente as imagens recém inseridas
+        db.refresh(nova_imagem)                                  # recarrega cada objeto para garantir campos atualizados (ex.: id)
+
+    detalhes_log = json.dumps(                                   # monta um JSON com detalhes da operação para auditoria
         {
-            "acao": "adicionar_foto",                           # tipo de ação registrada
-            "secao": payload.secao,                             # seção da avaliação
-            "arquivo_url": payload.arquivo_url,                 # URL da imagem salva
-            "descricao": payload.descricao                      # descrição opcional
+            "acao": "sincronizar_imagens",                       # nome da ação executada
+            "avaliacao_id": avaliacao_id,                        # id da avaliação afetada
+            "total_imagens": len(imagens_salvas),                # quantidade total de imagens persistidas
+            "contextos": sorted(list(contextos)),                # lista ordenada dos contextos envolvidos na operação
         },
-        ensure_ascii=False                                      # mantém acentuação no JSON
-    )
+        ensure_ascii=False                                       # mantém acentuação UTF-8 no JSON
+    )                                                            # fim da construção do JSON de detalhes
 
-    log = AvaliacaoAuditoria(                                   # cria um registro de auditoria da ação
-        avaliacao_id=avaliacao_id,                              # id da avaliação associada
-        usuario="sistema",                                      # TODO: substituir pelo usuário logado quando houver contexto
-        acao="ADD_FOTO",                                        # código resumido da ação
-        detalhes=detalhes_log                                   # detalhes em JSON
-    )
+    log = AvaliacaoAuditoria(                                    # cria um novo registro de auditoria
+        avaliacao_id=avaliacao_id,                               # associa o log à avaliação correspondente
+        usuario="sistema",                                       # usuário responsável (pode ser ajustado para o usuário logado depois)
+        acao="SINCRONIZAR_IMAGENS",                              # código da ação, usado para identificar o tipo de evento
+        detalhes=detalhes_log                                    # JSON com os detalhes da sincronização
+    )                                                            # fim da criação do objeto de auditoria
 
-    db.add(log)                                                 # adiciona o log à sessão
-    db.commit()                                                 # grava o log no banco
+    db.add(log)                                                  # adiciona o log à sessão do banco
+    db.commit()                                                  # grava o registro de auditoria no banco de dados
 
-    return foto                                                 # retorna a foto criada para o cliente
-
-# -----------------------------------------------------------
-# Endpoint: upload de arquivo de foto e criação de registro
-# -----------------------------------------------------------
-@app.post("/avaliacoes/{avaliacao_id}/fotos/upload",            # rota POST específica para upload de arquivo de imagem
-          response_model=FotoOutSchema)                         # retorna os dados completos da foto criada
-def upload_foto_avaliacao(                                      # função que processa o upload e cria o registro de foto
-    avaliacao_id: int,                                          # id da avaliação recebido na URL
-    secao: str = Form(...),                                     # seção da avaliação à qual a foto pertence (ex.: "q2_switch")
-    descricao: Optional[str] = Form(None),                      # descrição opcional da foto, também enviada no formulário
-    arquivo: UploadFile = File(...),                            # arquivo de imagem enviado no corpo multipart/form-data
-    db: Session = Depends(get_db)                               # sessão de banco de dados injetada pela dependência
-):
-    avaliacao = db.query(Avaliacao).filter(                     # consulta a avaliação associada ao id informado
-        Avaliacao.id == avaliacao_id                            # condição: id igual ao parâmetro da rota
-    ).first()                                                   # obtém o primeiro resultado ou None se não existir
-
-    if not avaliacao:                                           # se nenhuma avaliação for encontrada com esse id
-        raise HTTPException(                                    # interrompe com um erro HTTP
-            status_code=404,                                    # código 404 - recurso não encontrado
-            detail="Avaliação não encontrada"                   # mensagem de erro retornada ao cliente
-        )
-
-    if not arquivo.filename:                                    # se o arquivo enviado não tiver um nome válido
-        raise HTTPException(                                    # interrompe com erro de requisição inválida
-            status_code=400,                                    # código 400 - bad request
-            detail="Nenhum arquivo foi enviado"                 # mensagem indicando que não veio arquivo
-        )
-
-    content_type = arquivo.content_type or ""                   # obtém o content-type informado pelo cliente (ou string vazia)
-    if not content_type.startswith("image/"):                   # se o content-type não indicar uma imagem
-        raise HTTPException(                                    # interrompe com erro de validação
-            status_code=400,                                    # código 400 - bad request
-            detail="Tipo de arquivo inválido. Envie uma imagem."  # mensagem explicando que apenas imagens são aceitas
-        )
-
-    try:
-        UPLOAD_DIR.mkdir(parents=True, exist_ok=True)           # garante que o diretório de upload exista, criando se necessário
-    except Exception as e:                                      # se ocorrer algum erro na criação do diretório
-        raise HTTPException(                                    # interrompe com erro interno de servidor
-            status_code=500,                                    # código 500 - internal server error
-            detail=f"Erro ao preparar diretório de upload: {e}" # mensagem indicando falha na infraestrutura de arquivos
-        )
-
-    nome_original = os.path.basename(arquivo.filename)          # extrai apenas o nome base do arquivo enviado (sem caminhos)
-    extensao = ""                                               # inicializa a extensão como vazia
-    if "." in nome_original:                                    # se o nome original tiver ponto (.)
-        extensao = nome_original.rsplit(".", 1)[-1]             # pega tudo após o último ponto como extensão (ex.: "jpg", "png")
-
-    identificador = uuid.uuid4().hex                            # gera um identificador único em hexadecimal
-    nome_arquivo_final = f"aval_{avaliacao_id}_{identificador}" # base do nome de arquivo final usando id da avaliação + UUID
-
-    if extensao:                                                # se foi encontrada uma extensão
-        nome_arquivo_final += f".{extensao.lower()}"            # adiciona a extensão em minúsculo ao nome do arquivo
-
-    caminho_final = UPLOAD_DIR / nome_arquivo_final             # monta o caminho completo do arquivo em disco usando Path
-
-    try:
-        with caminho_final.open("wb") as buffer:                # abre o arquivo de destino em modo binário para escrita
-            shutil.copyfileobj(arquivo.file, buffer)            # copia o conteúdo do arquivo enviado para o arquivo em disco
-    except Exception as e:                                      # se ocorrer erro durante a escrita do arquivo
-        raise HTTPException(                                    # interrompe com erro interno
-            status_code=500,                                    # código 500 - internal server error
-            detail=f"Erro ao salvar arquivo de imagem: {e}"     # mensagem descrevendo o problema
-        )
-
-    arquivo_url = f"/static/uploads/{nome_arquivo_final}"       # monta a URL pública relativa para acessar a imagem via HTTP
-
-    foto = AvaliacaoFoto(                                       # cria uma instância do modelo ORM de foto
-        avaliacao_id=avaliacao_id,                              # associa a foto à avaliação recebida na rota
-        secao=secao,                                            # registra em qual seção essa foto será usada (ex.: "q2_switch")
-        descricao=descricao,                                    # armazena a descrição opcional fornecida pelo usuário
-        arquivo_url=arquivo_url                                 # guarda a URL pública onde a imagem está disponível
-    )
-
-    db.add(foto)                                                # adiciona a foto recém-criada à sessão de banco de dados
-    db.commit()                                                 # confirma a transação, persistindo a foto
-    db.refresh(foto)                                            # recarrega o objeto para garantir acesso a campos gerados (id, etc.)
-
-    detalhes_log = json.dumps(                                  # monta um JSON com os detalhes da operação para auditoria
-        {
-            "acao": "upload_foto",                              # identifica que a ação foi de upload de foto
-            "secao": secao,                                     # seção à qual a foto está vinculada
-            "arquivo_url": arquivo_url,                         # caminho público da imagem salva
-            "descricao": descricao,                             # descrição informada (se houver)
-        },
-        ensure_ascii=False                                      # mantém caracteres acentuados no JSON
-    )
-
-    log = AvaliacaoAuditoria(                                   # cria um registro de auditoria da operação
-        avaliacao_id=avaliacao_id,                              # id da avaliação relacionada
-        usuario="sistema",                                      # TODO: substituir pelo usuário autenticado quando o contexto estiver disponível
-        acao="UPLOAD_FOTO",                                     # código curto representando a ação
-        detalhes=detalhes_log                                   # JSON com detalhes adicionais
-    )
-
-    db.add(log)                                                 # adiciona o registro de auditoria à sessão do banco
-    db.commit()                                                 # confirma a gravação do log no banco de dados
-
-    return foto                                                 # retorna o objeto de foto criado para o cliente (via FotoOutSchema)
-
-# -----------------------------------------------------------
-# Endpoint: remover uma foto específica
-# -----------------------------------------------------------
-@app.delete("/fotos/{foto_id}")                                 # rota DELETE para remover uma foto pelo id
-def remover_foto(                                               # função para remover a foto
-    foto_id: int,                                               # id da foto recebido na URL
-    db: Session = Depends(get_db)                               # sessão de banco injetada
-):
-    foto = db.query(AvaliacaoFoto).filter(                      # busca a foto na tabela correspondente
-        AvaliacaoFoto.id == foto_id                             # filtra pelo id informado
-    ).first()                                                   # pega o primeiro resultado (ou None)
-
-    if not foto:                                                # se nenhuma foto foi encontrada
-        raise HTTPException(                                    # lança erro HTTP
-            status_code=404,                                    # código 404 - não encontrado
-            detail="Foto não encontrada"                        # mensagem de erro
-        )
-
-    avaliacao_id = foto.avaliacao_id                            # guarda o id da avaliação para registrar no log
-
-    detalhes_log = json.dumps(                                  # monta JSON com informações da foto removida
-        {
-            "acao": "remover_foto",                             # tipo de ação
-            "secao": foto.secao,                                # seção à qual a foto pertencia
-            "arquivo_url": foto.arquivo_url,                    # URL da imagem que será removida
-            "descricao": foto.descricao                         # descrição (se houver)
-        },
-        ensure_ascii=False                                      # mantém acentuação
-    )
-
-    db.delete(foto)                                             # marca a foto para remoção
-    db.commit()                                                 # aplica a remoção no banco
-
-    log = AvaliacaoAuditoria(                                   # cria registro de auditoria da remoção
-        avaliacao_id=avaliacao_id,                              # id da avaliação associada
-        usuario="sistema",                                      # TODO: substituir pelo usuário logado no futuro
-        acao="REMOVER_FOTO",                                    # código da ação de remoção
-        detalhes=detalhes_log                                   # detalhes em JSON
-    )
-
-    db.add(log)                                                 # adiciona o log à sessão
-    db.commit()                                                 # grava o log no banco
-
-    return {"detail": "Foto removida com sucesso"}              # resposta simples confirmando a operação
+    return imagens_salvas                                        # retorna para o cliente a lista de imagens salvas no banco
 
 # -----------------------------------------------------------
 # Endpoint: adicionar outro recurso a uma avaliação

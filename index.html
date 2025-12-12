@@ -1010,7 +1010,8 @@
                   />
 
                   <div class="form-group">
-                    <label>Fotos do switch (URLs)</label>
+                    <label>Fotos do switch</label>                 <!-- título da seção de fotos do switch -->
+
                     <!-- Wrapper de tabela reutilizando o estilo padrão de tabelas do sistema -->
                     <div class="table-wrapper">
                       <table
@@ -1019,20 +1020,49 @@
                       >
                         <thead>
                           <tr>
-                            <th>URL da foto</th>
-                            <th>Descrição (opcional)</th>
-                            <th class="q2-switch-fotos-acoes-header"></th>
+                            <th>Foto</th>                          <!-- coluna onde ficará a imagem -->
+                            <th>Descrição / legenda</th>           <!-- coluna de texto livre para legenda/descrição -->
+                            <th class="q2-switch-fotos-acoes-header"></th> <!-- coluna de ações (remover) -->
                           </tr>
                         </thead>
-                        <tbody id="q2-switch-fotos-tbody">
+                        <tbody id="q2-switch-fotos-tbody">         <!-- corpo da tabela onde as linhas de fotos serão gerenciadas via JS -->
                           <!-- Linha inicial que serve como modelo para novas fotos -->
-                          <tr class="q2-switch-fotos-linha">
+                          <tr class="q2-switch-fotos-linha">       <!-- linha modelo para ser clonada pelo JavaScript -->
                             <td>
-                              <input
-                                type="url"
-                                class="q2-switch-foto-url-input"
-                                placeholder="Link para foto (Drive, WhatsApp Web, etc.)"
-                              />
+                              <div class="q2-switch-foto-bloco">   <!-- bloco vertical com preview e controles internos -->
+                          <div class="q2-switch-foto-preview-container">        <!-- container do preview (clique também seleciona arquivo) -->
+                                  <img
+                                    src=""
+                                    alt="Pré-visualização da foto do switch"
+                                    class="q2-switch-foto-preview"          
+                                  />
+                                  <span class="q2-switch-foto-placeholder"> <!-- placeholder quando não há foto -->
+                                    Clique para selecionar a foto
+                                  </span>                                  <!-- texto de placeholder quando não há foto -->
+                                </div>
+
+                                <div class="q2-switch-foto-botoes">        <!-- linha de botões por foto -->
+                                  <button
+                                    type="button"                         
+                                    class="btn btn-secondary btn-small q2-switch-foto-selecionar-btn"
+                                  >
+                                    Selecionar imagem
+                                  </button>
+
+                                  <button
+                                    type="button"
+                                    class="btn btn-primary btn-small q2-switch-foto-abrir-camera-btn"
+                                  >
+                                    Abrir câmera
+                                  </button>
+                                </div>
+
+                                <!-- Campo escondido que guarda a URL da foto associada a esta linha -->
+                                <input
+                                  type="hidden"
+                                  class="q2-switch-foto-url-input"
+                                />
+                              </div>
                             </td>
                             <td>
                               <input
@@ -1045,7 +1075,7 @@
                               <button
                                 type="button"
                                 class="q2-switch-foto-remover"
-                                title="Remover linha"
+                                title="Remover foto"
                               >
                                 🗑️
                               </button>
@@ -1055,26 +1085,18 @@
                       </table>
                     </div>
 
-                    <div class="lista-materiais-acoes">
+                    <!-- Rodapé da seção com botão para adicionar novas fotos -->
+                    <div class="q2-switch-fotos-acoes-footer">
                       <button
                         type="button"
                         id="btn-q2-switch-adicionar-foto"
-                        class="btn btn-primary btn-small"
+                        class="btn btn-secondary btn-small"
                       >
-                        Adicionar foto +
+                        Adicionar foto
                       </button>
-
-                      <!-- Input de arquivo escondido: usado para abrir câmera/galeria ao adicionar foto em avaliações já salvas -->
-                      <input
-                        type="file"                         
-                        id="q2-switch-foto-file-input"      
-                        accept="image/*"                    
-                        capture="environment"               
-                        multiple                            
-                        class="hidden-file-input"           
-                      />
                     </div>
                   </div>
+
                 </div>
 
                 <div class="form-row"><!-- linha de observações de switch -->
@@ -1707,28 +1729,165 @@
                   </div> <!-- fim do grupo full-width que envolve a tabela e o botão -->
                 </div> <!-- fim da linha de formulário que contém toda a lista de materiais -->
 
-              <!-- Seção: Localização / Imagens --> <!-- comentário que marca o início da seção de localização / imagens (já existente) -->
-              <h3 class="form-section-title">Localização / Imagens</h3> <!-- título visual da seção de localização / imagens -->
+              <!-- Título da seção de localização e imagens da avaliação -->
+              <h3 class="form-section-title">Localização / Imagens</h3> <!-- título visual da seção de fotos -->
 
-              <div class="form-row"><!-- linha com URLs de imagens -->
-                <div class="form-group full-width"><!-- primeira imagem -->
-                  <label for="localizacao-imagem1-url">URL da imagem 1 (planta, layout, etc.)</label>
-                  <input
-                    type="url"
-                    id="localizacao-imagem1-url"
-                    placeholder="https://exemplo.com/imagem1.jpg"
-                  />
+              <!-- Contêiner geral da seção de imagens de localização -->
+              <div
+                class="image-section"                 
+                id="localizacao-imagens-section"      
+              >
+                <!-- ========================= LINHA DE IMAGEM 1 ========================= -->
+                <div class="image-row">               <!-- linha que agrupa miniatura + campos da primeira imagem -->
+                  <div class="image-thumb-column">    <!-- coluna reservada para a miniatura da foto -->
+                    <div class="image-thumb-wrapper"> <!-- wrapper da miniatura, controla borda e proporção -->
+                      <img
+                        id="localizacao-imagem1-thumb"          
+                        class="image-thumb"                     
+                        src=""                                  
+                        alt="Prévia da imagem 1"                
+                      />
+                      <div
+                        class="image-thumb-placeholder"         
+                        id="localizacao-imagem1-placeholder"    
+                      >
+                        Prévia não disponível                   <!-- texto que aparece enquanto não há miniatura -->
+                      </div>
+                    </div>
+
+                    <button
+                      type="button"                             
+                      class="btn btn-primary btn-small image-thumb-zoom-btn" 
+                      data-image-target="localizacao-imagem1-thumb"           
+                    >
+                      Ampliar                                    <!-- rótulo do botão que abrirá a imagem em tamanho maior -->
+                    </button>
+                  </div>
+
+                  <div class="image-fields-column">              <!-- coluna com url + descrição + ações da imagem -->
+                    <div class="form-group full-width">          <!-- grupo para o campo de URL da primeira imagem -->
+                      <label for="localizacao-imagem1-url">      <!-- rótulo associado ao input de URL 1 -->
+                        URL da imagem 1 (planta, layout, etc.)   <!-- texto explicativo do que deve ser inserido -->
+                      </label>
+                      <input
+                        type="url"                              
+                        id="localizacao-imagem1-url"            
+                        placeholder="https://exemplo.com/imagem1.jpg"
+                      />
+                    </div>
+
+                    <div class="form-group full-width">          <!-- grupo para o campo de descrição da imagem 1 -->
+                      <label for="localizacao-imagem1-descricao"> <!-- rótulo associado ao input de descrição 1 -->
+                        Descrição / texto da imagem 1            <!-- legenda explicando que é a descrição da foto -->
+                      </label>
+                      <input
+                        type="text"                              
+                        id="localizacao-imagem1-descricao"       
+                        placeholder="Descreva o que a foto mostra (corredor, sala, vista geral, etc.)"
+                      />
+                    </div>
+
+                    <div class="image-row-actions">              <!-- faixa de botões de ação específicos da imagem 1 -->
+                      <button
+                        type="button"                            
+                        class="btn btn-primary btn-small image-select-file-btn"
+                        data-image-index="1"                     
+                      >
+                        Selecionar imagem                        <!-- texto do botão para abrir seleção de arquivo (futuramente) -->
+                      </button>
+
+                      <button
+                        type="button"
+                        class="btn btn-primary btn-small image-open-camera-btn"
+                        data-image-index="1"                     
+                      >
+                        Abrir câmera                             <!-- texto indicando que irá usar a câmera do dispositivo -->
+                      </button>
+                    </div>
+                  </div>
                 </div>
-              </div>
 
-              <div class="form-row"><!-- linha com segunda imagem -->
-                <div class="form-group full-width"><!-- segunda imagem -->
-                  <label for="localizacao-imagem2-url">URL da imagem 2 (opcional)</label>
-                  <input
-                    type="url"
-                    id="localizacao-imagem2-url"
-                    placeholder="https://exemplo.com/imagem2.jpg"
-                  />
+                <!-- ========================= LINHA DE IMAGEM 2 ========================= -->
+                <div class="image-row">               <!-- segunda linha de imagem, ligada ao campo legado imagem2 -->
+                  <div class="image-thumb-column">    <!-- coluna de miniatura da segunda imagem -->
+                    <div class="image-thumb-wrapper"> <!-- wrapper com borda/proporção para a miniatura 2 -->
+                      <img
+                        id="localizacao-imagem2-thumb"         
+                        class="image-thumb"                    
+                        src=""                                 
+                        alt="Prévia da imagem 2"               
+                      />
+                      <div
+                        class="image-thumb-placeholder"        
+                        id="localizacao-imagem2-placeholder"   
+                      >
+                        Prévia não disponível                   <!-- mensagem padrão exibida sem imagem carregada -->
+                      </div>
+                    </div>
+
+                    <button
+                      type="button"                              
+                      class="btn btn-primary btn-small image-thumb-zoom-btn"
+                      data-image-target="localizacao-imagem2-thumb"           
+                    >
+                      Ampliar                                    <!-- texto do botão de ampliação -->
+                    </button>
+                  </div>
+
+                  <div class="image-fields-column">              <!-- coluna com campos da segunda imagem -->
+                    <div class="form-group full-width">          <!-- grupo do campo de URL 2 (mantém compatibilidade) -->
+                      <label for="localizacao-imagem2-url">      <!-- rótulo associado ao input de URL 2 -->
+                        URL da imagem 2 (opcional)               <!-- texto informando que esta imagem é opcional -->
+                      </label>
+                      <input
+                        type="url"                               
+                        id="localizacao-imagem2-url"             
+                        placeholder="https://exemplo.com/imagem2.jpg"
+                      />
+                    </div>
+
+                    <div class="form-group full-width">          <!-- grupo do campo de descrição da segunda imagem -->
+                      <label for="localizacao-imagem2-descricao"> <!-- rótulo para o campo de descrição 2 -->
+                        Descrição / texto da imagem 2            <!-- legenda da descrição da segunda foto -->
+                      </label>
+                      <input
+                        type="text"                              
+                        id="localizacao-imagem2-descricao"       
+                        placeholder="Use para detalhar uma segunda vista do local, se necessário."
+                      />
+                    </div>
+
+                    <div class="image-row-actions">              <!-- faixa de ações para a segunda imagem -->
+                      <button
+                        type="button"                            
+                        class="btn btn-primary btn-small image-select-file-btn"
+                        data-image-index="2"                     
+                      >
+                        Selecionar imagem                        <!-- texto do botão de selecionar arquivo para imagem 2 -->
+                      </button>
+
+                      <button
+                        type="button"
+                        class="btn btn-primary btn-small image-open-camera-btn"
+                        data-image-index="2"                     
+                      >
+                        Abrir câmera                             <!-- rótulo do botão de câmera -->
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- ========================= RODAPÉ DA SEÇÃO ========================= -->
+                <div class="image-section-footer">               <!-- rodapé com botão para futuras linhas adicionais -->
+                  <button
+                    type="button"
+                    class="btn btn-primary btn-small image-add-row-btn"
+                    id="btn-localizacao-adicionar-imagem"
+                    disabled                                    
+                    title="Por enquanto limitado a 2 imagens. Na próxima etapa liberamos linhas adicionais."
+                  >
+                    Nova imagem (em breve)                       <!-- texto indicando que o recurso será ampliado depois -->
+                  </button>
                 </div>
               </div>
 
@@ -2167,5 +2326,99 @@
     <!-- Fim do modal de troca de senha obrigatória --> <!-- comentário encerrando o bloco -->
     <!-- Script principal da aplicação -->
     <script src="/static/app.js"></script>
+
+    <!-- ==================== MODAL GLOBAL DE CÂMERA (GETUSERMEDIA) ==================== --> <!-- modal reutilizável para capturar foto no navegador -->
+    <div
+      id="camera-modal"
+      class="camera-modal"
+    >
+      <div
+        id="camera-modal-backdrop"
+        class="camera-backdrop"   
+      ></div>
+
+      <div
+        class="camera-content"    
+      >
+        <div
+          class="camera-header"   
+        >
+          <h3
+            class="camera-title"  
+          >
+            Câmera
+          </h3>
+
+          <button
+            type="button"         
+            id="camera-btn-fechar" 
+            class="btn btn-secondary btn-small camera-close-btn"
+          >
+            Fechar
+          </button>
+        </div>
+
+        <video
+          id="camera-video"
+          class="camera-video"
+          autoplay            
+          playsinline         
+          muted               
+        ></video>
+
+        <canvas
+          id="camera-canvas"  
+          class="camera-canvas"
+        ></canvas>
+
+        <div
+          class="camera-actions"
+        >
+          <button
+            type="button"       
+            id="camera-btn-capturar"
+            class="btn btn-primary" 
+          >
+            Capturar foto
+          </button>
+        </div>
+      </div>
+    </div>
+    <!-- ================== FIM DO MODAL GLOBAL DE CÂMERA (GETUSERMEDIA) ================== -->
+
+      <!-- ==================== MODAL GLOBAL DE PRÉVIA DE IMAGEM ==================== -->
+    <div
+      id="image-preview-modal" 
+      class="image-preview-modal"
+    >
+      <div
+        class="image-preview-backdrop"
+      ></div>
+      <div
+        class="image-preview-content" 
+      >
+        <button
+          type="button"               
+          class="image-preview-close" 
+          aria-label="Fechar prévia"  
+        >
+          &times;                                  <!-- ícone de “X” simples usando caractere HTML -->
+        </button>
+
+        <img
+          src=""                      
+          alt="Prévia ampliada"       
+          class="image-preview-img"   
+        />
+
+        <div
+          class="image-preview-caption"
+        >
+          <!-- A descrição da imagem será inserida aqui via JS -->
+        </div>
+      </div>
+    </div>
+    <!-- ================== FIM DO MODAL GLOBAL DE PRÉVIA DE IMAGEM ================== -->
+
   </body>
 </html>

@@ -56,10 +56,6 @@ body {
   display: none !important;
 }
 
-.hidden-file-input {             /* classe para inputs de arquivo que devem ficar invisíveis na interface */
-  display: none;                 /* esconde o elemento da tela, mas mantém funcionalidade via JavaScript */
-}
-
 .invisible-keep-space{       /* nova classe para esconder o conteúdo mantendo o espaço reservado */
   visibility: hidden;         /* o elemento fica invisível, mas continua ocupando seu espaço no layout */
 }
@@ -211,8 +207,7 @@ body {
   padding: 20px 18px;
   display: flex;
   flex-direction: column;
-  /* min-height: 320px; */
-  min-height: auto;
+  min-height: 320px;
 }
 
 /* Ajuste das duas colunas */
@@ -513,6 +508,116 @@ body {
   font-size: 0.9rem;                            /* um pouco maior que o label padrão */
   font-weight: 600;                             /* deixa o texto mais forte para parecer um subtítulo */
   color: var(--nt-primary-dark);                /* mesma cor dos títulos de card, para consistência */
+}
+
+/* ==================== SEÇÃO DE IMAGENS (LOCALIZAÇÃO) ==================== */
+.image-section {                              /* contêiner geral da seção de imagens */
+  display: flex;                              /* usa flexbox para organizar as linhas na vertical */
+  flex-direction: column;                     /* garante que as linhas fiquem empilhadas (uma abaixo da outra) */
+  gap: 12px;                                  /* espaço vertical entre as linhas de imagem e o rodapé */
+  padding: 10px 10px 12px;                    /* espaçamento interno ao redor do bloco de imagens */
+  border: 1px dashed rgba(37, 99, 235, 0.4);  /* borda tracejada suave para destacar a área de fotos */
+  border-radius: 12px;                        /* cantos arredondados para combinar com o restante do app */
+  background-color: #f9fbff;                  /* fundo mais claro para diferenciar do resto do formulário */
+}
+
+/* Cada linha de imagem (miniatura + campos) */
+.image-row {                                  /* linha que agrupa miniatura e campos da foto */
+  display: flex;                              /* usa flexbox para separar coluna da miniatura e coluna dos campos */
+  flex-wrap: wrap;                            /* permite quebrar em duas linhas em telas menores */
+  gap: 12px;                                  /* espaço entre a coluna da miniatura e a coluna de campos */
+  align-items: flex-start;                    /* alinha topo dos elementos (miniatura e campos) */
+}
+
+/* Coluna da miniatura da imagem */
+.image-thumb-column {                         /* coluna da esquerda, onde fica a miniatura + botão de ampliar */
+  display: flex;                              /* usa flexbox para empilhar miniatura e botão */
+  flex-direction: column;                     /* coloca miniatura em cima e botão embaixo */
+  gap: 6px;                                   /* espaço pequeno entre miniatura e botão de ampliar */
+  flex: 0 0 130px;                            /* largura fixa da coluna de miniatura (não cresce) */
+}
+
+/* Área em que a miniatura da imagem é desenhada */
+.image-thumb-wrapper {                        /* moldura da miniatura (borda e proporção fixa) */
+  width: 120px;                               /* largura da área da miniatura */
+  height: 90px;                               /* altura da área da miniatura (formato mais horizontal) */
+  border-radius: 10px;                        /* cantos arredondados */
+  border: 1px solid var(--nt-border-soft);    /* borda discreta para delimitar o espaço da imagem */
+  overflow: hidden;                           /* corta qualquer parte da imagem que ultrapasse o retângulo */
+  background-color: #e5edff;                  /* fundo claro enquanto não há imagem */
+  display: flex;                              /* centraliza conteúdo (imagem ou placeholder) */
+  align-items: center;                        /* centraliza verticalmente */
+  justify-content: center;                    /* centraliza horizontalmente */
+  position: relative;                         /* permite sobrepor placeholder e imagem se necessário */
+}
+
+/* Imagem em miniatura (caso exista) */
+.image-thumb {                                /* estilo das imagens em miniatura */
+  max-width: 100%;                            /* impede que a imagem ultrapasse a largura do wrapper */
+  max-height: 100%;                           /* impede que a imagem ultrapasse a altura do wrapper */
+  object-fit: cover;                          /* recorta proporcionalmente preenchendo o retângulo */
+  display: none;                              /* começa escondida; será exibida quando houver imagem válida */
+}
+
+/* Placeholder mostrado quando ainda não há imagem */
+.image-thumb-placeholder {                    /* texto central "Prévia não disponível" */
+  font-size: 0.7rem;                          /* fonte pequena para caber dentro da miniatura */
+  color: var(--nt-text-muted);                /* cor mais suave para não chamar tanta atenção */
+  text-align: center;                         /* centraliza o texto dentro do bloco */
+  padding: 4px;                               /* pequeno espaçamento interno para o texto respirar */
+}
+
+/* Coluna dos campos (URL, descrição e botões de ação) */
+.image-fields-column {                        /* coluna da direita com inputs e botões */
+  display: flex;                              /* organiza o conteúdo em coluna */
+  flex-direction: column;                     /* coloca grupos de campos em coluna */
+  gap: 6px;                                   /* espaço vertical entre grupos e ações */
+  flex: 1 1 250px;                            /* ocupa todo o espaço restante com largura mínima confortável */
+}
+
+/* Linha de botões de ação da imagem */
+.image-row-actions {                          /* faixa contendo "Selecionar imagem" e "Abrir câmera" */
+  display: flex;                              /* exibe botões lado a lado */
+  flex-wrap: wrap;                            /* permite quebra de linha em telas menores */
+  gap: 8px;                                   /* espaço entre os botões */
+  margin-top: 2px;                            /* pequeno respiro acima dos botões em relação aos campos */
+}
+
+/* Rodapé da seção de imagens (botão Nova imagem) */
+.image-section-footer {                       /* contêiner do botão "Nova imagem" */
+  display: flex;                              /* usa flexbox para posicionar o botão */
+  justify-content: flex-end;                  /* alinha o botão à direita dentro da área de imagens */
+  margin-top: 4px;                            /* espaço acima do rodapé em relação às linhas de imagem */
+}
+
+/* Botão específico para adicionar novas linhas de imagem */
+.image-add-row-btn {                          /* botão de adicionar nova linha de imagem */
+  min-width: 150px;                           /* largura mínima confortável para o texto */
+}
+
+/* Versão extra-pequena dos botões, para caber melhor perto da miniatura */
+.btn-small {                                  /* variação de tamanho de botão para ações da imagem */
+  padding: 4px 10px;                          /* padding reduzido em relação ao botão padrão */
+  font-size: 0.75rem;                         /* fonte um pouco menor para caber melhor no layout compacto */
+}
+
+/* Ajuste para telas pequenas: linha de imagem vira coluna (miniatura em cima) */
+@media (max-width: 600px) {                   /* regras específicas para celulares */
+  .image-row {                                /* cada linha de imagem em telas pequenas */
+    flex-direction: column;                   /* coloca miniatura em cima e os campos abaixo */
+  }
+
+  .image-thumb-column {                       /* coluna da miniatura neste contexto */
+    flex: 0 0 auto;                           /* libera a largura fixa para se ajustar automaticamente */
+  }
+
+  .image-fields-column {                      /* coluna dos campos em telas pequenas */
+    flex: 1 1 auto;                           /* permite que os campos ocupem toda a largura disponível */
+  }
+
+  .image-section-footer {                     /* rodapé em telas pequenas */
+    justify-content: flex-start;              /* coloca o botão "Nova imagem" alinhado à esquerda */
+  }
 }
 
 label {
@@ -1039,4 +1144,131 @@ textarea:focus {
   .lista-materiais-acoes {                           /* área do botão no mobile */
     justify-content: center;                         /* centraliza o botão (mais amigável para o polegar) */
   }
+}
+
+/* ==================== MODAL DE CÂMERA (GETUSERMEDIA) ==================== */ /* seção do modal de câmera embutida */
+.camera-modal {                                   /* contêiner raiz do modal de câmera */
+  position: fixed;                                /* fixa o modal na viewport */
+  inset: 0;                                       /* ocupa tela inteira */
+  display: none;                                  /* começa escondido */
+  align-items: center;                            /* centraliza verticalmente */
+  justify-content: center;                        /* centraliza horizontalmente */
+  z-index: 10000;                                 /* acima do restante da UI */
+}
+
+.camera-modal.open {                               /* estado visível do modal */
+  display: flex;                                   /* exibe e centraliza conteúdo */
+}
+
+.camera-backdrop {                                 /* fundo escuro clicável */
+  position: absolute;                              /* cobre toda a tela */
+  inset: 0;                                        /* top/right/bottom/left = 0 */
+  background: rgba(0, 0, 0, 0.65);                 /* escurece atrás do modal */
+}
+
+.camera-content {                                  /* caixa do conteúdo do modal */
+  position: relative;                              /* acima do backdrop */
+  width: min(720px, 92vw);                         /* largura responsiva */
+  background: #0f172a;                             /* fundo escuro (combina com tema) */
+  border: 1px solid rgba(255, 255, 255, 0.10);     /* borda sutil */
+  border-radius: 14px;                             /* cantos arredondados */
+  padding: 14px;                                   /* espaçamento interno */
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);     /* sombra suave */
+}
+
+.camera-header {                                   /* topo do modal */
+  display: flex;                                   /* título + botão lado a lado */
+  align-items: center;                             /* alinha verticalmente */
+  justify-content: space-between;                  /* separa título e fechar */
+  gap: 10px;                                       /* espaço entre itens */
+  margin-bottom: 10px;                             /* separa do vídeo */
+}
+
+.camera-title {                                    /* título do modal */
+  margin: 0;                                       /* remove margem padrão */
+  font-size: 1.05rem;                              /* tamanho confortável */
+  font-weight: 700;                                /* destaque */
+  color: #e5e7eb;                                  /* texto claro */
+}
+
+.camera-video {                                    /* vídeo do preview da câmera */
+  width: 100%;                                     /* ocupa toda a largura */
+  max-height: 62vh;                                /* evita estourar a tela */
+  border-radius: 12px;                             /* cantos arredondados */
+  background: #000;                                /* fundo preto enquanto carrega */
+  object-fit: cover;                               /* preenche mantendo corte bonito */
+}
+
+.camera-canvas {                                   /* canvas usado na captura */
+  display: none;                                   /* fica oculto (apenas para processamento) */
+}
+
+.camera-actions {                                  /* área de botões */
+  display: flex;                                   /* layout flex */
+  justify-content: flex-end;                       /* alinha botão à direita */
+  gap: 10px;                                       /* espaço entre botões */
+  margin-top: 12px;                                /* separa do vídeo */
+}
+
+/* ==================== MODAL DE PRÉVIA DE IMAGEM ==================== */
+.image-preview-modal {                           /* contêiner raiz do modal de imagem */
+  position: fixed;                               /* fixa o modal em relação à janela do navegador */
+  inset: 0;                                      /* ocupa toda a área visível (topo, direita, baixo, esquerda = 0) */
+  display: none;                                 /* começa escondido; será exibido quando ganhar a classe .open */
+  align-items: center;                           /* centraliza verticalmente o conteúdo interno */
+  justify-content: center;                       /* centraliza horizontalmente o conteúdo interno */
+  z-index: 9999;                                 /* coloca o modal acima de quase todos os outros elementos */
+}
+
+.image-preview-modal.open {                      /* estado em que o modal deve ficar visível */
+  display: flex;                                 /* exibe o modal usando flexbox, centralizando o conteúdo */
+}
+
+.image-preview-backdrop {                        /* camada de fundo escurecida atrás do conteúdo do modal */
+  position: absolute;                            /* posiciona o fundo em relação ao contêiner do modal */
+  inset: 0;                                      /* cobre toda a área do modal */
+  background-color: rgba(0, 0, 0, 0.55);         /* fundo preto translúcido para dar efeito de overlay */
+}
+
+.image-preview-content {                         /* caixa branca central com a imagem e a legenda */
+  position: relative;                            /* permite posicionar o botão de fechar dentro desta caixa */
+  background-color: #ffffff;                     /* fundo branco para destacar a imagem */
+  border-radius: 12px;                           /* cantos arredondados para combinar com os cards do app */
+  padding: 16px 16px 12px;                       /* espaçamento interno ao redor do conteúdo */
+  max-width: 90vw;                               /* limita a largura máxima a 90% da largura da viewport */
+  max-height: 90vh;                              /* limita a altura máxima a 90% da altura da viewport */
+  box-shadow: 0 14px 40px rgba(15, 23, 42, 0.35);/* sombra forte para dar sensação de sobreposição */
+  display: flex;                                 /* organiza os elementos internos em coluna */
+  flex-direction: column;                        /* empilha a imagem e a legenda verticalmente */
+  gap: 8px;                                      /* espaço entre o botão, a imagem e a legenda */
+}
+
+.image-preview-close {                           /* botão de fechar (ícone X) no canto superior direito do modal */
+  position: absolute;                            /* posiciona relativamente ao contêiner de conteúdo */
+  top: 6px;                                      /* distância do topo da caixa de conteúdo */
+  right: 8px;                                    /* distância da borda direita da caixa de conteúdo */
+  border: none;                                  /* remove borda padrão do botão */
+  background: transparent;                       /* deixa o fundo do botão transparente */
+  font-size: 1.4rem;                             /* tamanho do ícone X para ficar bem visível */
+  cursor: pointer;                               /* mostra o cursor de mãozinha ao passar por cima */
+  color: #4b5563;                                /* cor cinza escuro para o ícone X */
+}
+
+.image-preview-close:hover {                     /* estilo do botão de fechar quando o mouse passa por cima */
+  color: #111827;                                /* escurece um pouco a cor para indicar interação */
+}
+
+.image-preview-img {                             /* imagem ampliada exibida no modal */
+  max-width: 80vw;                               /* limita a largura da imagem para caber na tela */
+  max-height: 70vh;                              /* limita a altura da imagem para caber confortavelmente */
+  object-fit: contain;                           /* redimensiona a imagem sem distorcer, mantendo proporções */
+  border-radius: 8px;                            /* cantos levemente arredondados */
+}
+
+.image-preview-caption {                         /* texto de descrição da imagem, logo abaixo da foto */
+  font-size: 0.85rem;                            /* tamanho de fonte um pouco menor que o padrão */
+  color: #4b5563;                                /* cor de texto cinza médio */
+  margin-top: 2px;                               /* pequeno espaço acima da legenda */
+  max-width: 80vw;                               /* impede que a legenda fique mais larga que a imagem */
+  word-wrap: break-word;                         /* permite quebra de palavras longas na legenda */
 }
